@@ -32,9 +32,6 @@ define('QR_N2', 3);
 define('QR_N3', 40);
 define('QR_N4', 10);
 
-// QRImage
-define('QR_IMAGE', true);
-
 // QRinputItem
 define('QR_STRUCTURE_HEADER_BITS', 20);
 //define('MAX_STRUCTURED_SYMBOLS', 16); # UNUSED
@@ -54,9 +51,6 @@ define('QR_ECLEVEL_Q', 2);
 define('QR_ECLEVEL_H', 3);
 
 // Supported output formats
-define('QR_FORMAT_TEXT', 0);
-define('QR_FORMAT_PNG', 1);
-
 define('QR_FIND_BEST_MASK', true); // if true, estimates best mask (spec. default, but extremally slow; set to false to significant performance boost but (propably) worst quality code
 define('QR_FIND_FROM_RANDOM', false); // if false, checks all masks available, otherwise value tells count of masks need to be checked, mask id are got randomly
 define('QR_DEFAULT_MASK', 2); // when QR_FIND_BEST_MASK === false
