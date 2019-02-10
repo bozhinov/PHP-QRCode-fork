@@ -131,7 +131,7 @@ class FrameFiller {
 			$this->y = $y;
 
 		} while(ord($this->frame[$y][$x]) & 0x80);
-					
+
 		return ['x'=>$x, 'y'=>$y];
 	}
 

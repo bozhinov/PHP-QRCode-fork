@@ -22,18 +22,18 @@ class QRinputItem {
 	public $data;
 	public $bstream;
 	public $version;
-	
+
 	private $QRinput;
 	private $QRspec;
-	
-	function __construct($mode, $size, $data, $version) 
+
+	function __construct($mode, $size, $data, $version)
 	{
 		$setData = array_slice($data, 0, $size);
-		
+
 		if (count($setData) < $size) {
 			$setData = array_merge($setData, array_fill(0,$size-count($setData),0));
 		}
-		
+
 		$this->QRinput = new QRinput();
 		$this->QRspec = new QRspec();
 		$this->bstream = [];
@@ -42,17 +42,17 @@ class QRinputItem {
 			throw QRException::Std('Error m:'.$mode.',s:'.$size.',d:'.join(',',$setData));
 			return null;
 		}
-		
+
 		$this->mode = $mode;
 		$this->size = $size;
 		$this->data = $setData;
 		$this->version = $version;
 	}
-	
+
 	private function encodeModeNum()
-	{		
+	{
 		$words = (int)($this->size / 3);
-		
+
 		$val = 0x1;
 		$this->bstream[] = [4, $val];
 		$this->bstream[] = [$this->QRspec->lengthIndicator(QR_MODE_NUM, $this->version), $this->size];
@@ -77,7 +77,7 @@ class QRinputItem {
 	private function encodeModeAn()
 	{
 		$words = (int)($this->size / 2);
-		
+
 		$this->bstream[] = [4, 0x02];
 		$this->bstream[] = [$this->QRspec->lengthIndicator(QR_MODE_AN, $this->version), $this->size];
 
@@ -93,7 +93,7 @@ class QRinputItem {
 			$this->bstream[] = [6, $val];
 		}
 	}
-	
+
 	private function encodeMode8()
 	{
 		$this->bstream[] = [4, 0x4];
@@ -103,9 +103,9 @@ class QRinputItem {
 			$this->bstream[] = [8, ord($this->data[$i])];
 		}
 	}
-	
+
 	private function encodeModeKanji()
-	{		
+	{
 		$this->bstream[] = [4, 0x8];
 		$this->bstream[] = [$this->QRspec->lengthIndicator(QR_MODE_KANJI, $this->version), (int)($this->size / 2)];
 
@@ -131,7 +131,7 @@ class QRinputItem {
 		$this->bstream[] = [4, ord($this->data[0]) - 1];
 		$this->bstream[] = [8, ord($this->data[2])];
 	}
-	
+
 	public function estimateBitStreamSizeOfEntry()
 	{
 		$bits = 0;
@@ -167,7 +167,7 @@ class QRinputItem {
 
 		return $bits;
 	}
-	
+
 	public function encodeBitStream()
 	{
 
@@ -178,12 +178,11 @@ class QRinputItem {
 			list($bstreamSize1, $bstreamData1) = (new QRinputItem($this->mode, $words, $this->data, $this->version))->encodeBitStream();
 			list($bstreamSize2, $bstreamData2) = (new QRinputItem($this->mode, $this->size - $words, array_slice($this->data, $words), $this->version))->encodeBitStream();
 
-			$this->bstream = [];
-			$this->bstream = array_merge($this->bstream, $bstreamData1);
+			$this->bstream = $bstreamData1;
 			$this->bstream = array_merge($this->bstream, $bstreamData2);
-			
+
 		} else {
-			
+
 			switch($this->mode) {
 				case QR_MODE_NUM:
 					$this->encodeModeNum();

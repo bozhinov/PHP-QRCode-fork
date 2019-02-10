@@ -149,7 +149,7 @@ class QRcode {
 		$this->version = $encoded['version'];
 		$this->width = $encoded['width'];
 		$this->data = $encoded['data'];
-				
+
 		if ($outfile!== false) {
 			file_put_contents($outfile, join("\n", $this->binarize($this->data)));
 		} else {
@@ -157,14 +157,14 @@ class QRcode {
 		}
 	}
 
-	public function png($text, $outfile = false, $saveandprint=false) 
+	public function png($text, $outfile = false, $saveandprint=false)
 	{
 		$tab = $this->encode($text);
-		
+
 		$maxSize = (int)(QR_PNG_MAXIMUM_SIZE / (count($tab)+2*$this->margin));
-		
+
 		$pixelPerPoint = min(max(1, $this->size), $maxSize);
-		
+
 		(new QRimage($tab, $pixelPerPoint, $this->margin, $saveandprint))->png($outfile);
 	}
 
@@ -173,7 +173,7 @@ class QRcode {
 		return $this->encode($text, $outfile);
 	}
 
-	public function raw($text, $outfile = false) 
+	public function raw($text, $outfile = false)
 	{
 		if($this->eightbit) {
 			$encoded = $this->encodeString8bit($text);

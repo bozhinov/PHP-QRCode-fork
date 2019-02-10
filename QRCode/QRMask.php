@@ -292,6 +292,7 @@ class QRmask {
 
 	public function get($mask)
 	{
+		# $mask is always -1
 		if($mask < 0) {
 		
 			if (QR_FIND_BEST_MASK) {
