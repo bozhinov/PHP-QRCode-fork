@@ -23,9 +23,6 @@ class QRrsItem {
 	private $index_of = [];	// Antilog lookup table 
 	private $genpoly = [];	// Generator polynomial 
 	private $nroots;		// Number of generator roots = number of parity symbols 
-	#private $fcr;			// First consecutive root, index form 
-	#private $prim;			// Primitive element, index form 
-	#private $iprim;		// prim-th root of 1, index form 
 	private $pad;			// Padding bytes in shortened block 
 
 	public function modnn($x)
@@ -38,22 +35,18 @@ class QRrsItem {
 		return $x;
 	}
 	
-	function __construct($symsize, $gfpoly, $fcr, $prim, $nroots, $pad)
+	function __construct($nroots, $pad)
 	{
 		// Common code for intializing a Reed-Solomon control block (char or int symbols)
 		// Copyright 2004 Phil Karn, KA9Q
 		// May be used under the terms of the GNU Lesser General Public License (LGPL)
 		
+		$symsize = 8;
+		$gfpoly	= 0x11d;
+		$fcr = 0;
+		$prim = 1;
+		
 		// Check parameter ranges
-		if($symsize < 0 || $symsize > 8){
-			throw QRException::Std('bad range');
-		}
-		if($fcr < 0 || $fcr >= (1<<$symsize)){
-			throw QRException::Std('bad range');
-		}
-		if($prim <= 0 || $prim >= (1<<$symsize)){
-			throw QRException::Std('bad range');
-		}
 		if($nroots < 0 || $nroots >= (1<<$symsize)){
 			throw QRException::Std("Can't have more roots than symbol values!");
 		}
@@ -109,7 +102,7 @@ class QRrsItem {
 			// rs->genpoly[0] can never be zero
 			$this->genpoly[0] = $this->alpha_to[$this->modnn($this->index_of[$this->genpoly[0]] + $root)];
 
-			$root += $prim;	
+			$root += $prim;
 		}
 
 		// convert rs->genpoly[] to index form for quicker encoding

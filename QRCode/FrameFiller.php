@@ -44,11 +44,14 @@ class FrameFiller {
 	public function getFrame($dataCode, $level)
 	{
 		$spec = $this->QRspec->getEccSpec($this->version, $level);
+		
+		$dataLength = ($spec[0] * $spec[1]) + ($spec[3] * $spec[4]);
+		$eccLength = ($spec[0] + $spec[3]) * $spec[2];
 
-		$raw = new QRrawcode($dataCode, $spec);
+		$raw = new QRrawcode($dataCode, $dataLength, $eccLength, $spec);
 		
 		// inteleaved data and ecc codes
-		for($i=0; $i<$raw->dataLength + $raw->eccLength; $i++) {
+		for($i=0; $i < ($dataLength + $eccLength); $i++) {
 			$code = $raw->getCode();
 			$bit = 0x80;
 			for($j=0; $j<8; $j++) {
