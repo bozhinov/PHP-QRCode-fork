@@ -84,35 +84,17 @@ class QRcode {
 	private $level = QR_ECLEVEL_L;
 	private $hint = QR_MODE_8;
 	
-	function __construct($level = QR_ECLEVEL_L, $size = 3, $margin = 4)
+	function __construct(int $level = QR_ECLEVEL_L, int $size = 3, int $margin = 4, bool $eightbit = false, bool $casesensitive = true)
 	{
 		$this->size = $size;
 		$this->margin = $margin;
+		$this->eightbit = $eightbit;
+		$this->casesensitive = $casesensitive;
 		
-		switch ($level.'') {
-			case '0':
-			case '1':
-			case '2':
-			case '3':
-					$this->level = $level;
-				break;
-			case 'l':
-			case 'L':
-					$this->level = QR_ECLEVEL_L;
-				break;
-			case 'm':
-			case 'M':
-					$this->level = QR_ECLEVEL_M;
-				break;
-			case 'q':
-			case 'Q':
-					$this->level = QR_ECLEVEL_Q;
-				break;
-			case 'h':
-			case 'H':
-					$this->level = QR_ECLEVEL_H;
-				break;
+		if (!in_array($level,[0,1,2,3,4])){
+			throw QRException::Std('unknown error correction level');
 		}
+		$this->level = $level;
 	}
 
 	private function encodeString8bit($string)
@@ -186,12 +168,12 @@ class QRcode {
 		(new QRimage($tab, $pixelPerPoint, $this->margin, $saveandprint))->png($outfile);
 	}
 
-	public function text($text, $outfile = false, $level = QR_ECLEVEL_L, $size = 3, $margin = 4) 
+	public function text($text, $outfile = false)
 	{
 		return $this->encode($text, $outfile);
 	}
 
-	public function raw($text, $outfile = false, $level = QR_ECLEVEL_L, $size = 3, $margin = 4) 
+	public function raw($text, $outfile = false) 
 	{
 		if($this->eightbit) {
 			$encoded = $this->encodeString8bit($text);
