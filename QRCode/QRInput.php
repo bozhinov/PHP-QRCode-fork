@@ -211,9 +211,9 @@ class QRinput {
 
 		foreach($this->items as $item) {
 
-			list($bitsSize, $bitsData) = $item->encodeBitStream();
+			$bitsData = $item->encodeBitStream();
 
-			$total += $bitsSize;
+			$total += count($bitsData);
 		}
 
 		return $total;

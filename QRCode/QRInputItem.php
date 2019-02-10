@@ -182,11 +182,10 @@ class QRinputItem {
 				
 		if($this->size > $words) {
 
-			list($bstreamSize1, $bstreamData1) = $this->encodeBitStream($words);
-			list($bstreamSize2, $bstreamData2) = $this->encodeBitStream($this->size - $words, array_slice($this->data, $words));
+			$bstreamData1 = $this->encodeBitStream($words);
+			$bstreamData2 = $this->encodeBitStream($this->size - $words, array_slice($this->data, $words));
 
-			$this->bstream = $bstreamData1;
-			$this->bstream = array_merge($this->bstream, $bstreamData2);
+			$this->bstream = array_merge($bstreamData1, $bstreamData2);
 
 		} else {
 
@@ -210,7 +209,7 @@ class QRinputItem {
 
 		}
 
-		return [count($this->bstream), $this->bstream];
+		return $this->bstream;
 	}
 }
 
