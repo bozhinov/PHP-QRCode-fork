@@ -18,79 +18,91 @@ namespace QRCode;
 class QRimage {
 	
 	private $frame;
+	private $image;
 	private $pixelPerPoint;
 	private $outerFrame;
-	private $saveandprint;
 	
-	function __construct($frame, $pixelPerPoint = 4, $outerFrame = 4,$saveandprint=FALSE)
+	function __construct(array $frame, int $pixelPerPoint = 4, int $outerFrame = 4)
 	{
 		$this->frame = $frame;
 		$this->pixelPerPoint = $pixelPerPoint;
 		$this->outerFrame = $outerFrame;
-		$this->saveandprint = $saveandprint;
+		
+		$this->image = $this->createImage();
 	}
 	
-	public function png($filename = false)
-	{
-		$image = $this->image();
-		
+	function __destruct(){
+		if (is_resource($this->image)){
+			imageDestroy($this->image);
+		}
+	}
+	
+	public function png($filename = false, bool $saveandprint = false)
+	{		
 		if ($filename === false) {
-			Header("Content-type: image/png");
-			ImagePng($image);
+			
+			header("Content-type: image/png");
+			imagePng($this->image);
+			
 		} else {
-			if($this->saveandprint){
-				ImagePng($image, $filename);
+			
+			imagePng($this->image, $filename);
+			
+			if ($saveandprint) {
+				imagePng($this->image, $filename);
 				header("Content-type: image/png");
-				ImagePng($image);
-			}else{
-				ImagePng($image, $filename);
+				imagePng($this->image);
 			}
 		}
-		
-		ImageDestroy($image);
 	}
 
 	/* $pixelPerPoint = 8 default */
-	public function jpg($filename = false, $q = 85) 
-	{
-		$image = $this->image();
-		
+	public function jpg($filename = false, int $q = 85, bool $saveandprint = false) 
+	{		
 		if ($filename === false) {
-			Header("Content-type: image/jpeg");
-			ImageJpeg($image, null, $this->q);
+			
+			header("Content-type: image/jpeg");
+			imageJpeg($this->image, null, $q);
+			
 		} else {
-			ImageJpeg($image, $filename, $this->q);
+			
+			imageJpeg($this->image, $filename, $q);
+			
+			if($saveandprint){
+				header("Content-type: image/jpeg");
+				imageJpeg($this->image, null, $q);
+			}
 		}
-		
-		ImageDestroy($image);
 	}
 
-	private function image()
+	private function createImage()
 	{
+		
+		print_r($this->frame);
 		$h = count($this->frame);
 		$w = strlen($this->frame[0]);
 		
 		$imgW = $w + 2*$this->outerFrame;
 		$imgH = $h + 2*$this->outerFrame;
 		
-		$base_image =ImageCreate($imgW, $imgH);
+		$base_image = imageCreate($imgW, $imgH);
 		
-		$col[0] = ImageColorAllocate($base_image,255,255,255);
-		$col[1] = ImageColorAllocate($base_image,0,0,0);
+		$white = imageColorAllocate($base_image,255,255,255);
+		$black = imageColorAllocate($base_image,0,0,0);
 
-		imagefill($base_image, 0, 0, $col[0]);
+		imagefill($base_image, 0, 0, $white);
 
 		for($y=0; $y<$h; $y++) {
 			for($x=0; $x<$w; $x++) {
 				if ($this->frame[$y][$x] == '1') {
-					ImageSetPixel($base_image,$x+$this->outerFrame,$y+$this->outerFrame,$col[1]);
+					imageSetPixel($base_image,$x+$this->outerFrame,$y+$this->outerFrame,$black);
 				}
 			}
 		}
 		
-		$target_image =ImageCreate($imgW * $this->pixelPerPoint, $imgH * $this->pixelPerPoint);
-		ImageCopyResized($target_image, $base_image, 0, 0, 0, 0, $imgW * $this->pixelPerPoint, $imgH * $this->pixelPerPoint, $imgW, $imgH);
-		ImageDestroy($base_image);
+		$target_image = imageCreate($imgW * $this->pixelPerPoint, $imgH * $this->pixelPerPoint);
+		imageCopyResized($target_image, $base_image, 0, 0, 0, 0, $imgW * $this->pixelPerPoint, $imgH * $this->pixelPerPoint, $imgW, $imgH);
+		imageDestroy($base_image);
 		
 		return $target_image;
 	}
