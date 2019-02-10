@@ -272,13 +272,10 @@ class QRinput {
 		$padlen = $maxwords - $words;
 		
 		if($padlen > 0) {
-			
-			$padbuf = [];
+
 			for($i=0; $i<$padlen; $i++) {
-				$padbuf[$i] = ($i&1)?0x11:0xec;
+				$bstream->append(($i&1) ? [1,0,0,0,1]:[1,1,1,0,1,1,0,0]);# 0x11:0xec;
 			}
-			
-			$bstream->appendBytes($padlen, $padbuf);
 		}
 		
 		return $bstream->toByte();
