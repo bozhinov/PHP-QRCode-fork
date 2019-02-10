@@ -25,7 +25,7 @@ class QRinput {
 	private $QRspec;
 
 	function __construct($version = 0, $level = QR_ECLEVEL_L)
-	{		
+	{
 		$this->level = $level;
 		$this->setVersion($version);
 		
@@ -61,17 +61,6 @@ class QRinput {
 	{
 		$this->items[] = new QRinputItem($mode, $size, $data, $this->version);
 	}
-		
-	private function checkModeNum($size, $data)
-	{
-		for($i=0; $i<$size; $i++) {
-			if((ord($data[$i]) < ord('0')) || (ord($data[$i]) > ord('9'))){
-				return false;
-			}
-		}
-
-		return true;
-	}
 
 	public function estimateBitsModeNum($size)
 	{
@@ -90,22 +79,6 @@ class QRinput {
 		}
 
 		return $bits;
-	}
-
-	public function lookAnTable($c)
-	{
-		return (($c > 127) ? -1 : $this->anTable[$c]);
-	}
-
-	private function checkModeAn($size, $data)
-	{
-		for($i=0; $i<$size; $i++) {
-			if ($this->lookAnTable(ord($data[$i])) == -1) {
-				return false;
-			}
-		}
-
-		return true;
 	}
 
 	public function estimateBitsModeAn($size)
@@ -130,22 +103,6 @@ class QRinput {
 		return (int)(($size / 2) * 13);
 	}
 
-	private function checkModeKanji($size, $data)
-	{
-		if($size & 1){
-			return false;
-		}
-
-		for($i=0; $i<$size; $i+=2) {
-			$val = (ord($data[$i]) << 8) | ord($data[$i+1]);
-			if( $val < 0x8140 || ($val > 0x9ffc && $val < 0xe040) || $val > 0xebbf) {
-				return false;
-			}
-		}
-
-		return true;
-	}
-
 	/*
 	 * Validation
 	*/
@@ -156,7 +113,7 @@ class QRinput {
 		}
 
 		switch($mode) {
-			case QR_MODE_NUM:      
+			case QR_MODE_NUM:
 				return $this->checkModeNum($size, $data);
 				break;
 			case QR_MODE_AN:
@@ -176,6 +133,49 @@ class QRinput {
 		}
 
 		return false;
+	}
+	
+	private function checkModeNum($size, $data)
+	{
+		for($i=0; $i<$size; $i++) {
+			if((ord($data[$i]) < ord('0')) || (ord($data[$i]) > ord('9'))){
+				return false;
+			}
+		}
+
+		return true;
+	}
+	
+	private function checkModeKanji($size, $data)
+	{
+		if($size & 1){
+			return false;
+		}
+
+		for($i=0; $i<$size; $i+=2) {
+			$val = (ord($data[$i]) << 8) | ord($data[$i+1]);
+			if( $val < 0x8140 || ($val > 0x9ffc && $val < 0xe040) || $val > 0xebbf) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+	
+	private function checkModeAn($size, $data)
+	{
+		for($i=0; $i<$size; $i++) {
+			if ($this->lookAnTable(ord($data[$i])) == -1) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+	
+	public function lookAnTable($c)
+	{
+		return (($c > 127) ? -1 : $this->anTable[$c]);
 	}
 
 	private function estimateBitStreamSize($version)
@@ -210,9 +210,9 @@ class QRinput {
 		$total = 0;
 
 		foreach($this->items as $item) {
-			
+
 			list($bitsSize, $bitsData) = $item->encodeBitStream();
-				
+
 			$total += $bitsSize;
 		}
 
@@ -271,15 +271,15 @@ class QRinput {
 	}
 
 	private function getByteStream()
-	{		
+	{
 		$this->convertData();
 
 		$bstream = [];
-				
+
 		foreach($this->items as $item) {
 			$bstream += $item->bstream;
 		}
-				
+
 		$bits = count($bstream);
 		$maxwords = $this->QRspec->getDataLength($this->version, $this->level);
 		$maxbits = $maxwords * 8;
@@ -299,7 +299,7 @@ class QRinput {
 		$bstream[] = [$words * 8 - $bits + 4, 0];
 
 		$padlen = $maxwords - $words;
-		
+
 		if($padlen > 0) {
 
 			for($i=0; $i<$padlen; $i++) {
@@ -313,7 +313,7 @@ class QRinput {
 				$bstream[] = [$b, $n];
 			}
 		}
-		
+
 		return $this->toByte($bstream);
 	}
 	
@@ -325,15 +325,15 @@ class QRinput {
 		if($this->level > QR_ECLEVEL_H) {
 			throw QRException::Std('wrong level');
 		}
-		
+
 		$dataCode = $this->getByteStream();
-				
+
 		$width = $this->QRspec->getWidth($this->version);
-		
+
 		$frame = (new FrameFiller($this->version))->getFrame($dataCode, $this->level);
-		
+
 		$masked =(new QRmask($width, $this->level, $frame))->get($mask);
-		
+
 		return ["version" => $this->version, "width" => $width, "data" => $masked];
 	}
 
