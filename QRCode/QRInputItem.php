@@ -168,15 +168,22 @@ class QRinputItem {
 		return $bits;
 	}
 
-	public function encodeBitStream()
+	public function encodeBitStream(int $size = -1, array $data = [])
 	{
 
-		$words = $this->QRspec->maximumWords($this->mode, $this->version);
+		if ($size == -1){
+			$size = $this->size;
+		}
+		if (empty($data)){
+			$data = $this->data;
+		}
 		
+		$words = $this->QRspec->maximumWords($this->mode, $this->version);
+				
 		if($this->size > $words) {
 
-			list($bstreamSize1, $bstreamData1) = (new QRinputItem($this->mode, $words, $this->data, $this->version))->encodeBitStream();
-			list($bstreamSize2, $bstreamData2) = (new QRinputItem($this->mode, $this->size - $words, array_slice($this->data, $words), $this->version))->encodeBitStream();
+			list($bstreamSize1, $bstreamData1) = $this->encodeBitStream($words);
+			list($bstreamSize2, $bstreamData2) = $this->encodeBitStream($this->size - $words, array_slice($this->data, $words));
 
 			$this->bstream = $bstreamData1;
 			$this->bstream = array_merge($this->bstream, $bstreamData2);
