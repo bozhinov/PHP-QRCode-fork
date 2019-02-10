@@ -26,12 +26,12 @@ class QRinputItem {
 	private $QRinput;
 	private $QRspec;
 
-	function __construct($mode, $size, $data, $version)
+	function __construct($mode, int $size, array $data, $version)
 	{
 		$setData = array_slice($data, 0, $size);
-
-		if (count($setData) < $size) {
-			$setData = array_merge($setData, array_fill(0,$size-count($setData),0));
+		
+		if (empty($setData)){
+			throw QRException::Std('trying to allocate more than we have in the array');
 		}
 
 		$this->QRinput = new QRinput();
