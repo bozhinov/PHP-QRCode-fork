@@ -23,7 +23,7 @@ class QRsplit {
 	private $la;
 	private $ln;
 
-	function __construct($dataStr, QRinput $input, $modeHint) 
+	function __construct($dataStr, QRinput $input, $modeHint)
 	{
 		if(is_null($dataStr) || $dataStr == '\0' || $dataStr == '') {
 			throw QRException::Std('empty string!');
@@ -83,7 +83,7 @@ class QRsplit {
 		}
 
 		return QR_MODE_8;
-	} 
+	}
 
 	private function eatNum()
 	{
@@ -243,14 +243,8 @@ class QRsplit {
 			$this->toUpper();
 		}
 		
-		$stringLen = strlen($this->dataStr);
-		
-		while ($stringLen > 0)
+		while (strlen($this->dataStr) > 0)
 		{
-			if($this->dataStr == ''){
-				return;
-			}
-
 			$mode = $this->identifyMode(0);
 			
 			switch ($mode) {
@@ -272,7 +266,7 @@ class QRsplit {
 			}
 
 			if($length == 0){
-				return;
+				break;
 			} elseif($length < 0){
 				throw QRException::Std('can not split string');
 			}
