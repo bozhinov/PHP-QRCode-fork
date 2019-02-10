@@ -254,20 +254,20 @@ class QRsplit {
 			$mode = $this->identifyMode(0);
 			
 			switch ($mode) {
-				case QR_MODE_NUM: 
+				case QR_MODE_NUM:
 					$length = $this->eatNum();
 					break;
-				case QR_MODE_AN:  
+				case QR_MODE_AN:
 					$length = $this->eatAn();
 					break;
 				case QR_MODE_KANJI:
-					if ($hint == QR_MODE_KANJI){
+					if ($this->modeHint == QR_MODE_KANJI){
 						$length = $this->eatKanji();
 					} else {
 						$length = $this->eat8();
 					}
 					break;
-				default: 
+				default:
 					$length = $this->eat8();
 			}
 
