@@ -240,18 +240,47 @@ class QRinput {
 			}
 		}
 	}
+	
+	private function toByte($data)
+	{
+		if(count($data) == 0) {
+			return [];
+		}
+		
+		$dataStr = '';
+		
+		foreach($data as $d){
+		
+			$bit = decbin($d[1]);
+			$diff = $d[0] - strlen($bit);
+			
+			if ($diff != 0){
+				$bit = str_repeat("0", $diff).$bit;
+			}
+
+			$dataStr .= $bit;
+		}
+		
+		$data = str_split($dataStr, 8);
+		
+		array_walk($data, function(&$val) {
+			$val = bindec($val);
+		});
+
+		return $data;
+	}
 
 	private function getByteStream()
 	{		
 		$this->convertData();
 
-		$bstream = new QRbitstream();
+		$bstream = [];
 				
 		foreach($this->items as $item) {
-			$bstream->append($item->bstream->data);
+			$bstream += $item->bstream;
 		}
 				
-		$bits = $bstream->size();
+		$bits = count($bstream);
 		$maxwords = $this->QRspec->getDataLength($this->version, $this->level);
 		$maxbits = $maxwords * 8;
 
@@ -260,14 +289,14 @@ class QRinput {
 		}
 
 		if ($maxbits - $bits < 5) {
-			$bstream->appendNum($maxbits - $bits, 0);
+			$bstream[] = [$maxbits - $bits, 0];
 			# return; # Momchil: no idea why that's here
 		}
 
 		$bits += 4;
 		$words = (int)(($bits + 7) / 8);
 
-		$bstream->appendNum($words * 8 - $bits + 4, 0);
+		$bstream[] = [$words * 8 - $bits + 4, 0];
 
 		$padlen = $maxwords - $words;
 		
@@ -281,11 +310,11 @@ class QRinput {
 					$b = 8;
 					$n = 236; # 0xec;
 				}
-				$bstream->appendNum($b, $n);
+				$bstream[] = [$b, $n];
 			}
 		}
 		
-		return $bstream->toByte();
+		return $this->toByte($bstream);
 	}
 	
 	public function encodeMask($mask)
