@@ -77,8 +77,6 @@ class QRimage {
 
 	private function createImage()
 	{
-		
-		print_r($this->frame);
 		$h = count($this->frame);
 		$w = strlen($this->frame[0]);
 		
