@@ -16,19 +16,12 @@
 namespace QRCode;
 
 class QRimage {
-	
-	private $frame;
+
 	private $image;
-	private $pixelPerPoint;
-	private $outerFrame;
 	
 	function __construct(array $frame, int $pixelPerPoint = 4, int $outerFrame = 4)
-	{
-		$this->frame = $frame;
-		$this->pixelPerPoint = $pixelPerPoint;
-		$this->outerFrame = $outerFrame;
-		
-		$this->image = $this->createImage();
+	{		
+		$this->image = $this->createImage($frame, $pixelPerPoint, $outerFrame);
 	}
 	
 	function __destruct(){
@@ -75,13 +68,13 @@ class QRimage {
 		}
 	}
 
-	private function createImage()
+	private function createImage($frame, $pixelPerPoint, $outerFrame)
 	{
-		$h = count($this->frame);
-		$w = strlen($this->frame[0]);
+		$h = count($frame);
+		$w = strlen($frame[0]);
 		
-		$imgW = $w + 2*$this->outerFrame;
-		$imgH = $h + 2*$this->outerFrame;
+		$imgW = $w + 2*$outerFrame;
+		$imgH = $h + 2*$outerFrame;
 		
 		$base_image = imageCreate($imgW, $imgH);
 		
@@ -92,14 +85,14 @@ class QRimage {
 
 		for($y=0; $y<$h; $y++) {
 			for($x=0; $x<$w; $x++) {
-				if ($this->frame[$y][$x] == '1') {
-					imageSetPixel($base_image,$x+$this->outerFrame,$y+$this->outerFrame,$black);
+				if ($frame[$y][$x] == '1') {
+					imageSetPixel($base_image,$x+$outerFrame,$y+$outerFrame,$black);
 				}
 			}
 		}
 		
-		$target_image = imageCreate($imgW * $this->pixelPerPoint, $imgH * $this->pixelPerPoint);
-		imageCopyResized($target_image, $base_image, 0, 0, 0, 0, $imgW * $this->pixelPerPoint, $imgH * $this->pixelPerPoint, $imgW, $imgH);
+		$target_image = imageCreate($imgW * $pixelPerPoint, $imgH * $pixelPerPoint);
+		imageCopyResized($target_image, $base_image, 0, 0, 0, 0, $imgW * $pixelPerPoint, $imgH * $pixelPerPoint, $imgW, $imgH);
 		imageDestroy($base_image);
 		
 		return $target_image;
