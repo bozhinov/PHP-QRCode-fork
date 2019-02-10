@@ -274,7 +274,14 @@ class QRinput {
 		if($padlen > 0) {
 
 			for($i=0; $i<$padlen; $i++) {
-				$bstream->append(($i&1) ? [1,0,0,0,1]:[1,1,1,0,1,1,0,0]);# 0x11:0xec;
+				if ($i&1){
+					$b = 5;
+					$n = 17; # 0x11:
+				} else {
+					$b = 8;
+					$n = 236; # 0xec;
+				}
+				$bstream->appendNum($b, $n);
 			}
 		}
 		

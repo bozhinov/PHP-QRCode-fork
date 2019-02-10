@@ -30,23 +30,16 @@ class QRbitstream {
 	
 	public function append(array $data)
 	{
-		$this->data = array_merge($this->data, $data);
+		$this->data += $data;
 	}
 
-	public function appendNum($bits, $num)
+	public function appendNum(int $bits, int $num)
 	{
 		if ($bits == 0){
 			return;
 		}
-				
-		$bstream = str_split(decbin($num));
-		$diff = $bits - count($bstream);
-		
-		if ($diff != 0){
-			$bstream = array_merge(array_fill(0, $diff, 0),$bstream);
-		}
 
-		$this->append($bstream);
+		$this->data[] = [$bits, $num];
 	}
 
 	public function toByte()
@@ -55,12 +48,25 @@ class QRbitstream {
 			return [];
 		}
 		
-		$sectors = array_chunk($this->data, 8);
-		$data = [];
+		$dataStr = '';
 		
-		foreach($sectors as $sector){
-			$data[] = bindec(implode("",$sector));
+		foreach($this->data as $d){
+		
+			$bit = decbin($d[1]);
+			$diff = $d[0] - strlen($bit);
+			
+			if ($diff != 0){
+				$bit = str_repeat("0", $diff).$bit;
+			}
+
+			$dataStr .= $bit;
 		}
+		
+		$data = str_split($dataStr, 8);
+		
+		array_walk($data, function(&$val) {
+			$val = bindec($val);
+		});
 
 		return $data;
 	}
