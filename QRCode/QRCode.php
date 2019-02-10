@@ -136,7 +136,8 @@ class QRcode {
 
 		$input = new QRinput($this->version, $this->level);
 
-		(new QRsplit($string, $input, $this->hint))->splitStringToQRinput($this->casesensitive);
+		# appends to input
+		(new QRsplit($string, $input, $this->hint))->splitString($this->casesensitive);
 
 		# ["version" => $version, "width" => $width, "data" => $masked]
 		return $input->encodeMask(-1);

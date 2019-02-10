@@ -153,10 +153,7 @@ class QRsplit {
 			}
 		}
 
-		$ret = $this->input->append(QR_MODE_AN, $run, str_split($this->dataStr));
-		if($ret < 0){
-			return -1;
-		}
+		$this->input->append(QR_MODE_AN, $run, str_split($this->dataStr));
 
 		return $run;
 	}
@@ -169,20 +166,16 @@ class QRsplit {
 			$p += 2;
 		}
 		
-		$ret = $this->input->append(QR_MODE_KANJI, $p, str_split($this->dataStr));
-		if($ret < 0){
-			return -1;
-		}
-
-		return $run;
+		$this->input->append(QR_MODE_KANJI, $p, str_split($this->dataStr));
+		
+		return $p;
 	}
 
 	private function eat8()
 	{
 		$p = 1;
-		$dataStrLen = strlen($this->dataStr);
 		
-		while($p < $dataStrLen) {
+		while($p < strlen($this->dataStr)) {
 			
 			$mode = $this->identifyMode($p);
 			if($mode == QR_MODE_KANJI) {
@@ -219,22 +212,43 @@ class QRsplit {
 			}
 		}
 
-		$run = $p;
-		$ret = $this->input->append(QR_MODE_8, $run, str_split($this->dataStr));
+		$this->input->append(QR_MODE_8, $p, str_split($this->dataStr));
 		
-		if($ret < 0){
-			return -1;
+		return $p;
+	}
+	
+	private function toUpper()
+	{
+		$stringLen = strlen($this->dataStr);
+		$p = 0;
+		
+		while ($p<$stringLen) {
+			$mode = $this->identifyMode(substr($this->dataStr, $p), $this->modeHint);
+			if($mode == QR_MODE_KANJI) {
+				$p += 2;
+			} else {
+				if (ord($this->dataStr[$p]) >= ord('a') && ord($this->dataStr[$p]) <= ord('z')) {
+					$this->dataStr[$p] = chr(ord($this->dataStr[$p]) - 32);
+				}
+				$p++;
+			}
 		}
 
-		return $run;
+		return $this->dataStr;
 	}
 
-	private function splitString()
+	public function splitString($casesensitive = true)
 	{
-		while (strlen($this->dataStr) > 0)
+		if(!$casesensitive){
+			$this->toUpper();
+		}
+		
+		$stringLen = strlen($this->dataStr);
+		
+		while ($stringLen > 0)
 		{
 			if($this->dataStr == ''){
-				return 0;
+				return;
 			}
 
 			$mode = $this->identifyMode(0);
@@ -258,41 +272,12 @@ class QRsplit {
 			}
 
 			if($length == 0){
-				return 0;
+				return;
 			} elseif($length < 0){
 				throw QRException::Std('can not split string');
 			}
 			
 			$this->dataStr = substr($this->dataStr, $length);
 		}
-	}
-
-	private function toUpper()
-	{
-		$stringLen = strlen($this->dataStr);
-		$p = 0;
-		
-		while ($p<$stringLen) {
-			$mode = $this->identifyMode(substr($this->dataStr, $p), $this->modeHint);
-			if($mode == QR_MODE_KANJI) {
-				$p += 2;
-			} else {
-				if (ord($this->dataStr[$p]) >= ord('a') && ord($this->dataStr[$p]) <= ord('z')) {
-					$this->dataStr[$p] = chr(ord($this->dataStr[$p]) - 32);
-				}
-				$p++;
-			}
-		}
-
-		return $this->dataStr;
-	}
-
-	public function splitStringToQRinput($casesensitive = true)
-	{
-		if(!$casesensitive){
-			$this->toUpper();
-		}
-		
-		return $this->splitString();
 	}
 }
