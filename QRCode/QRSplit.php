@@ -260,7 +260,7 @@ class QRsplit {
 			if($length == 0){
 				return 0;
 			} elseif($length < 0){
-				return -1;
+				throw QRException::Std('can not split string');
 			}
 			
 			$this->dataStr = substr($this->dataStr, $length);

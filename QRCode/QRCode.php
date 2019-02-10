@@ -115,31 +115,28 @@ class QRcode {
 		}
 	}
 
-	private function encodeString8bit($string, $version, $level)
+	private function encodeString8bit($string)
 	{
 		if(is_null($string)) {
 			throw QRException::Std('empty string!');
 		}
 
-		$input = new QRinput($version, $level);
+		$input = new QRinput($this->version, $this->level);
 
 		$input->append(QR_MODE_8, strlen($string), str_split($string));
 
 		return $input->encodeMask(-1);
 	}
 
-	private function encodeString($string, $version, $level, $hint, $casesensitive)
+	private function encodeString($string)
 	{
-		if($hint != QR_MODE_8 && $hint != QR_MODE_KANJI) {
+		if($this->hint != QR_MODE_8 && $this->hint != QR_MODE_KANJI) {
 			throw QRException::Std('bad hint');
 		}
 
-		$input = new QRinput($version, $level);
+		$input = new QRinput($this->version, $this->level);
 
-		$ret = (new QRsplit($string, $input, $hint))->splitStringToQRinput($casesensitive);
-		if($ret < 0) {
-			return NULL;
-		}
+		(new QRsplit($string, $input, $this->hint))->splitStringToQRinput($this->casesensitive);
 
 		# ["version" => $version, "width" => $width, "data" => $masked]
 		return $input->encodeMask(-1);
@@ -161,9 +158,9 @@ class QRcode {
 	public function encode($intext, $outfile = false) 
 	{
 		if($this->eightbit) {
-			$encoded = $this->encodeString8bit($intext, $this->version, $this->level);
+			$encoded = $this->encodeString8bit($intext);
 		} else {
-			$encoded = $this->encodeString($intext, $this->version, $this->level, $this->hint, $this->casesensitive);
+			$encoded = $this->encodeString($intext);
 		}
 		
 		$this->version = $encoded['version'];
@@ -196,9 +193,9 @@ class QRcode {
 	public function raw($text, $outfile = false, $level = QR_ECLEVEL_L, $size = 3, $margin = 4) 
 	{
 		if($this->eightbit) {
-			$encoded = $this->encodeString8bit($text, $this->version, $this->level);
+			$encoded = $this->encodeString8bit($text);
 		} else {
-			$encoded = $this->encodeString($text, $this->version, $this->level, $this->hint, $this->casesensitive);
+			$encoded = $this->encodeString($text);
 		}
 		
 		$this->version = $encoded['version'];
