@@ -260,13 +260,9 @@ class QRinput {
 		
 		if($padlen > 0) {
 			
-			$padbuf = [];
-			
 			for($i=0; $i<$padlen; $i++) {
-				$padbuf = array_merge($padbuf, ($i&1) ? [0,0,0,1,0,0,0,1]:[1,1,1,0,1,1,0,0]);
+				$bstream->appendNum(8, ($i&1) ? 17 : 236);
 			}
-	
-			$bstream->append($padbuf);
 		}
 		
 		return $bstream->toByte();
