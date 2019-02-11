@@ -22,7 +22,7 @@ class QRbitstream {
 	
 	public function append(array $data)
 	{
-		$this->data = array_values(array_merge($this->data, $data));
+		$this->data = array_merge($this->data, $data);
 	}
 
 	public function appendNum($bits, $num)
@@ -43,31 +43,6 @@ class QRbitstream {
 			$mask = $mask >> 1;
 		}
 
-		$this->append($bstream);
-	}
-
-	public function appendBytes($size, $data)
-	{
-		if ($size == 0){
-			return;
-		}
-		
-		$bstream = $this->allocate($size * 8);
-		$p=0;
-
-		for($i=0; $i<$size; $i++) {
-			$mask = 0x80;
-			for($j=0; $j<8; $j++) {
-				if($data[$i] & $mask) {
-					$bstream[$p] = 1;
-				} else {
-					$bstream[$p] = 0;
-				}
-				$p++;
-				$mask = $mask >> 1;
-			}
-		}
-		
 		$this->append($bstream);
 	}
 
