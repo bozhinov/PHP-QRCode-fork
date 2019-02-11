@@ -82,7 +82,7 @@ class QRinputItem {
 		$this->bstream->appendNum($this->QRspec->lengthIndicator(QR_MODE_AN, $this->version), $this->size);
 
 		for($i=0; $i<$words; $i++) {
-			$val  = (int)$this->QRinput->lookAnTable(ord($this->data[$i*2  ])) * 45;
+			$val  = (int)$this->QRinput->lookAnTable(ord($this->data[$i*2])) * 45;
 			$val += (int)$this->QRinput->lookAnTable(ord($this->data[$i*2+1]));
 
 			$this->bstream->appendNum(11, $val);
@@ -168,15 +168,22 @@ class QRinputItem {
 		return $bits;
 	}
 	
-	public function encodeBitStream()
+	public function encodeBitStream(int $size = -1, array $data = [])
 	{
+		
+		if ($size == -1){
+			$size = $this->size;
+		}
+		if (empty($data)){
+			$data = $this->data;
+		}
 
 		$words = $this->QRspec->maximumWords($this->mode, $this->version);
 		
 		if($this->size > $words) {
 
-			list($bstreamSize1, $bstreamData1) = (new QRinputItem($this->mode, $words, $this->data, $this->version))->encodeBitStream();
-			list($bstreamSize2, $bstreamData2) = (new QRinputItem($this->mode, $this->size - $words, array_slice($this->data, $words), $this->version))->encodeBitStream();
+			$bstreamData1 = $this->encodeBitStream($words);
+			$bstreamData2 = $this->encodeBitStream($this->size - $words, array_slice($this->data, $words));
 
 			$this->bstream->flush();
 			$this->bstream->append($bstreamData1);
@@ -204,7 +211,7 @@ class QRinputItem {
 
 		}
 
-		return [$this->bstream->size(), $this->bstream->data];
+		return $this->bstream->data;
 	}
 }
 
