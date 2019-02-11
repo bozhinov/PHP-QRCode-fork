@@ -185,7 +185,7 @@ class QRinputItem {
 			$bstreamData1 = $this->encodeBitStream($words);
 			$bstreamData2 = $this->encodeBitStream($this->size - $words, array_slice($this->data, $words));
 
-			$this->bstream->data = '';
+			$this->bstream->flush();
 			$this->bstream->append($bstreamData1);
 			$this->bstream->append($bstreamData2);
 			
