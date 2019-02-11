@@ -17,7 +17,6 @@ namespace QRCode;
 
 use QRCode\QRException;
 use QRCode\FrameFiller;
-use QRCode\QRrsblock;
 use QRCode\QRRawCode;
 use QRCode\QRImage;
 use QRCode\QRInput;
