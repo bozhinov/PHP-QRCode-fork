@@ -214,7 +214,7 @@ class QRinput {
 			
 			$bitsData = $item->encodeBitStream();
 
-			$total += count($bitsData);
+			$total += strlen($bitsData);
 		}
 
 		return $total;

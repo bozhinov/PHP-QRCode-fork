@@ -17,15 +17,11 @@ namespace QRCode;
 
 class QRbitstream {
 
-	public $data = [];
-	
-	public function flush(){
-		$this->data = [];
-	}
-	
+	public $data = "";
+		
 	public function size()
 	{
-		return count($this->data);
+		return strlen($this->data);
 	}
 	
 	private function allocate($setLength)
@@ -33,9 +29,9 @@ class QRbitstream {
 		return array_fill(0, $setLength, 0);
 	}
 	
-	public function append(array $data)
+	public function append(string $data)
 	{
-		$this->data = array_merge($this->data, $data);
+		$this->data .= $data;
 	}
 
 	public function appendNum($bits, $num)
@@ -44,19 +40,14 @@ class QRbitstream {
 			return;
 		}
 		
-		$bstream = $this->allocate($bits);
+		$bit = decbin($num);
+		$diff = $bits - strlen($bit);
 		
-		$mask = 1 << ($bits - 1);
-		for($i=0; $i<$bits; $i++) {
-			if($num & $mask) {
-				$bstream[$i] = 1;
-			} else {
-				$bstream[$i] = 0;
-			}
-			$mask = $mask >> 1;
+		if ($diff != 0){
+			$bit = str_repeat("0", $diff).$bit;
 		}
 
-		$this->append($bstream);
+		$this->append($bit);
 	}
 
 	public function toByte()
@@ -67,30 +58,11 @@ class QRbitstream {
 			return [];
 		}
 
-		$data = array_fill(0, (int)(($size + 7) / 8), 0);
-		$bytes = (int)($size / 8);
-
-		$p = 0;
+		$data = str_split($this->data, 8);
 		
-		for($i=0; $i<$bytes; $i++) {
-			$v = 0;
-			for($j=0; $j<8; $j++) {
-				$v = $v << 1;
-				$v |= $this->data[$p];
-				$p++;
-			}
-			$data[$i] = $v;
-		}
-		
-		if($size & 7) {
-			$v = 0;
-			for($j=0; $j<($size & 7); $j++) {
-				$v = $v << 1;
-				$v |= $this->data[$p];
-				$p++;
-			}
-			$data[$bytes] = $v;
-		}
+		array_walk($data, function(&$val) {
+			$val = bindec($val);
+		});
 
 		return $data;
 	}
