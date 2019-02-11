@@ -21,6 +21,7 @@ class QRmask {
 	private $width;
 	private $level;
 	private $frame;
+	private $empty_grid;
 
 	function __construct($width, $level, $frame)
 	{
@@ -28,6 +29,8 @@ class QRmask {
 		$this->width = $width;
 		$this->level = $level;
 		$this->frame = $frame;
+		
+		$this->empty_grid = array_fill(0, $width, array_fill(0, $width, 0));
 	}
 
 	private function writeFormatInformation(&$frame, $mask)
@@ -109,7 +112,7 @@ class QRmask {
 
 	private function generateMaskNo($maskNo)
 	{
-		$bitMask = array_fill(0, $this->width, array_fill(0, $this->width, 0));
+		$bitMask = $this->empty_grid;
 		
 		for($y=0; $y<$this->width; $y++) {
 			for($x=0; $x<$this->width; $x++) {
@@ -148,7 +151,7 @@ class QRmask {
 
 	private function makeMask($maskNo)
 	{
-		$masked = array_fill(0, $this->width, str_repeat("\0", $this->width));
+		$masked = $this->empty_grid;
 		$this->makeMaskNo($masked, $maskNo);
 		$this->writeFormatInformation($masked, $maskNo);
    
@@ -270,7 +273,7 @@ class QRmask {
 		$bestMask = $this->frame;
 
 		foreach($checked_masks as $i) {
-			$mask = array_fill(0, $this->width, str_repeat("\0", $this->width));
+			$mask = $this->empty_grid;
 
 			$demerit = 0;
 			$blacks = 0;
@@ -298,7 +301,7 @@ class QRmask {
 			if (QR_FIND_BEST_MASK) {
 				$masked = $this->mask();
 			} else {
-				$masked = $this->makeMask((intval(QR_DEFAULT_MASK) % 8));
+				$masked = $this->makeMask(QR_DEFAULT_MASK % 8);
 			}
 		} else {
 			$masked = $this->makeMask($mask);

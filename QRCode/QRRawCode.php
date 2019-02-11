@@ -48,9 +48,10 @@ class QRrawcode {
 		for($i = 0; $i < $spec[0]; $i++) { # rsBlockNum1
 
 			$ecc = array_slice($ecccode,$eccPos);
-			$data = array_slice($dataCode, $dataPos);
+			#$data = array_slice($dataCode, $dataPos);
 
-			$this->rsblocks[$blockNo] = ["dataLength" => $dl, "data" => $data, "ecc" => $rs->encode_rs_char($data, $ecc)];
+			#$this->rsblocks[$blockNo] = ["dataLength" => $dl, "data" => $data, "ecc" => $rs->encode_rs_char($data, $ecc)];
+			$this->rsblocks[$blockNo] = new QRrsblock($dl, array_slice($dataCode, $dataPos), $el,  $ecc, $rs);
 			$ecccode = array_merge(array_slice($ecccode,0, $eccPos), $ecc);
 			
 			$dataPos += $dl;
@@ -63,7 +64,8 @@ class QRrawcode {
 
 				$ecc = array_slice($ecccode,$eccPos);
 				
-				$this->rsblocks[$blockNo] = ["dataLength" => $dl, "data" => $data, "ecc" => $rs->encode_rs_char($data, $ecc)];
+				#$this->rsblocks[$blockNo] = ["dataLength" => $dl, "data" => $data, "ecc" => $rs->encode_rs_char($data, $ecc)];
+				$this->rsblocks[$blockNo] = new QRrsblock($dl, array_slice($dataCode, $dataPos), $el, $ecc, $rs);
 				$ecccode = array_merge(array_slice($ecccode,0, $eccPos), $ecc);
 
 				$dataPos += $dl;
@@ -80,14 +82,14 @@ class QRrawcode {
 		if($this->count < $this->dataLength) {
 			$row = $this->count % $this->blocks;
 			$col = $this->count / $this->blocks;
-			if($col >= $this->rsblocks[0]["dataLength"]) {
+			if($col >= $this->rsblocks[0]->dataLength) {
 				$row += $this->b1;
 			}
-			$ret = $this->rsblocks[$row]["data"][$col];
+			$ret = $this->rsblocks[$row]->data[$col];
 		} elseif($this->count < $this->dataLength + $this->eccLength) {
 			$row = ($this->count - $this->dataLength) % $this->blocks;
 			$col = ($this->count - $this->dataLength) / $this->blocks;
-			$ret = $this->rsblocks[$row]["ecc"][$col];
+			$ret = $this->rsblocks[$row]->ecc[$col];
 		} else {
 			return 0;
 		}
