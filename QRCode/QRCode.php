@@ -19,6 +19,7 @@ use QRCode\QRException;
 use QRCode\FrameFiller;
 use QRCode\QRRawCode;
 use QRCode\QRImage;
+use QRCode\QRTools;
 use QRCode\QRInput;
 use QRCode\QRInputItem;
 use QRCode\QRMask;

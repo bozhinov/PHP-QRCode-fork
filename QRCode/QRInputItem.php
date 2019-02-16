@@ -23,7 +23,7 @@ class QRinputItem {
 	public $bstream;
 	public $version;
 
-	private $QRinput;
+	private $tools;
 	private $QRspec;
 
 	function __construct($mode, int $size, array $data, $version)
@@ -34,11 +34,11 @@ class QRinputItem {
 			throw QRException::Std('trying to allocate more than we have in the array');
 		}
 
-		$this->QRinput = new QRinput();
+		$this->tools = new QRTools();
 		$this->QRspec = new QRspec();
 		$this->bstream = [];
 
-		if(!$this->QRinput->check($mode, $size, $setData)) {
+		if(!$this->tools->Check($mode, $size, $setData)) {
 			throw QRException::Std('Error m:'.$mode.',s:'.$size.',d:'.join(',',$setData));
 			return null;
 		}
@@ -82,14 +82,14 @@ class QRinputItem {
 		$this->bstream[] = [$this->QRspec->lengthIndicator(QR_MODE_AN, $this->version), $this->size];
 
 		for($i=0; $i<$words; $i++) {
-			$val  = floor($this->QRinput->lookAnTable(ord($this->data[$i*2])) * 45);
-			$val += floor($this->QRinput->lookAnTable(ord($this->data[$i*2+1])));
+			$val  = floor($this->tools->lookAnTable(ord($this->data[$i*2])) * 45);
+			$val += floor($this->tools->lookAnTable(ord($this->data[$i*2+1])));
 
 			$this->bstream[] = [11, $val];
 		}
 
 		if($this->size & 1) {
-			$val = $this->QRinput->lookAnTable(ord($this->data[$words * 2]));
+			$val = $this->tools->lookAnTable(ord($this->data[$words * 2]));
 			$this->bstream[] = [6, $val];
 		}
 	}
@@ -142,16 +142,16 @@ class QRinputItem {
 
 		switch($this->mode) {
 			case QR_MODE_NUM:
-				$bits = $this->QRinput->estimateBitsModeNum($this->size);
+				$bits = $this->tools->estimateBitsModeNum($this->size);
 				break;
 			case QR_MODE_AN:
-				$bits = $this->QRinput->estimateBitsModeAn($this->size);
+				$bits = $this->tools->estimateBitsModeAn($this->size);
 				break;
 			case QR_MODE_8:
-				$bits = $this->QRinput->estimateBitsMode8($this->size);
+				$bits = $this->tools->estimateBitsMode8($this->size);
 				break;
 			case QR_MODE_KANJI:
-				$bits = $this->QRinput->estimateBitsModeKanji($this->size);
+				$bits = $this->tools->estimateBitsModeKanji($this->size);
 				break;
 			case QR_MODE_STRUCTURE:
 				return QR_STRUCTURE_HEADER_BITS;
