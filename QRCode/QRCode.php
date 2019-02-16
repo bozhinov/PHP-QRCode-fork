@@ -54,7 +54,6 @@ define('QR_ECLEVEL_H', 3);
 define('QR_FIND_BEST_MASK', true); // if true, estimates best mask (spec. default, but extremally slow; set to false to significant performance boost but (propably) worst quality code
 define('QR_FIND_FROM_RANDOM', false); // if false, checks all masks available, otherwise value tells count of masks need to be checked, mask id are got randomly
 define('QR_DEFAULT_MASK', 2); // when QR_FIND_BEST_MASK === false
-define('QR_PNG_MAXIMUM_SIZE', 1024);// maximum allowed png image width (in pixels), tune to make sure GD and PHP can handle such big images
 
 define('QR_SPEC_VERSION_MAX', 40);
 define('QR_SPEC_WIDTH_MAX', 177);
@@ -81,7 +80,7 @@ class QRcode {
 		$this->eightbit = $eightbit;
 		$this->casesensitive = $casesensitive;
 		
-		if (!in_array($level,[0,1,2,3,4])){
+		if (!in_array($level,[0,1,2,3])){
 			throw QRException::Std('unknown error correction level');
 		}
 		$this->level = $level;
@@ -124,9 +123,9 @@ class QRcode {
 
 		$tab = $this->binarize($encoded);
 
-		$maxSize = floor(QR_PNG_MAXIMUM_SIZE / (count($tab)+2*$this->margin));
+		$maxSize = count($tab)+2*$this->margin;
 
-		$pixelPerPoint = min(max(1, $this->size), $maxSize);
+		$pixelPerPoint = min($this->size, $maxSize);
 
 		(new QRimage($tab, $pixelPerPoint, $this->margin))->jpg($outfile, 90);
 	}
@@ -137,9 +136,9 @@ class QRcode {
 
 		$tab = $this->binarize($encoded);
 
-		$maxSize = floor(QR_PNG_MAXIMUM_SIZE / (count($tab)+2*$this->margin));
+		$maxSize = count($tab)+2*$this->margin;
 
-		$pixelPerPoint = min(max(1, $this->size), $maxSize);
+		$pixelPerPoint = min($this->size, $maxSize);
 
 		(new QRimage($tab, $pixelPerPoint, $this->margin))->png($outfile);
 	}
