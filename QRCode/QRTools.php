@@ -16,12 +16,8 @@
 namespace QRCode;
 
 class QRTools {
-	
-	private $anTable;
-	
-	function __construct(){
 
-		$this->anTable = [
+	private $anTable = [
 			-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 			-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 			36, -1, -1, -1, 37, 38, -1, -1, -1, -1, 39, 40, -1, 41, 42, 43,
@@ -31,7 +27,13 @@ class QRTools {
 			-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 			-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
 		];
-	}
+		
+	private $lengthTableBits = [
+		[10, 12, 14],
+		[9, 11, 13],
+		[8, 16, 16],
+		[8, 10, 12]
+	];
 	
 	public function estimateBitsModeNum($size)
 	{
@@ -147,6 +149,47 @@ class QRTools {
 		}
 
 		return false;
+	}
+	
+	public function lengthIndicator($mode, $version)
+	{
+		if ($mode == QR_MODE_STRUCTURE){
+			return 0;
+		}
+
+		if ($version <= 9) {
+			$l = 0;
+		} else if ($version <= 26) {
+			$l = 1;
+		} else {
+			$l = 2;
+		}
+
+		return $this->lengthTableBits[$mode][$l];
+	}
+
+	public function maximumWords($mode, $version)
+	{
+		if($mode == QR_MODE_STRUCTURE){
+			return 3;
+		}
+
+		if($version <= 9) {
+			$l = 0;
+		} elseif($version <= 26) {
+			$l = 1;
+		} else {
+			$l = 2;
+		}
+
+		$bits = $this->lengthTableBits[$mode][$l];
+		$words = (1 << $bits) - 1;
+		
+		if($mode == QR_MODE_KANJI) {
+			$words *= 2; // the number of bytes is required
+		}
+
+		return $words;
 	}
 
 }

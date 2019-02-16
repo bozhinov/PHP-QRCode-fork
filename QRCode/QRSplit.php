@@ -33,12 +33,12 @@ class QRsplit {
 		$this->dataStr  = $dataStr;
 		$this->modeHint = $modeHint;
 		
-		$spec = new QRspec();
-		$this->la = $spec->lengthIndicator(QR_MODE_AN, $version);
-		$this->ln = $spec->lengthIndicator(QR_MODE_NUM, $version);
+		$this->tools = new QRTools();
+		
+		$this->la = $this->tools->lengthIndicator(QR_MODE_AN, $version);
+		$this->ln = $this->tools->lengthIndicator(QR_MODE_NUM, $version);
 		
 		$this->input = new QRinput($version, $level);
-		$this->tools = new QRTools();
 	}
 
 	private function isdigitat($str, $pos)

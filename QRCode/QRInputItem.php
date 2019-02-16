@@ -24,7 +24,6 @@ class QRinputItem {
 	public $version;
 
 	private $tools;
-	private $spec;
 
 	function __construct($mode, int $size, array $data, $version)
 	{
@@ -35,7 +34,6 @@ class QRinputItem {
 		}
 
 		$this->tools = new QRTools();
-		$this->spec = new QRspec();
 		$this->bstream = [];
 
 		if(!$this->tools->Check($mode, $size, $setData)) {
@@ -55,7 +53,7 @@ class QRinputItem {
 
 		$val = 1;
 		$this->bstream[] = [4, $val];
-		$this->bstream[] = [$this->spec->lengthIndicator(QR_MODE_NUM, $this->version), $this->size];
+		$this->bstream[] = [$this->tools->lengthIndicator(QR_MODE_NUM, $this->version), $this->size];
 
 		for($i=0; $i<$words; $i++) {
 			$val  = (ord($this->data[$i*3  ]) - ord('0')) * 100;
@@ -79,7 +77,7 @@ class QRinputItem {
 		$words = floor($this->size / 2);
 
 		$this->bstream[] = [4, 2];
-		$this->bstream[] = [$this->spec->lengthIndicator(QR_MODE_AN, $this->version), $this->size];
+		$this->bstream[] = [$this->tools->lengthIndicator(QR_MODE_AN, $this->version), $this->size];
 
 		for($i=0; $i<$words; $i++) {
 			$val  = floor($this->tools->lookAnTable(ord($this->data[$i*2])) * 45);
@@ -97,7 +95,7 @@ class QRinputItem {
 	private function encodeMode8()
 	{
 		$this->bstream[] = [4, 4];
-		$this->bstream[] = [$this->spec->lengthIndicator(QR_MODE_8, $this->version), $this->size];
+		$this->bstream[] = [$this->tools->lengthIndicator(QR_MODE_8, $this->version), $this->size];
 
 		for($i=0; $i<$this->size; $i++) {
 			$this->bstream[] = [8, ord($this->data[$i])];
@@ -107,7 +105,7 @@ class QRinputItem {
 	private function encodeModeKanji()
 	{
 		$this->bstream[] = [4, 8];
-		$this->bstream[] = [$this->spec->lengthIndicator(QR_MODE_KANJI, $this->version), floor($this->size / 2)];
+		$this->bstream[] = [$this->tools->lengthIndicator(QR_MODE_KANJI, $this->version), floor($this->size / 2)];
 
 		for($i=0; $i<$this->size; $i+=2) {
 			$val = (ord($this->data[$i]) << 8) | ord($this->data[$i+1]);
@@ -159,7 +157,7 @@ class QRinputItem {
 				return 0;
 		}
 
-		$l = $this->spec->lengthIndicator($this->mode, $this->version);
+		$l = $this->tools->lengthIndicator($this->mode, $this->version);
 		$m = 1 << $l;
 		$num = floor(($this->size + $m - 1) / $m);
 
@@ -177,7 +175,7 @@ class QRinputItem {
 			$data = $this->data;
 		}
 
-		$words = $this->spec->maximumWords($this->mode, $this->version);
+		$words = $this->tools->maximumWords($this->mode, $this->version);
 
 		if($this->size > $words) {
 

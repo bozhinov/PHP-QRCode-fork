@@ -64,13 +64,6 @@ class QRspec {
 	// Frame 
 	// Cache of initial frames.
 	private $frames = [];
-
-	private $lengthTableBits = [
-		[10, 12, 14],
-		[9, 11, 13],
-		[8, 16, 16],
-		[8, 10, 12]
-	];
 	
 	// Error correction code
 	// Table of the error correction code (Reed-Solomon block)
@@ -400,47 +393,6 @@ class QRspec {
 		}
 
 		return $this->frames[$version];
-	}
-
-	public function lengthIndicator($mode, $version)
-	{
-		if ($mode == QR_MODE_STRUCTURE){
-			return 0;
-		}
-
-		if ($version <= 9) {
-			$l = 0;
-		} else if ($version <= 26) {
-			$l = 1;
-		} else {
-			$l = 2;
-		}
-
-		return $this->lengthTableBits[$mode][$l];
-	}
-
-	public function maximumWords($mode, $version)
-	{
-		if($mode == QR_MODE_STRUCTURE){
-			return 3;
-		}
-
-		if($version <= 9) {
-			$l = 0;
-		} elseif($version <= 26) {
-			$l = 1;
-		} else {
-			$l = 2;
-		}
-
-		$bits = $this->lengthTableBits[$mode][$l];
-		$words = (1 << $bits) - 1;
-		
-		if($mode == QR_MODE_KANJI) {
-			$words *= 2; // the number of bytes is required
-		}
-
-		return $words;
 	}
 
 	public function getDataLength($version, $level)
