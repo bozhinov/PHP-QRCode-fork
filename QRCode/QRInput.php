@@ -214,9 +214,7 @@ class QRinput {
 
 		$width = $this->tools->getWidth($this->version);
 		
-		$frame = (new QRFrame($this->version, $this->level))->getFrame($dataCode);
-
-		$masked = (new QRmask($width, $this->level, $frame))->get($mask);
+		$masked = (new QRmask($dataCode, $width, $this->level, $this->version))->get($mask);
 
 		return $masked;
 	}
