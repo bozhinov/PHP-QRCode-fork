@@ -117,6 +117,19 @@ class QRcode {
 		
 		return $frame;
 	}
+	
+	public function jpg(string $text, string $outfile)
+	{
+		$encoded = $this->raw($text);
+
+		$tab = $this->binarize($encoded);
+
+		$maxSize = floor(QR_PNG_MAXIMUM_SIZE / (count($tab)+2*$this->margin));
+
+		$pixelPerPoint = min(max(1, $this->size), $maxSize);
+
+		(new QRimage($tab, $pixelPerPoint, $this->margin))->jpg($outfile, 90);
+	}
 
 	public function png(string $text, string $outfile)
 	{
