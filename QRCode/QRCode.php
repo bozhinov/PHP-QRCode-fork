@@ -86,7 +86,7 @@ class QRcode {
 		$this->level = $level;
 	}
 
-	private function encodeString8bit(string $string)
+	private function encodeString8bit($string)
 	{
 		$input = new QRinput(1, $this->level);
 
@@ -95,7 +95,7 @@ class QRcode {
 		return $input->encodeMask(-1);
 	}
 
-	private function encodeString(string $string)
+	private function encodeString($string)
 	{
 		if($this->hint != QR_MODE_8 && $this->hint != QR_MODE_KANJI) {
 			throw QRException::Std('bad hint');
@@ -117,7 +117,7 @@ class QRcode {
 		return $frame;
 	}
 	
-	public function jpg(string $text, string $outfile)
+	public function jpg(string $text, $outfile)
 	{
 		$encoded = $this->raw($text);
 
@@ -130,7 +130,7 @@ class QRcode {
 		(new QRimage($tab, $pixelPerPoint, $this->margin))->jpg($outfile, 90);
 	}
 
-	public function png(string $text, string $outfile)
+	public function png(string $text, $outfile)
 	{
 		$encoded = $this->raw($text);
 
@@ -143,7 +143,7 @@ class QRcode {
 		(new QRimage($tab, $pixelPerPoint, $this->margin))->png($outfile);
 	}
 
-	public function raw($text)
+	public function raw(string $text)
 	{
 		if($this->eightbit) {
 			$encoded = $this->encodeString8bit($text);
