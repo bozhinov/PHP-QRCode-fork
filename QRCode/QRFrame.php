@@ -20,6 +20,7 @@ class QRFrame {
 	private $width;
 	private $frame;
 	private $version;
+	private $level;
 	private $x;
 	private $y;
 	private $dir;
@@ -106,7 +107,7 @@ class QRFrame {
 		0x27541, 0x28c69
 	];
 
-	function __construct($version)
+	function __construct($version, $level)
 	{
 		if($version < 1 || $version > QR_SPEC_VERSION_MAX){
 			throw QRException::Std('Version invalid');
@@ -114,9 +115,10 @@ class QRFrame {
 		
 		$this->tools = new QRTools();
 		
-		$this->width = $this->tools->getWidth($version);
-		$this->frame = $this->createFrame($version);	
 		$this->version = $version;
+		$this->level = $level;
+		$this->width = $this->tools->getWidth($version);
+		$this->frame = $this->createFrame();	
 
 		$this->x = $this->width - 1;
 		$this->y = $this->width - 1;
@@ -124,9 +126,9 @@ class QRFrame {
 		$this->bit = -1;
 	}
 
-	public function getFrame($dataCode, $level)
+	public function getFrame($dataCode)
 	{
-		$spec = $this->getEccSpec($this->version, $level);
+		$spec = $this->getEccSpec($this->level);
 		
 		$dataLength = ($spec[0] * $spec[1]) + ($spec[3] * $spec[4]);
 		$eccLength = ($spec[0] + $spec[3]) * $spec[2];
@@ -156,9 +158,40 @@ class QRFrame {
 		return $this->frame;
 	}
 	
-	private function getRemainder($version)
+	private function getEccSpec()
 	{
-		return $this->tools->capacity[$version][QR_CAP_REMINDER];
+		$spec = [0,0,0,0,0];
+
+		$b1   = $this->eccTable[$this->version][$this->level][0];
+		$b2   = $this->eccTable[$this->version][$this->level][1];
+		$data = $this->tools->getDataLength($this->version, $this->level);
+		$ecc  = $this->getECCLength();
+
+		if($b2 == 0) {
+			$spec[0] = $b1;
+			$spec[1] = (int)($data / $b1);
+			$spec[2] = (int)($ecc / $b1);
+			$spec[3] = 0; 
+			$spec[4] = 0;
+		} else {
+			$spec[0] = $b1;
+			$spec[1] = (int)($data / ($b1 + $b2));
+			$spec[2] = (int)($ecc  / ($b1 + $b2));
+			$spec[3] = $b2;
+			$spec[4] = $spec[1] + 1;
+		}
+		
+		return $spec;
+	}
+	
+	private function getECCLength()
+	{
+		return $this->tools->capacity[$this->version][QR_CAP_EC][$this->level];
+	}
+	
+	private function getRemainder()
+	{
+		return $this->tools->capacity[$this->version][QR_CAP_REMINDER];
 	}
 
 	private function setFrameAt($at, $val)
@@ -226,20 +259,15 @@ class QRFrame {
 		return ['x'=>$x, 'y'=>$y];
 	}
 	
-	private function getVersionPattern($version)
+	private function getVersionPattern()
 	{
-		if($version < 7 || $version > QR_SPEC_VERSION_MAX){
+		if($this->version < 7 || $this->version > QR_SPEC_VERSION_MAX){
 			return 0;
 		}
 
-		return $this->versionPattern[$version -7];
+		return $this->versionPattern[$this->version -7];
 	}
-	
-	private function getECCLength($version, $level)
-	{
-		return $this->tools->capacity[$version][QR_CAP_EC][$level];
-	}
-	
+		
 	private function set_qrstr($x, $y, $repl, $replLen = false) 
 	{
 		if ($replLen !== false){
@@ -276,36 +304,36 @@ class QRFrame {
 		}
 	}
 
-	private function putAlignmentPattern($version, $width)
+	private function putAlignmentPattern($width)
 	{
-		if($version < 2){
+		if($this->version < 2){
 			return;
 		}
 
-		$d = $this->alignmentPattern[$version][1] - $this->alignmentPattern[$version][0];
+		$d = $this->alignmentPattern[$this->version][1] - $this->alignmentPattern[$this->version][0];
 		if($d < 0) {
 			$w = 2;
 		} else {
-			$w = (int)(($width - $this->alignmentPattern[$version][0]) / $d + 2);
+			$w = (int)(($width - $this->alignmentPattern[$this->version][0]) / $d + 2);
 		}
 
 		if($w * $w - 3 == 1) {
-			$x = $this->alignmentPattern[$version][0];
-			$y = $this->alignmentPattern[$version][0];
+			$x = $this->alignmentPattern[$this->version][0];
+			$y = $this->alignmentPattern[$this->version][0];
 			$this->putAlignmentMarker($x, $y);
 			return;
 		}
 
-		$cx = $this->alignmentPattern[$version][0];
+		$cx = $this->alignmentPattern[$this->version][0];
 		for($x=1; $x<$w - 1; $x++) {
 			$this->putAlignmentMarker(6, $cx);
 			$this->putAlignmentMarker($cx, 6);
 			$cx += $d;
 		}
 
-		$cy = $this->alignmentPattern[$version][0];
+		$cy = $this->alignmentPattern[$this->version][0];
 		for($y=0; $y<$w-1; $y++) {
-			$cx = $this->alignmentPattern[$version][0];
+			$cx = $this->alignmentPattern[$this->version][0];
 			for($x=0; $x<$w-1; $x++) {
 				$this->putAlignmentMarker($cx, $cy);
 				$cx += $d;
@@ -336,9 +364,9 @@ class QRFrame {
 		}
 	}
 
-	private function createFrame($version)
+	private function createFrame()
 	{
-		$width = $this->tools->capacity[$version][QR_CAP_WIDTH];
+		$width = $this->tools->capacity[$this->version][QR_CAP_WIDTH];
 		$frameLine = str_repeat ("\0", $width);
 		$this->new_frame = array_fill(0, $width, $frameLine);
 
@@ -382,11 +410,11 @@ class QRFrame {
 		}
 		
 		// Alignment pattern  
-		$this->putAlignmentPattern($version, $width);
+		$this->putAlignmentPattern($width);
 		
 		// Version information 
-		if($version >= 7) {
-			$vinf = $this->getVersionPattern($version);
+		if($this->version >= 7) {
+			$vinf = $this->getVersionPattern();
 
 			$v = $vinf;
 			
@@ -410,32 +438,6 @@ class QRFrame {
 		$this->new_frame[$width - 8][8] = "\x81";
 		
 		return $this->new_frame;
-	}
-
-	private function getEccSpec($version, $level)
-	{
-		$spec = [0,0,0,0,0];
-
-		$b1   = $this->eccTable[$version][$level][0];
-		$b2   = $this->eccTable[$version][$level][1];
-		$data = $this->tools->getDataLength($version, $level);
-		$ecc  = $this->getECCLength($version, $level);
-
-		if($b2 == 0) {
-			$spec[0] = $b1;
-			$spec[1] = (int)($data / $b1);
-			$spec[2] = (int)($ecc / $b1);
-			$spec[3] = 0; 
-			$spec[4] = 0;
-		} else {
-			$spec[0] = $b1;
-			$spec[1] = (int)($data / ($b1 + $b2));
-			$spec[2] = (int)($ecc  / ($b1 + $b2));
-			$spec[3] = $b2;
-			$spec[4] = $spec[1] + 1;
-		}
-		
-		return $spec;
 	}
 
 }
