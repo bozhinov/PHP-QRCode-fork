@@ -65,17 +65,13 @@ define('QR_CAP_EC', 3);
 
 class QRcode {
 
-	private $version;
-	private $width;
-	private $data;
-	
 	# QRencode
-	private $casesensitive = true;
-	private $eightbit = false;
-	private $size = 3;
-	private $margin = 4;
-	private $structured = 0; // not supported yet
-	private $level = QR_ECLEVEL_L;
+	private $casesensitive;
+	private $eightbit;
+	private $size;
+	private $margin;
+	#private $structured = 0; // not supported yet
+	private $level;
 	private $hint = QR_MODE_8;
 	
 	function __construct(int $level = QR_ECLEVEL_L, int $size = 3, int $margin = 4, bool $eightbit = false, bool $casesensitive = true)
@@ -91,26 +87,22 @@ class QRcode {
 		$this->level = $level;
 	}
 
-	private function encodeString8bit($string)
+	private function encodeString8bit(string $string)
 	{
-		if(is_null($string)) {
-			throw QRException::Std('empty string!');
-		}
-
-		$input = new QRinput($this->version, $this->level);
+		$input = new QRinput(1, $this->level);
 
 		$input->append(QR_MODE_8, strlen($string), str_split($string));
 
 		return $input->encodeMask(-1);
 	}
 
-	private function encodeString($string)
+	private function encodeString(string $string)
 	{
 		if($this->hint != QR_MODE_8 && $this->hint != QR_MODE_KANJI) {
 			throw QRException::Std('bad hint');
 		}
 
-		return (new QRsplit($string, $this->hint, $this->version, $this->level))->splitString($this->casesensitive);
+		return (new QRsplit($string, $this->hint, 1, $this->level))->splitString($this->casesensitive);
 	}
 	
 	private function binarize($frame)
@@ -125,55 +117,29 @@ class QRcode {
 		
 		return $frame;
 	}
-	
-	private function encode($intext, $outfile = false) 
+
+	public function png(string $text, string $outfile, $saveandprint = false)
 	{
-		if($this->eightbit) {
-			$encoded = $this->encodeString8bit($intext);
-		} else {
-			$encoded = $this->encodeString($intext);
-		}
-		
-		$this->version = $encoded['version'];
-		$this->width = $encoded['width'];
-		$this->data = $encoded['data'];
+		$encoded = $this->raw($text);
 
-		if ($outfile!== false) {
-			file_put_contents($outfile, join("\n", $this->binarize($this->data)));
-		} else {
-			return $this->binarize($this->data);
-		}
-	}
+		$tab = $this->binarize($encoded);
 
-	public function png($text, $outfile = false, $saveandprint = false)
-	{
-		$tab = $this->encode($text);
-
-		$maxSize = (int)(QR_PNG_MAXIMUM_SIZE / (count($tab)+2*$this->margin));
+		$maxSize = floor(QR_PNG_MAXIMUM_SIZE / (count($tab)+2*$this->margin));
 
 		$pixelPerPoint = min(max(1, $this->size), $maxSize);
 
 		(new QRimage($tab, $pixelPerPoint, $this->margin))->png($outfile, $saveandprint);
 	}
 
-	public function text($text, $outfile = false)
-	{
-		return $this->encode($text, $outfile);
-	}
-
-	public function raw($text, $outfile = false)
+	public function raw($text)
 	{
 		if($this->eightbit) {
 			$encoded = $this->encodeString8bit($text);
 		} else {
 			$encoded = $this->encodeString($text);
 		}
-		
-		$this->version = $encoded['version'];
-		$this->width = $encoded['width'];
-		$this->data = $encoded['data'];
-		
-		return $this->data;
+
+		return $encoded;
 	}
 }
 
