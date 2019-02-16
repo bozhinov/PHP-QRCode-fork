@@ -152,10 +152,10 @@ class QRinput {
 		if($size & 1){
 			return false;
 		}
-
+		
 		for($i=0; $i<$size; $i+=2) {
 			$val = (ord($data[$i]) << 8) | ord($data[$i+1]);
-			if( $val < 0x8140 || ($val > 0x9ffc && $val < 0xe040) || $val > 0xebbf) {
+			if($val < 0x8140 || ($val > 0x9ffc && $val < 0xe040) || $val > 0xebbf) {
 				return false;
 			}
 		}
@@ -241,15 +241,15 @@ class QRinput {
 			}
 		}
 	}
-	
+
 	private function get_bstream_size($bstream)
 	{
 		$size = 0;
-		
+
 		foreach($bstream as $d){
 			$size += $d[0];
 		}
-		
+
 		return $size;
 	}
 
@@ -258,37 +258,36 @@ class QRinput {
 		if(empty($bstream)) {
 			return [];
 		}
-		
-		$ret = [];
+
 		$dataStr = "";
-		
+
 		foreach($bstream as $d){
-			
+
 			list($bits, $num) = $d;
-			
+
 			$bin = decbin($num);
 			$diff = $bits - strlen($bin);
 
 			if ($diff != 0){
 				$bin = str_repeat("0", $diff).$bin;
 			}
-		
+
 			$dataStr .= $bin;
 		}
 
 		$data = str_split($dataStr, 8);
-		foreach($data as $bytes){
-			$ret[] = bindec($bytes);
-		}
 
-		return $ret;
+		array_walk($data, function(&$val) {
+			$val = bindec($val);
+		});
+
+		return $data;
 	}
-
 
 	private function getByteStream()
 	{
 		$this->convertData();
-		
+
 		$bstream = [];
 
 		foreach($this->items as $item) {
@@ -317,9 +316,9 @@ class QRinput {
 		$padlen = $maxwords - $words;
 
 		if($padlen > 0) {
-	
-			for($i=0; $i<$padlen; $i++) {
-				$bstream[] = [8, ($i&1) ? 17 : 236];
+			for($i=0; $i<$padlen; $i+=2) {
+				$bstream[] = [8, 236];
+				$bstream[] = [8, 17];
 			}
 		}
 
@@ -348,3 +347,4 @@ class QRinput {
 
 }
 
+?>

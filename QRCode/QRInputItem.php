@@ -22,38 +22,38 @@ class QRinputItem {
 	public $data;
 	public $bstream;
 	public $version;
-	
+
 	private $QRinput;
 	private $QRspec;
-	
-	function __construct($mode, int $size, array $data, $version) 
+
+	function __construct($mode, int $size, array $data, $version)
 	{
 		$setData = array_slice($data, 0, $size);
-		
+
 		if (empty($setData)){
 			throw QRException::Std('trying to allocate more than we have in the array');
 		}
-		
+
 		$this->QRinput = new QRinput();
 		$this->QRspec = new QRspec();
 		$this->bstream = [];
-	
+
 		if(!$this->QRinput->check($mode, $size, $setData)) {
 			throw QRException::Std('Error m:'.$mode.',s:'.$size.',d:'.join(',',$setData));
 			return null;
 		}
-		
+
 		$this->mode = $mode;
 		$this->size = $size;
 		$this->data = $setData;
 		$this->version = $version;
 	}
-	
+
 	private function encodeModeNum()
-	{		
+	{
 		$words = (int)($this->size / 3);
-		
-		$val = 0x1;
+
+		$val = 1;
 		$this->bstream[] = [4, $val];
 		$this->bstream[] = [$this->QRspec->lengthIndicator(QR_MODE_NUM, $this->version), $this->size];
 
@@ -77,8 +77,8 @@ class QRinputItem {
 	private function encodeModeAn()
 	{
 		$words = (int)($this->size / 2);
-		
-		$this->bstream[] = [4, 0x02];
+
+		$this->bstream[] = [4, 2];
 		$this->bstream[] = [$this->QRspec->lengthIndicator(QR_MODE_AN, $this->version), $this->size];
 
 		for($i=0; $i<$words; $i++) {
@@ -93,20 +93,20 @@ class QRinputItem {
 			$this->bstream[] = [6, $val];
 		}
 	}
-	
+
 	private function encodeMode8()
 	{
-		$this->bstream[] = [4, 0x4];
+		$this->bstream[] = [4, 4];
 		$this->bstream[] = [$this->QRspec->lengthIndicator(QR_MODE_8, $this->version), $this->size];
 
 		for($i=0; $i<$this->size; $i++) {
 			$this->bstream[] = [8, ord($this->data[$i])];
 		}
 	}
-	
+
 	private function encodeModeKanji()
-	{		
-		$this->bstream[] = [4, 0x8];
+	{
+		$this->bstream[] = [4, 8];
 		$this->bstream[] = [$this->QRspec->lengthIndicator(QR_MODE_KANJI, $this->version), (int)($this->size / 2)];
 
 		for($i=0; $i<$this->size; $i+=2) {
@@ -116,7 +116,7 @@ class QRinputItem {
 			} else {
 				$val -= 0xc140;
 			}
-			
+
 			$h = ($val >> 8) * 0xc0;
 			$val = ($val & 0xff) + $h;
 
@@ -126,12 +126,12 @@ class QRinputItem {
 
 	private function encodeModeStructure()
 	{
-		$this->bstream[] = [4, 0x03];
+		$this->bstream[] = [4, 3];
 		$this->bstream[] = [4, ord($this->data[1]) - 1];
 		$this->bstream[] = [4, ord($this->data[0]) - 1];
 		$this->bstream[] = [8, ord($this->data[2])];
 	}
-	
+
 	public function estimateBitStreamSizeOfEntry()
 	{
 		$bits = 0;
@@ -167,10 +167,9 @@ class QRinputItem {
 
 		return $bits;
 	}
-	
+
 	public function encodeBitStream(int $size = -1, array $data = [])
 	{
-		
 		if ($size == -1){
 			$size = $this->size;
 		}
@@ -186,9 +185,9 @@ class QRinputItem {
 			$bstreamData2 = $this->encodeBitStream($this->size - $words, array_slice($this->data, $words));
 
 			$this->bstream = array_merge($bstreamData1, $bstreamData2);
-			
+
 		} else {
-			
+
 			switch($this->mode) {
 				case QR_MODE_NUM:
 					$this->encodeModeNum();
