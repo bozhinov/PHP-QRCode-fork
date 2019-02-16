@@ -23,21 +23,20 @@ class QRsplit {
 	private $la;
 	private $ln;
 
-	function __construct($dataStr, QRinput $input, $modeHint)
+	function __construct($dataStr, $modeHint, $version, $level)
 	{
 		if(is_null($dataStr) || $dataStr == '\0' || $dataStr == '') {
 			throw QRException::Std('empty string!');
 		}
 		
 		$this->dataStr  = $dataStr;
-		$this->input    = $input;
 		$this->modeHint = $modeHint;
-
-		$version = $this->input->getVersion();
 		
 		$QRspec  = new QRspec();
 		$this->la = $QRspec->lengthIndicator(QR_MODE_AN, $version);
 		$this->ln = $QRspec->lengthIndicator(QR_MODE_NUM, $version);
+		
+		$this->input = new QRinput($version, $level);
 	}
 
 	private function isdigitat($str, $pos)
@@ -273,5 +272,7 @@ class QRsplit {
 			
 			$this->dataStr = substr($this->dataStr, $length);
 		}
+		
+		return $this->input->encodeMask(-1);
 	}
 }

@@ -51,11 +51,6 @@ class QRinput {
 
 		$this->version = $version;
 	}
-	
-	public function getVersion()
-	{
-		return $this->version;
-	}
 
 	public function append($mode, $size, $data)
 	{
@@ -340,7 +335,7 @@ class QRinput {
 
 		$frame = (new FrameFiller($this->version))->getFrame($dataCode, $this->level);
 
-		$masked =(new QRmask($width, $this->level, $frame))->get($mask);
+		$masked = (new QRmask($width, $this->level, $frame))->get($mask);
 
 		return ["version" => $this->version, "width" => $width, "data" => $masked];
 	}

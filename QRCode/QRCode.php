@@ -110,13 +110,7 @@ class QRcode {
 			throw QRException::Std('bad hint');
 		}
 
-		$input = new QRinput($this->version, $this->level);
-
-		# appends to input
-		(new QRsplit($string, $input, $this->hint))->splitString($this->casesensitive);
-
-		# ["version" => $version, "width" => $width, "data" => $masked]
-		return $input->encodeMask(-1);
+		return (new QRsplit($string, $this->hint, $this->version, $this->level))->splitString($this->casesensitive);
 	}
 	
 	private function binarize($frame)
