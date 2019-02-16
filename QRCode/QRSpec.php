@@ -158,6 +158,8 @@ class QRspec {
 		[0x1689, 0x13be, 0x1ce7, 0x19d0, 0x0762, 0x0255, 0x0d0c, 0x083b]
 	];
 	
+	private $frame;
+	
 	private function getVersionPattern($version)
 	{
 		if($version < 7 || $version > QR_SPEC_VERSION_MAX){
@@ -172,7 +174,7 @@ class QRspec {
 		return $this->capacity[$version][QR_CAP_EC][$level];
 	}
 	
-	private function set_qrstr(&$srctab, $x, $y, $repl, $replLen = false) 
+	private function set_qrstr($x, $y, $repl, $replLen = false) 
 	{
 		if ($replLen !== false){
 			$str1 = substr($repl,0,$replLen);
@@ -182,16 +184,15 @@ class QRspec {
 			$str2 = strlen($repl);
 		}
 
-		$srctab[$y] = substr_replace($srctab[$y], $str1, $x, $str2);
+		$this->frame[$y] = substr_replace($this->frame[$y], $str1, $x, $str2);
 	}
 	
 	/** 
 	 * Put an alignment marker.
-	 * @param frame
 	 * @param width
 	 * @param ox,oy center coordinate of the pattern
 	 */
-	private function putAlignmentMarker(array &$frame, $ox, $oy)
+	private function putAlignmentMarker($ox, $oy)
 	{
 		$finder = [
 			"\xa1\xa1\xa1\xa1\xa1",
@@ -205,11 +206,11 @@ class QRspec {
 		$xStart = $ox-2;
 		
 		for($y=0; $y<5; $y++) {
-			$this->set_qrstr($frame, $xStart, $yStart+$y, $finder[$y]);
+			$this->set_qrstr($xStart, $yStart+$y, $finder[$y]);
 		}
 	}
 
-	private function putAlignmentPattern($version, &$frame, $width)
+	private function putAlignmentPattern($version, $width)
 	{
 		if($version < 2){
 			return;
@@ -225,14 +226,14 @@ class QRspec {
 		if($w * $w - 3 == 1) {
 			$x = $this->alignmentPattern[$version][0];
 			$y = $this->alignmentPattern[$version][0];
-			$this->putAlignmentMarker($frame, $x, $y);
+			$this->putAlignmentMarker($x, $y);
 			return;
 		}
 
 		$cx = $this->alignmentPattern[$version][0];
 		for($x=1; $x<$w - 1; $x++) {
-			$this->putAlignmentMarker($frame, 6, $cx);
-			$this->putAlignmentMarker($frame, $cx, 6);
+			$this->putAlignmentMarker(6, $cx);
+			$this->putAlignmentMarker($cx, 6);
 			$cx += $d;
 		}
 
@@ -240,7 +241,7 @@ class QRspec {
 		for($y=0; $y<$w-1; $y++) {
 			$cx = $this->alignmentPattern[$version][0];
 			for($x=0; $x<$w-1; $x++) {
-				$this->putAlignmentMarker($frame, $cx, $cy);
+				$this->putAlignmentMarker($cx, $cy);
 				$cx += $d;
 			}
 			$cy += $d;
@@ -249,11 +250,10 @@ class QRspec {
 	
 	/** 
 	 * Put a finder pattern.
-	 * @param frame
 	 * @param width
 	 * @param ox,oy upper-left coordinate of the pattern
 	 */
-	private function putFinderPattern(&$frame, $ox, $oy)
+	private function putFinderPattern($ox, $oy)
 	{
 		$finder = [
 			"\xc1\xc1\xc1\xc1\xc1\xc1\xc1",
@@ -266,7 +266,7 @@ class QRspec {
 		];
 		
 		for($y=0; $y<7; $y++) {
-			$this->set_qrstr($frame, $ox, $oy+$y, $finder[$y]);
+			$this->set_qrstr($ox, $oy+$y, $finder[$y]);
 		}
 	}
 
@@ -274,49 +274,49 @@ class QRspec {
 	{
 		$width = $this->capacity[$version][QR_CAP_WIDTH];
 		$frameLine = str_repeat ("\0", $width);
-		$frame = array_fill(0, $width, $frameLine);
+		$this->frame = array_fill(0, $width, $frameLine);
 
 		// Finder pattern
-		$this->putFinderPattern($frame, 0, 0);
-		$this->putFinderPattern($frame, $width - 7, 0);
-		$this->putFinderPattern($frame, 0, $width - 7);
+		$this->putFinderPattern(0, 0);
+		$this->putFinderPattern($width - 7, 0);
+		$this->putFinderPattern(0, $width - 7);
 		
 		// Separator
 		$yOffset = $width - 7;
 		
 		for($y=0; $y<7; $y++) {
-			$frame[$y][7] = "\xc0";
-			$frame[$y][$width - 8] = "\xc0";
-			$frame[$yOffset][7] = "\xc0";
+			$this->frame[$y][7] = "\xc0";
+			$this->frame[$y][$width - 8] = "\xc0";
+			$this->frame[$yOffset][7] = "\xc0";
 			$yOffset++;
 		}
 		
 		$setPattern = str_repeat("\xc0", 8);
 		
-		$this->set_qrstr($frame, 0, 7, $setPattern);
-		$this->set_qrstr($frame, $width-8, 7, $setPattern);
-		$this->set_qrstr($frame, 0, $width - 8, $setPattern);
+		$this->set_qrstr(0, 7, $setPattern);
+		$this->set_qrstr($width-8, 7, $setPattern);
+		$this->set_qrstr(0, $width - 8, $setPattern);
 	
 		// Format info
 		$setPattern = str_repeat("\x84", 9);
-		$this->set_qrstr($frame, 0, 8, $setPattern);
-		$this->set_qrstr($frame, $width - 8, 8, $setPattern, 8);
+		$this->set_qrstr(0, 8, $setPattern);
+		$this->set_qrstr($width - 8, 8, $setPattern, 8);
 		
 		$yOffset = $width - 8;
 
 		for($y=0; $y<8; $y++,$yOffset++) {
-			$frame[$y][8] = "\x84";
-			$frame[$yOffset][8] = "\x84";
+			$this->frame[$y][8] = "\x84";
+			$this->frame[$yOffset][8] = "\x84";
 		}
 
 		// Timing pattern  
 		for($i=1; $i<$width-15; $i++) {
-			$frame[6][7+$i] = chr(0x90 | ($i & 1));
-			$frame[7+$i][6] = chr(0x90 | ($i & 1));
+			$this->frame[6][7+$i] = chr(0x90 | ($i & 1));
+			$this->frame[7+$i][6] = chr(0x90 | ($i & 1));
 		}
 		
 		// Alignment pattern  
-		$this->putAlignmentPattern($version, $frame, $width);
+		$this->putAlignmentPattern($version, $width);
 		
 		// Version information 
 		if($version >= 7) {
@@ -326,7 +326,7 @@ class QRspec {
 			
 			for($x=0; $x<6; $x++) {
 				for($y=0; $y<3; $y++) {
-					$frame[($width - 11)+$y][$x] = chr(0x88 | ($v & 1));
+					$this->frame[($width - 11)+$y][$x] = chr(0x88 | ($v & 1));
 					$v = $v >> 1;
 				}
 			}
@@ -334,16 +334,16 @@ class QRspec {
 			$v = $vinf;
 			for($y=0; $y<6; $y++) {
 				for($x=0; $x<3; $x++) {
-					$frame[$y][$x+($width - 11)] = chr(0x88 | ($v & 1));
+					$this->frame[$y][$x+($width - 11)] = chr(0x88 | ($v & 1));
 					$v = $v >> 1;
 				}
 			}
 		}
 
 		// and a little bit...  
-		$frame[$width - 8][8] = "\x81";
+		$this->frame[$width - 8][8] = "\x81";
 		
-		return $frame;
+		return $this->frame;
 	}
 
 	public function getFormatInfo($mask, $level)
