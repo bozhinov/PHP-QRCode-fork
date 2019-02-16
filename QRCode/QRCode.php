@@ -16,7 +16,7 @@
 namespace QRCode;
 
 use QRCode\QRException;
-use QRCode\FrameFiller;
+use QRCode\QRFrame;
 use QRCode\QRRawCode;
 use QRCode\QRImage;
 use QRCode\QRTools;
@@ -24,7 +24,6 @@ use QRCode\QRInput;
 use QRCode\QRInputItem;
 use QRCode\QRMask;
 use QRCode\QRrsItem;
-use QRCode\QRSpec;
 use QRCode\QRSplit;
 
 // QRMask
@@ -127,7 +126,7 @@ class QRcode {
 		return $frame;
 	}
 	
-	public function encode($intext, $outfile = false) 
+	private function encode($intext, $outfile = false) 
 	{
 		if($this->eightbit) {
 			$encoded = $this->encodeString8bit($intext);

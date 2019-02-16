@@ -15,56 +15,20 @@
 
 namespace QRCode;
 
-class QRspec {
+class QRFrame {
 
-	public $capacity = [
-		[0, 0, 0, [0, 0, 0, 0]],
-		[21, 26, 0, [7, 10, 13, 17]], // 1
-		[25, 44, 7, [10, 16, 22, 28]],
-		[29, 70, 7, [15, 26, 36, 44]],
-		[33, 100, 7, [20, 36, 52, 64]],
-		[37, 134, 7, [26, 48, 72, 88]], // 5
-		[41, 172, 7, [36, 64, 96, 112]],
-		[45, 196, 0, [40, 72, 108, 130]],
-		[49, 242, 0, [48, 88, 132, 156]],
-		[53, 292, 0, [60, 110, 160, 192]],
-		[57, 346, 0, [72, 130, 192, 224]], //10
-		[61, 404, 0, [80, 150, 224, 264]],
-		[65, 466, 0, [96, 176, 260, 308]],
-		[69, 532, 0, [104, 198, 288, 352]],
-		[73, 581, 3, [120, 216, 320, 384]],
-		[77, 655, 3, [132, 240, 360, 432]], //15
-		[81, 733, 3, [144, 280, 408, 480]],
-		[85, 815, 3, [168, 308, 448, 532]],
-		[89, 901, 3, [180, 338, 504, 588]],
-		[93, 991, 3, [196, 364, 546, 650]],
-		[97, 1085, 3, [224, 416, 600, 700]], //20
-		[101, 1156, 4, [224, 442, 644, 750]],
-		[105, 1258, 4, [252, 476, 690, 816]],
-		[109, 1364, 4, [270, 504, 750, 900]],
-		[113, 1474, 4, [300, 560, 810, 960]],
-		[117, 1588, 4, [312, 588, 870, 1050]], //25
-		[121, 1706, 4, [336, 644, 952, 1110]],
-		[125, 1828, 4, [360, 700, 1020, 1200]],
-		[129, 1921, 3, [390, 728, 1050, 1260]],
-		[133, 2051, 3, [420, 784, 1140, 1350]],
-		[137, 2185, 3, [450, 812, 1200, 1440]], //30
-		[141, 2323, 3, [480, 868, 1290, 1530]],
-		[145, 2465, 3, [510, 924, 1350, 1620]],
-		[149, 2611, 3, [540, 980, 1440, 1710]],
-		[153, 2761, 3, [570, 1036, 1530, 1800]],
-		[157, 2876, 0, [570, 1064, 1590, 1890]], //35
-		[161, 3034, 0, [600, 1120, 1680, 1980]],
-		[165, 3196, 0, [630, 1204, 1770, 2100]],
-		[169, 3362, 0, [660, 1260, 1860, 2220]],
-		[173, 3532, 0, [720, 1316, 1950, 2310]],
-		[177, 3706, 0, [750, 1372, 2040, 2430]] //40
-	];
+	private $width;
+	private $frame;
+	private $version;
+	private $x;
+	private $y;
+	private $dir;
+	private $bit;
 	
-	// Frame 
-	// Cache of initial frames.
-	private $frames = [];
-	
+	// those two came from the QRSpec class
+	private $new_frame;
+	private $tools;
+
 	// Error correction code
 	// Table of the error correction code (Reed-Solomon block)
 	// See Table 12-16 (pp.30-36), JIS X0510:2004.
@@ -142,16 +106,125 @@ class QRspec {
 		0x27541, 0x28c69
 	];
 
-	// Format information 
-	// See calcFormatInfo in tests/test_qrspec.c (orginal qrencode c lib)
-	private $formatInfo = [
-		[0x77c4, 0x72f3, 0x7daa, 0x789d, 0x662f, 0x6318, 0x6c41, 0x6976],
-		[0x5412, 0x5125, 0x5e7c, 0x5b4b, 0x45f9, 0x40ce, 0x4f97, 0x4aa0],
-		[0x355f, 0x3068, 0x3f31, 0x3a06, 0x24b4, 0x2183, 0x2eda, 0x2bed],
-		[0x1689, 0x13be, 0x1ce7, 0x19d0, 0x0762, 0x0255, 0x0d0c, 0x083b]
-	];
+	function __construct($version)
+	{
+		if($version < 1 || $version > QR_SPEC_VERSION_MAX){
+			throw QRException::Std('Version invalid');
+		}
+		
+		$this->tools = new QRTools();
+		
+		$this->width = $this->tools->getWidth($version);
+		$this->frame = $this->createFrame($version);	
+		$this->version = $version;
+
+		$this->x = $this->width - 1;
+		$this->y = $this->width - 1;
+		$this->dir = -1;
+		$this->bit = -1;
+	}
+
+	public function getFrame($dataCode, $level)
+	{
+		$spec = $this->getEccSpec($this->version, $level);
+		
+		$dataLength = ($spec[0] * $spec[1]) + ($spec[3] * $spec[4]);
+		$eccLength = ($spec[0] + $spec[3]) * $spec[2];
+
+		$raw = new QRrawcode($dataCode, $dataLength, $eccLength, $spec);
+		
+		// inteleaved data and ecc codes
+		for($i=0; $i < ($dataLength + $eccLength); $i++) {
+			$code = $raw->getCode();
+			$bit = 0x80;
+			for($j=0; $j<8; $j++) {
+				$addr = $this->next();
+				$this->setFrameAt($addr, 0x02 | (($bit & $code) != 0));
+				$bit = $bit >> 1;
+			}
+		}
+
+		unset($raw);
+		
+		// remainder bits
+		$j = $this->getRemainder($this->version);
+		for($i=0; $i<$j; $i++) {
+			$addr = $this->next();
+			$this->setFrameAt($addr, 0x02);
+		}
+
+		return $this->frame;
+	}
 	
-	private $frame;
+	private function getRemainder($version)
+	{
+		return $this->tools->capacity[$version][QR_CAP_REMINDER];
+	}
+
+	private function setFrameAt($at, $val)
+	{
+		$this->frame[$at['y']][$at['x']] = chr($val);
+	}
+
+	private function getFrameAt($at)  # UNSED
+	{
+		return ord($this->frame[$at['y']][$at['x']]);
+	}
+
+	private function next()
+	{
+		do {
+		
+			if($this->bit == -1) {
+				$this->bit = 0;
+				return ['x'=>$this->x, 'y'=>$this->y];
+			}
+
+			$x = $this->x;
+			$y = $this->y;
+			$w = $this->width;
+
+			if($this->bit == 0) {
+				$x--;
+				$this->bit++;
+			} else {
+				$x++;
+				$y += $this->dir;
+				$this->bit--;
+			}
+
+			if($this->dir < 0) {
+				if($y < 0) {
+					$y = 0;
+					$x -= 2;
+					$this->dir = 1;
+					if($x == 6) {
+						$x--;
+						$y = 9;
+					}
+				}
+			} else {
+				if($y == $w) {
+					$y = $w - 1;
+					$x -= 2;
+					$this->dir = -1;
+					if($x == 6) {
+						$x--;
+						$y -= 8;
+					}
+				}
+			}
+			if($x < 0 || $y < 0){
+				return null;
+			}
+
+			$this->x = $x;
+			$this->y = $y;
+
+		} while(ord($this->frame[$y][$x]) & 0x80);
+
+		return ['x'=>$x, 'y'=>$y];
+	}
 	
 	private function getVersionPattern($version)
 	{
@@ -164,7 +237,7 @@ class QRspec {
 	
 	private function getECCLength($version, $level)
 	{
-		return $this->capacity[$version][QR_CAP_EC][$level];
+		return $this->tools->capacity[$version][QR_CAP_EC][$level];
 	}
 	
 	private function set_qrstr($x, $y, $repl, $replLen = false) 
@@ -177,7 +250,7 @@ class QRspec {
 			$str2 = strlen($repl);
 		}
 
-		$this->frame[$y] = substr_replace($this->frame[$y], $str1, $x, $str2);
+		$this->new_frame[$y] = substr_replace($this->new_frame[$y], $str1, $x, $str2);
 	}
 	
 	/** 
@@ -265,9 +338,9 @@ class QRspec {
 
 	private function createFrame($version)
 	{
-		$width = $this->capacity[$version][QR_CAP_WIDTH];
+		$width = $this->tools->capacity[$version][QR_CAP_WIDTH];
 		$frameLine = str_repeat ("\0", $width);
-		$this->frame = array_fill(0, $width, $frameLine);
+		$this->new_frame = array_fill(0, $width, $frameLine);
 
 		// Finder pattern
 		$this->putFinderPattern(0, 0);
@@ -278,9 +351,9 @@ class QRspec {
 		$yOffset = $width - 7;
 		
 		for($y=0; $y<7; $y++) {
-			$this->frame[$y][7] = "\xc0";
-			$this->frame[$y][$width - 8] = "\xc0";
-			$this->frame[$yOffset][7] = "\xc0";
+			$this->new_frame[$y][7] = "\xc0";
+			$this->new_frame[$y][$width - 8] = "\xc0";
+			$this->new_frame[$yOffset][7] = "\xc0";
 			$yOffset++;
 		}
 		
@@ -298,14 +371,14 @@ class QRspec {
 		$yOffset = $width - 8;
 
 		for($y=0; $y<8; $y++,$yOffset++) {
-			$this->frame[$y][8] = "\x84";
-			$this->frame[$yOffset][8] = "\x84";
+			$this->new_frame[$y][8] = "\x84";
+			$this->new_frame[$yOffset][8] = "\x84";
 		}
 
 		// Timing pattern  
 		for($i=1; $i<$width-15; $i++) {
-			$this->frame[6][7+$i] = chr(0x90 | ($i & 1));
-			$this->frame[7+$i][6] = chr(0x90 | ($i & 1));
+			$this->new_frame[6][7+$i] = chr(0x90 | ($i & 1));
+			$this->new_frame[7+$i][6] = chr(0x90 | ($i & 1));
 		}
 		
 		// Alignment pattern  
@@ -319,7 +392,7 @@ class QRspec {
 			
 			for($x=0; $x<6; $x++) {
 				for($y=0; $y<3; $y++) {
-					$this->frame[($width - 11)+$y][$x] = chr(0x88 | ($v & 1));
+					$this->new_frame[($width - 11)+$y][$x] = chr(0x88 | ($v & 1));
 					$v = $v >> 1;
 				}
 			}
@@ -327,38 +400,25 @@ class QRspec {
 			$v = $vinf;
 			for($y=0; $y<6; $y++) {
 				for($x=0; $x<3; $x++) {
-					$this->frame[$y][$x+($width - 11)] = chr(0x88 | ($v & 1));
+					$this->new_frame[$y][$x+($width - 11)] = chr(0x88 | ($v & 1));
 					$v = $v >> 1;
 				}
 			}
 		}
 
 		// and a little bit...  
-		$this->frame[$width - 8][8] = "\x81";
+		$this->new_frame[$width - 8][8] = "\x81";
 		
-		return $this->frame;
+		return $this->new_frame;
 	}
 
-	public function getFormatInfo($mask, $level)
-	{
-		if($mask < 0 || $mask > 7){
-			return 0;
-		}
-
-		if($level < 0 || $level > 3){
-			return 0;
-		}
-
-		return $this->formatInfo[$level][$mask];
-	}
-
-	public function getEccSpec($version, $level)
+	private function getEccSpec($version, $level)
 	{
 		$spec = [0,0,0,0,0];
 
 		$b1   = $this->eccTable[$version][$level][0];
 		$b2   = $this->eccTable[$version][$level][1];
-		$data = $this->getDataLength($version, $level);
+		$data = $this->tools->getDataLength($version, $level);
 		$ecc  = $this->getECCLength($version, $level);
 
 		if($b2 == 0) {
@@ -378,47 +438,6 @@ class QRspec {
 		return $spec;
 	}
 
-	public function newFrame($version)
-	{
-		if($version < 1 || $version > QR_SPEC_VERSION_MAX){
-			return null;
-		}
-
-		if(!isset($this->frames[$version])) {
-			$this->frames[$version] = $this->createFrame($version);
-		}
-
-		if(is_null($this->frames[$version])){
-			return null;
-		}
-
-		return $this->frames[$version];
-	}
-
-	public function getDataLength($version, $level)
-	{
-		return $this->capacity[$version][QR_CAP_WORDS] - $this->capacity[$version][QR_CAP_EC][$level];
-	}
-
-	public function getWidth($version)
-	{
-		return $this->capacity[$version][QR_CAP_WIDTH];
-	}
-
-	public function getRemainder($version)
-	{
-		return $this->capacity[$version][QR_CAP_REMINDER];
-	}
-
-	public function getMinimumVersion($size, $level)
-	{
-		for($i=1; $i<= QR_SPEC_VERSION_MAX; $i++) {
-			$words  = $this->capacity[$i][QR_CAP_WORDS] - $this->capacity[$i][QR_CAP_EC][$level];
-			if($words >= $size){
-				return $i;
-			}
-		}
-
-		return -1;
-	}
 }
+
+?>

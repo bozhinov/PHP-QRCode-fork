@@ -20,24 +20,34 @@ class QRinput {
 	public $items;
 	private $version;
 	private $level;
-	
-	private $spec;
+	private $tools;
 
 	function __construct($version = 0, $level = QR_ECLEVEL_L)
 	{
 		$this->level = $level;
 		$this->setVersion($version);
-		
-		$this->spec = new QRspec();
+		$this->tools = new QRTools();
 	}
 
-	public function setVersion($version)
+	private function setVersion($version)
 	{
 		if($version < 0 || $version > QR_SPEC_VERSION_MAX || $this->level > QR_ECLEVEL_H) {
 			throw QRException::Std('Invalid version no');
 		}
 
 		$this->version = $version;
+	}
+
+	private function getMinimumVersion($size, $level)
+	{
+		for($i=1; $i<= QR_SPEC_VERSION_MAX; $i++) {
+			$words  = $this->tools->capacity[$i][QR_CAP_WORDS] - $this->tools->capacity[$i][QR_CAP_EC][$level];
+			if($words >= $size){
+				return $i;
+			}
+		}
+
+		return -1;
 	}
 
 	public function append($mode, $size, $data)
@@ -63,7 +73,7 @@ class QRinput {
 		do {
 			$prev = $version;
 			$bits = $this->estimateBitStreamSize($prev);
-			$version = $this->spec->getMinimumVersion(floor(($bits + 7) / 8), $this->level);
+			$version = $this->getMinimumVersion(floor(($bits + 7) / 8), $this->level);
 			if ($version < 0) {
 				return -1;
 			}
@@ -96,7 +106,7 @@ class QRinput {
 		while (true) {
 
 			$bits = $this->createBitStream();
-			$ver = $this->spec->getMinimumVersion(floor(($bits + 7) / 8), $this->level);
+			$ver = $this->getMinimumVersion(floor(($bits + 7) / 8), $this->level);
 			
 			if($ver < 0) {
 				throw QRException::Std('Wrong version!');
@@ -161,7 +171,7 @@ class QRinput {
 		}
 
 		$bits = $this->get_bstream_size($bstream);
-		$maxwords = $this->spec->getDataLength($this->version, $this->level);
+		$maxwords = $this->tools->getDataLength($this->version, $this->level);
 		$maxbits = $maxwords * 8;
 		
 		if ($maxbits == $bits) {
@@ -202,9 +212,9 @@ class QRinput {
 
 		$dataCode = $this->getByteStream();
 
-		$width = $this->spec->getWidth($this->version);
-
-		$frame = (new FrameFiller($this->version))->getFrame($dataCode, $this->level);
+		$width = $this->tools->getWidth($this->version);
+		
+		$frame = (new QRFrame($this->version))->getFrame($dataCode, $this->level);
 
 		$masked = (new QRmask($width, $this->level, $frame))->get($mask);
 
