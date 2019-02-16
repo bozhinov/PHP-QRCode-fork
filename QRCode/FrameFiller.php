@@ -25,14 +25,14 @@ class FrameFiller {
 	private $dir;
 	private $bit;
 
-	private $QRspec;
+	private $spec;
 
 	function __construct($version)
 	{
-		$this->QRspec = new QRspec();
+		$this->spec = new QRspec();
 		
-		$this->width = $this->QRspec->getWidth($version);
-		$this->frame = $this->QRspec->newFrame($version);
+		$this->width = $this->spec->getWidth($version);
+		$this->frame = $this->spec->newFrame($version);
 		$this->version = $version;
 
 		$this->x = $this->width - 1;
@@ -43,7 +43,7 @@ class FrameFiller {
 
 	public function getFrame($dataCode, $level)
 	{
-		$spec = $this->QRspec->getEccSpec($this->version, $level);
+		$spec = $this->spec->getEccSpec($this->version, $level);
 		
 		$dataLength = ($spec[0] * $spec[1]) + ($spec[3] * $spec[4]);
 		$eccLength = ($spec[0] + $spec[3]) * $spec[2];
@@ -64,7 +64,7 @@ class FrameFiller {
 		unset($raw);
 		
 		// remainder bits
-		$j = $this->QRspec->getRemainder($this->version);
+		$j = $this->spec->getRemainder($this->version);
 		for($i=0; $i<$j; $i++) {
 			$addr = $this->next();
 			$this->setFrameAt($addr, 0x02);

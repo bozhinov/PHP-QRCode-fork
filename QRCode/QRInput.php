@@ -21,14 +21,14 @@ class QRinput {
 	private $version;
 	private $level;
 	
-	private $QRspec;
+	private $spec;
 
 	function __construct($version = 0, $level = QR_ECLEVEL_L)
 	{
 		$this->level = $level;
 		$this->setVersion($version);
 		
-		$this->QRspec = new QRspec();
+		$this->spec = new QRspec();
 	}
 
 	public function setVersion($version)
@@ -63,7 +63,7 @@ class QRinput {
 		do {
 			$prev = $version;
 			$bits = $this->estimateBitStreamSize($prev);
-			$version = $this->QRspec->getMinimumVersion(floor(($bits + 7) / 8), $this->level);
+			$version = $this->spec->getMinimumVersion(floor(($bits + 7) / 8), $this->level);
 			if ($version < 0) {
 				return -1;
 			}
@@ -96,10 +96,10 @@ class QRinput {
 		while (true) {
 
 			$bits = $this->createBitStream();
-			$ver = $this->QRspec->getMinimumVersion(floor(($bits + 7) / 8), $this->level);
+			$ver = $this->spec->getMinimumVersion(floor(($bits + 7) / 8), $this->level);
 			
 			if($ver < 0) {
-				throw QRException::Std('WRONG VERSION');
+				throw QRException::Std('Wrong version!');
 			} elseif($ver > $this->version) {
 				$this->setVersion($ver);
 			} else {
@@ -161,7 +161,7 @@ class QRinput {
 		}
 
 		$bits = $this->get_bstream_size($bstream);
-		$maxwords = $this->QRspec->getDataLength($this->version, $this->level);
+		$maxwords = $this->spec->getDataLength($this->version, $this->level);
 		$maxbits = $maxwords * 8;
 		
 		if ($maxbits == $bits) {
@@ -194,7 +194,7 @@ class QRinput {
 	public function encodeMask($mask)
 	{
 		if($this->version < 0 || $this->version > QR_SPEC_VERSION_MAX) {
-			throw QRException::Std('wrong version');
+			throw QRException::Std('Wrong version!');
 		}
 		if($this->level > QR_ECLEVEL_H) {
 			throw QRException::Std('wrong level');
@@ -202,7 +202,7 @@ class QRinput {
 
 		$dataCode = $this->getByteStream();
 
-		$width = $this->QRspec->getWidth($this->version);
+		$width = $this->spec->getWidth($this->version);
 
 		$frame = (new FrameFiller($this->version))->getFrame($dataCode, $this->level);
 

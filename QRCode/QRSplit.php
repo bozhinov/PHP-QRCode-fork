@@ -33,9 +33,9 @@ class QRsplit {
 		$this->dataStr  = $dataStr;
 		$this->modeHint = $modeHint;
 		
-		$QRspec  = new QRspec();
-		$this->la = $QRspec->lengthIndicator(QR_MODE_AN, $version);
-		$this->ln = $QRspec->lengthIndicator(QR_MODE_NUM, $version);
+		$spec = new QRspec();
+		$this->la = $spec->lengthIndicator(QR_MODE_AN, $version);
+		$this->ln = $spec->lengthIndicator(QR_MODE_NUM, $version);
 		
 		$this->input = new QRinput($version, $level);
 		$this->tools = new QRTools();
