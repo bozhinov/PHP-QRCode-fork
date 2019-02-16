@@ -80,7 +80,7 @@ class QRinput {
 		do {
 			$prev = $version;
 			$bits = $this->estimateBitStreamSize($prev);
-			$version = $this->QRspec->getMinimumVersion((int)(($bits + 7) / 8), $this->level);
+			$version = $this->QRspec->getMinimumVersion(floor(($bits + 7) / 8), $this->level);
 			if ($version < 0) {
 				return -1;
 			}
@@ -91,7 +91,7 @@ class QRinput {
 
 	public function estimateBitsModeNum($size)
 	{
-		$w = (int)$size / 3;
+		$w = floor($size / 3);
 		$bits = $w * 10;
 		
 		switch($size - $w * 3) {
@@ -110,7 +110,7 @@ class QRinput {
 	
 	public function estimateBitsModeAn($size)
 	{
-		$w = (int)($size / 2);
+		$w = floor($size / 2);
 		$bits = $w * 11;
 		
 		if($size & 1) {
@@ -127,7 +127,7 @@ class QRinput {
 
 	public function estimateBitsModeKanji($size)
 	{
-		return (int)(($size / 2) * 13);
+		return floor(($size / 2) * 13);
 	}
 
 
@@ -230,7 +230,7 @@ class QRinput {
 		while (true) {
 
 			$bits = $this->createBitStream();
-			$ver = $this->QRspec->getMinimumVersion((int)(($bits + 7) / 8), $this->level);
+			$ver = $this->QRspec->getMinimumVersion(floor(($bits + 7) / 8), $this->level);
 			
 			if($ver < 0) {
 				throw QRException::Std('WRONG VERSION');
@@ -309,7 +309,7 @@ class QRinput {
 		}
 
 		$bits += 4;
-		$words = (int)(($bits + 7) / 8);
+		$words = floor(($bits + 7) / 8);
 
 		$bstream[] = [$words * 8 - $bits + 4, 0];
 
