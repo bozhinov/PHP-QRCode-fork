@@ -20,7 +20,7 @@ class QRimage {
 	private $image;
 	
 	function __construct(array $frame, int $pixelPerPoint = 4, int $outerFrame = 4)
-	{		
+	{
 		$this->image = $this->createImage($frame, $pixelPerPoint, $outerFrame);
 	}
 	
@@ -30,41 +30,24 @@ class QRimage {
 		}
 	}
 	
-	public function png($filename = false, bool $saveandprint = false)
-	{		
-		if ($filename === false) {
-			
+	public function png($filename = false)
+	{
+		if ((php_sapi_name() == "cli") || ($filename != false)) {
+			imagePng($this->image, $filename);
+		} else {
 			header("Content-type: image/png");
 			imagePng($this->image);
-			
-		} else {
-			
-			imagePng($this->image, $filename);
-			
-			if ($saveandprint) {
-				imagePng($this->image, $filename);
-				header("Content-type: image/png");
-				imagePng($this->image);
-			}
 		}
 	}
 
 	/* $pixelPerPoint = 8 default */
-	public function jpg($filename = false, int $q = 85, bool $saveandprint = false) 
-	{		
-		if ($filename === false) {
-			
+	public function jpg($filename = false, int $q = 85) 
+	{
+		if ((php_sapi_name() == "cli") || ($filename != false)) {
+			imageJpeg($this->image, $filename, $q);
+		} else {
 			header("Content-type: image/jpeg");
 			imageJpeg($this->image, null, $q);
-			
-		} else {
-			
-			imageJpeg($this->image, $filename, $q);
-			
-			if($saveandprint){
-				header("Content-type: image/jpeg");
-				imageJpeg($this->image, null, $q);
-			}
 		}
 	}
 

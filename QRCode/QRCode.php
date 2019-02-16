@@ -118,7 +118,7 @@ class QRcode {
 		return $frame;
 	}
 
-	public function png(string $text, string $outfile, $saveandprint = false)
+	public function png(string $text, string $outfile)
 	{
 		$encoded = $this->raw($text);
 
@@ -128,7 +128,7 @@ class QRcode {
 
 		$pixelPerPoint = min(max(1, $this->size), $maxSize);
 
-		(new QRimage($tab, $pixelPerPoint, $this->margin))->png($outfile, $saveandprint);
+		(new QRimage($tab, $pixelPerPoint, $this->margin))->png($outfile);
 	}
 
 	public function raw($text)
