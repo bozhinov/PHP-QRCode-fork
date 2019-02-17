@@ -197,7 +197,7 @@ class QRmask {
 					   ($this->runLength[$i+2] == $fact)) {
 						if(($this->runLength[$i-3] < 0) || ($this->runLength[$i-3] >= (4 * $fact))) {
 							$demerit += QR_N3;
-						} else if((($i+3) >= $length) || ($this->runLength[$i+3] >= (4 * $fact))) {
+						} elseif((($i+3) >= $length) || ($this->runLength[$i+3] >= (4 * $fact))) {
 							$demerit += QR_N3;
 						}
 					}
@@ -235,7 +235,7 @@ class QRmask {
 					$this->runLength[0] = -1;
 					$head = 1;
 					$this->runLength[$head] = 1;
-				} else if($x > 0) {
+				} elseif($x > 0) {
 					if((ord($frameY[$x]) ^ ord($frameY[$x-1])) & 1) {
 						$head++;
 						$this->runLength[$head] = 1;
@@ -257,7 +257,7 @@ class QRmask {
 					$this->runLength[0] = -1;
 					$head = 1;
 					$this->runLength[$head] = 1;
-				} else if($y > 0) {
+				} elseif($y > 0) {
 					if((ord($mask[$y][$x]) ^ ord($mask[$y-1][$x])) & 1) {
 						$head++;
 						$this->runLength[$head] = 1;
@@ -277,27 +277,24 @@ class QRmask {
 	{
 		$minDemerit = PHP_INT_MAX;
 		$bestMaskNum = 0;
-
 		$checked_masks = [0,1,2,3,4,5,6,7];
 
 		if (QR_FIND_FROM_RANDOM !== false) {
-
+			
 			$howManuOut = 8-(QR_FIND_FROM_RANDOM % 9);
-			for ($i = 0; $i <  $howManuOut; $i++) {
+			for ($i = 0; $i < $howManuOut; $i++) {
 				$remPos = rand (0, count($checked_masks)-1);
 				unset($checked_masks[$remPos]);
 				$checked_masks = array_values($checked_masks);
 			}
-		
 		}
 
 		$bestMask = $this->frame;
 
 		foreach($checked_masks as $i) {
+			
 			$mask = $this->empty_grid;
 
-			$demerit = 0;
-			$blacks = 0;
 			$blacks  = $this->makeMaskNo($mask, $i);
 			$blacks += $this->writeFormatInformation($mask, $i);
 			$blacks  = floor(100 * $blacks / ($this->width * $this->width));
@@ -314,7 +311,7 @@ class QRmask {
 		return $bestMask;
 	}
 
-	public function get($mask)
+	public function get(int $mask)
 	{
 		# $mask is always -1
 		if($mask < 0) {
@@ -327,12 +324,10 @@ class QRmask {
 		} else {
 			$masked = $this->makeMask($mask);
 		}
-		
-		if($masked == NULL) {
-			throw QRException::Std('Mask is null');
-		}
 
 		return $masked;
 	}
 
 }
+
+?>
