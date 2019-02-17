@@ -24,7 +24,8 @@ class QRimage {
 		$this->image = $this->createImage($frame, $pixelPerPoint, $outerFrame);
 	}
 	
-	function __destruct(){
+	function __destruct()
+	{
 		if (is_resource($this->image)){
 			imageDestroy($this->image);
 		}
@@ -81,3 +82,5 @@ class QRimage {
 		return $target_image;
 	}
 }
+
+?>

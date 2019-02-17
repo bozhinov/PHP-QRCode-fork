@@ -280,3 +280,5 @@ class QRsplit {
 		return $this->input->encodeMask(-1);
 	}
 }
+
+?>
