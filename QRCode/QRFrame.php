@@ -118,7 +118,7 @@ class QRFrame {
 		$this->version = $version;
 		$this->level = $level;
 		$this->width = $this->tools->getWidth($version);
-		$this->frame = $this->createFrame();	
+		$this->frame = $this->createFrame();
 
 		$this->x = $this->width - 1;
 		$this->y = $this->width - 1;
@@ -157,38 +157,28 @@ class QRFrame {
 
 		return $this->frame;
 	}
-	
+
 	private function getEccSpec()
 	{
-		$spec = [0,0,0,0,0];
-
 		$b1   = $this->eccTable[$this->version][$this->level][0];
 		$b2   = $this->eccTable[$this->version][$this->level][1];
 		$data = $this->tools->getDataLength($this->version, $this->level);
 		$ecc  = $this->getECCLength();
 
 		if($b2 == 0) {
-			$spec[0] = $b1;
-			$spec[1] = floor($data / $b1);
-			$spec[2] = floor($ecc / $b1);
-			$spec[3] = 0; 
-			$spec[4] = 0;
+			$spec = [$b1, floor($data / $b1), floor($ecc / $b1), 0, 0];
 		} else {
-			$spec[0] = $b1;
-			$spec[1] = floor($data / ($b1 + $b2));
-			$spec[2] = floor($ecc / ($b1 + $b2));
-			$spec[3] = $b2;
-			$spec[4] = $spec[1] + 1;
+			$spec = [$b1, floor($data / ($b1 + $b2)), floor($ecc / ($b1 + $b2)), $b2, $spec[1] + 1];
 		}
-		
+
 		return $spec;
 	}
-	
+
 	private function getECCLength()
 	{
 		return $this->tools->capacity[$this->version][QR_CAP_EC][$this->level];
 	}
-	
+
 	private function getRemainder()
 	{
 		return $this->tools->capacity[$this->version][QR_CAP_REMINDER];
@@ -258,7 +248,7 @@ class QRFrame {
 
 		return ['x'=>$x, 'y'=>$y];
 	}
-	
+
 	private function getVersionPattern()
 	{
 		if($this->version < 7 || $this->version > QR_SPEC_VERSION_MAX){
@@ -267,7 +257,7 @@ class QRFrame {
 
 		return $this->versionPattern[$this->version -7];
 	}
-		
+
 	private function set_qrstr($x, $y, $repl, $replLen = false) 
 	{
 		if ($replLen !== false){
@@ -280,7 +270,7 @@ class QRFrame {
 
 		$this->new_frame[$y] = substr_replace($this->new_frame[$y], $str1, $x, $str2);
 	}
-	
+
 	/** 
 	 * Put an alignment marker.
 	 * @param width
