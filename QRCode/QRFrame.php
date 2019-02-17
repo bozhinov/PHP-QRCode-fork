@@ -169,14 +169,14 @@ class QRFrame {
 
 		if($b2 == 0) {
 			$spec[0] = $b1;
-			$spec[1] = (int)($data / $b1);
-			$spec[2] = (int)($ecc / $b1);
+			$spec[1] = floor($data / $b1);
+			$spec[2] = floor($ecc / $b1);
 			$spec[3] = 0; 
 			$spec[4] = 0;
 		} else {
 			$spec[0] = $b1;
-			$spec[1] = (int)($data / ($b1 + $b2));
-			$spec[2] = (int)($ecc  / ($b1 + $b2));
+			$spec[1] = floor($data / ($b1 + $b2));
+			$spec[2] = floor($ecc / ($b1 + $b2));
 			$spec[3] = $b2;
 			$spec[4] = $spec[1] + 1;
 		}
@@ -314,7 +314,7 @@ class QRFrame {
 		if($d < 0) {
 			$w = 2;
 		} else {
-			$w = (int)(($width - $this->alignmentPattern[$this->version][0]) / $d + 2);
+			$w = floor(($width - $this->alignmentPattern[$this->version][0]) / $d + 2);
 		}
 
 		if($w * $w - 3 == 1) {
