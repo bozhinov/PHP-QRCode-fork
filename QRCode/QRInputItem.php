@@ -25,7 +25,7 @@ class QRinputItem {
 
 	private $tools;
 
-	function __construct($mode, int $size, array $data, $version)
+	function __construct(int $mode, int $size, array $data, int $version)
 	{
 		$setData = array_slice($data, 0, $size);
 

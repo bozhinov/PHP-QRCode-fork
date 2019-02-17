@@ -24,7 +24,7 @@ class QRrawcode {
 	private $dataLength;
 	private $eccLength;
 	
-	function __construct(array $dataCode, $dataLength, $eccLength, array $spec)
+	function __construct(array $dataCode, int $dataLength, int $eccLength, array $spec)
 	{
 		$this->count = 0;
 

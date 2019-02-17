@@ -107,7 +107,7 @@ class QRFrame {
 		0x27541, 0x28c69
 	];
 
-	function __construct($version, $level)
+	function __construct(int $version, int $level)
 	{
 		if($version < 1 || $version > QR_SPEC_VERSION_MAX){
 			throw QRException::Std('Version invalid');

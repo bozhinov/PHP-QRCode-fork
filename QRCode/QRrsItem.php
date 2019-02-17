@@ -35,7 +35,7 @@ class QRrsItem {
 		return $x;
 	}
 	
-	function __construct($nroots, $pad)
+	function __construct(int $nroots, int $pad)
 	{
 		// Common code for intializing a Reed-Solomon control block (char or int symbols)
 		// Copyright 2004 Phil Karn, KA9Q

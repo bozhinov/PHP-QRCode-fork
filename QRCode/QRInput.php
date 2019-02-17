@@ -22,7 +22,7 @@ class QRinput {
 	private $level;
 	private $tools;
 
-	function __construct($version = 0, $level = QR_ECLEVEL_L)
+	function __construct(int $version, int $level)
 	{
 		$this->level = $level;
 		$this->setVersion($version);

@@ -26,7 +26,7 @@ class QRsplit {
 	private $la;
 	private $ln;
 
-	function __construct($casesensitive, $modeHint, $version, $level)
+	function __construct(bool $casesensitive, int $modeHint, int $version, int $level)
 	{
 		$this->modeHint = $modeHint;
 		$this->casesensitive = $casesensitive;
