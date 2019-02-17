@@ -101,7 +101,7 @@ class QRcode {
 			throw QRException::Std('bad hint');
 		}
 
-		return (new QRsplit($string, $this->hint, 1, $this->level))->splitString($this->casesensitive);
+		return (new QRsplit($this->casesensitive, $this->hint, 1, $this->level))->splitString($string);
 	}
 	
 	private function binarize($frame)

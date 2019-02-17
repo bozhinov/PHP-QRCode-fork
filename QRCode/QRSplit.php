@@ -17,28 +17,24 @@ namespace QRCode;
 
 class QRsplit {
 
-	private $dataStr = '';
+	private $dataStr;
+	private $casesensitive;
 	private $modeHint;
 	private $input;
 	private $tools;
 	private $la;
 	private $ln;
 
-	function __construct($dataStr, $modeHint, $version, $level)
+	function __construct($casesensitive, $modeHint, $version, $level)
 	{
-		if(is_null($dataStr) || $dataStr == '\0' || $dataStr == '') {
-			throw QRException::Std('empty string!');
-		}
-		
-		$this->dataStr  = $dataStr;
 		$this->modeHint = $modeHint;
+		$this->casesensitive = $casesensitive;
 		
 		$this->tools = new QRTools();
+		$this->input = new QRinput($version, $level);
 		
 		$this->la = $this->tools->lengthIndicator(QR_MODE_AN, $version);
 		$this->ln = $this->tools->lengthIndicator(QR_MODE_NUM, $version);
-		
-		$this->input = new QRinput($version, $level);
 	}
 
 	private function isdigitat($str, $pos)
@@ -238,9 +234,16 @@ class QRsplit {
 		return $this->dataStr;
 	}
 
-	public function splitString($casesensitive = true)
+	public function splitString($dataStr)
 	{
-		if(!$casesensitive){
+		
+		if(is_null($dataStr) || $dataStr == '\0' || $dataStr == '') {
+			throw QRException::Std('empty string!');
+		}
+		
+		$this->dataStr = $dataStr;
+		
+		if(!$this->casesensitive){
 			$this->toUpper();
 		}
 		
