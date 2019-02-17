@@ -18,6 +18,7 @@ namespace QRCode;
 class QRsplit {
 
 	private $dataStr;
+	private $dataStrLen;
 	private $casesensitive;
 	private $modeHint;
 	private $input;
@@ -37,39 +38,39 @@ class QRsplit {
 		$this->ln = $this->tools->lengthIndicator(QR_MODE_NUM, $version);
 	}
 
-	private function isdigitat($str, $pos)
+	private function isdigitat($pos)
 	{
-		if ($pos >= strlen($str)){
+		if ($pos >= $this->dataStrLen){
 			return false;
 		}
 		
-		return ((ord($str[$pos]) >= ord('0'))&&(ord($str[$pos]) <= ord('9')));
+		return ((ord($this->dataStr[$pos]) >= ord('0'))&&(ord($this->dataStr[$pos]) <= ord('9')));
 	}
 
-	private function isalnumat($str, $pos)
+	private function isalnumat($pos)
 	{
-		if ($pos >= strlen($str)){
+		if ($pos >= $this->dataStrLen){
 			return false;
 		}
 
-		return ($this->tools->lookAnTable(ord($str[$pos])) >= 0);
+		return ($this->tools->lookAnTable(ord($this->dataStr[$pos])) >= 0);
 	}
 
 	private function identifyMode($pos)
 	{
-		if ($pos >= strlen($this->dataStr)){
+		if ($pos >= $this->dataStrLen){
 			return QR_MODE_NUL;
 		}
 		
 		$c = $this->dataStr[$pos];
 		
-		if($this->isdigitat($this->dataStr, $pos)) {
+		if($this->isdigitat($pos)) {
 			return QR_MODE_NUM;
-		} else if($this->isalnumat($this->dataStr, $pos)) {
+		} elseif($this->isalnumat($pos)) {
 			return QR_MODE_AN;
-		} else if($this->modeHint == QR_MODE_KANJI) {
+		} elseif($this->modeHint == QR_MODE_KANJI) {
 		
-			if ($pos+1 < strlen($this->dataStr)) 
+			if ($pos+1 < $this->dataStrLen) 
 			{
 				$d = $this->dataStr[$pos+1];
 				$word = (ord($c) << 8) | ord($d);
@@ -85,7 +86,7 @@ class QRsplit {
 	private function eatNum()
 	{
 		$p = 0;
-		while($this->isdigitat($this->dataStr, $p)) {
+		while($this->isdigitat($p)) {
 			$p++;
 		}
 		
@@ -118,10 +119,10 @@ class QRsplit {
 	{
 		$p = 0;
 		
-		while($this->isalnumat($this->dataStr, $p)) {
-			if($this->isdigitat($this->dataStr, $p)) {
+		while($this->isalnumat($p)) {
+			if($this->isdigitat($p)) {
 				$q = $p;
-				while($this->isdigitat($this->dataStr, $q)) {
+				while($this->isdigitat($q)) {
 					$q++;
 				}
 				
@@ -141,7 +142,7 @@ class QRsplit {
 
 		$run = $p;
 
-		if(!$this->isalnumat($this->dataStr, $p)) {
+		if(!$this->isalnumat($p)) {
 			$dif = $this->tools->estimateBitsModeAn($run) + 4 + $this->la
 				 + $this->tools->estimateBitsMode8(1) // + 4 + l8
 				  - $this->tools->estimateBitsMode8($run + 1); // - 4 - l8
@@ -172,7 +173,7 @@ class QRsplit {
 	{
 		$p = 1;
 		
-		while($p < strlen($this->dataStr)) {
+		while($p < $this->dataStrLen) {
 			
 			$mode = $this->identifyMode($p);
 			if($mode == QR_MODE_KANJI) {
@@ -180,7 +181,7 @@ class QRsplit {
 			}
 			if($mode == QR_MODE_NUM) {
 				$q = $p;
-				while($this->isdigitat($this->dataStr, $q)) {
+				while($this->isdigitat($q)) {
 					$q++;
 				}
 				$dif = $this->tools->estimateBitsMode8($p) // + 4 + l8
@@ -193,7 +194,7 @@ class QRsplit {
 				}
 			} else if($mode == QR_MODE_AN) {
 				$q = $p;
-				while($this->isalnumat($this->dataStr, $q)) {
+				while($this->isalnumat($q)) {
 					$q++;
 				}
 				$dif = $this->tools->estimateBitsMode8($p)  // + 4 + l8
@@ -216,10 +217,9 @@ class QRsplit {
 	
 	private function toUpper()
 	{
-		$stringLen = strlen($this->dataStr);
 		$p = 0;
 		
-		while ($p<$stringLen) {
+		while ($p<$this->dataStrLen) {
 			$mode = $this->identifyMode(substr($this->dataStr, $p), $this->modeHint);
 			if($mode == QR_MODE_KANJI) {
 				$p += 2;
@@ -230,24 +230,22 @@ class QRsplit {
 				$p++;
 			}
 		}
-
-		return $this->dataStr;
 	}
 
 	public function splitString($dataStr)
 	{
-		
 		if(is_null($dataStr) || $dataStr == '\0' || $dataStr == '') {
 			throw QRException::Std('empty string!');
 		}
 		
 		$this->dataStr = $dataStr;
+		$this->dataStrLen = strlen($dataStr);
 		
 		if(!$this->casesensitive){
 			$this->toUpper();
 		}
 		
-		while (strlen($this->dataStr) > 0)
+		while ($this->dataStrLen > 0)
 		{
 			$mode = $this->identifyMode(0);
 			
@@ -276,6 +274,7 @@ class QRsplit {
 			}
 			
 			$this->dataStr = substr($this->dataStr, $length);
+			$this->dataStrLen -= $length;
 		}
 		
 		return $this->input->encodeMask(-1);
