@@ -31,18 +31,19 @@ class QRinput {
 
 	private function setVersion($version)
 	{
-		if($version < 0 || $version > QR_SPEC_VERSION_MAX || $this->level > QR_ECLEVEL_H) {
-			throw QRException::Std('Invalid version no');
+		if($version <= 0 || $version > QR_SPEC_VERSION_MAX || $this->level > QR_ECLEVEL_H) {
+			throw QRException::Std('Invalid version or level');
 		}
 
 		$this->version = $version;
 	}
 
+	/* Momchil: version can't be 0 */
 	private function getMinimumVersion($bits)
 	{
 		$size = floor(($bits + 7) / 8);
 		for($i=1; $i<= QR_SPEC_VERSION_MAX; $i++) {
-			$words  = $this->tools->capacity[$i][QR_CAP_WORDS] - $this->tools->capacity[$i][QR_CAP_EC][$this->level];
+			$words = $this->tools->capacity[$i][QR_CAP_WORDS] - $this->tools->capacity[$i][QR_CAP_EC][$this->level];
 			if($words >= $size){
 				return $i;
 			}
@@ -191,20 +192,11 @@ class QRinput {
 
 	public function encodeMask($mask)
 	{
-		if($this->version < 0 || $this->version > QR_SPEC_VERSION_MAX) {
-			throw QRException::Std('Wrong version!');
-		}
-		if($this->level > QR_ECLEVEL_H) {
-			throw QRException::Std('Wrong level');
-		}
-
 		$dataCode = $this->getByteStream();
 
 		$width = $this->tools->getWidth($this->version);
 		
-		$masked = (new QRmask($dataCode, $width, $this->level, $this->version))->get($mask);
-
-		return $masked;
+		return (new QRmask($dataCode, $width, $this->level, $this->version))->get($mask);
 	}
 
 }

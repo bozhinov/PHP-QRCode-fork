@@ -129,10 +129,6 @@ class QRinputItem {
 	{
 		$bits = 0;
 
-		if($this->version == 0){
-			$this->version = 1;
-		}
-
 		switch($this->mode) {
 			case QR_MODE_NUM:
 				$bits = $this->tools->estimateBitsModeNum($this->size);

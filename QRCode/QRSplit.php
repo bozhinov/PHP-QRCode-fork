@@ -145,7 +145,7 @@ class QRsplit {
 		if(!$this->isalnumat($p)) {
 			$dif = $this->tools->estimateBitsModeAn($run) + 4 + $this->la
 				 + $this->tools->estimateBitsMode8(1) // + 4 + l8
-				  - $this->tools->estimateBitsMode8($run + 1); // - 4 - l8
+				 - $this->tools->estimateBitsMode8($run + 1); // - 4 - l8
 			if($dif > 0) {
 				return $this->eat8();
 			}
@@ -235,7 +235,7 @@ class QRsplit {
 
 	public function splitString($dataStr)
 	{
-		if(is_null($dataStr) || $dataStr == '\0' || $dataStr == '') {
+		if($dataStr == '\0' || $dataStr == '') {
 			throw QRException::Std('empty string!');
 		}
 		
@@ -270,8 +270,6 @@ class QRsplit {
 
 			if($length == 0){
 				break;
-			} elseif($length < 0){
-				throw QRException::Std('can not split string');
 			}
 			
 			$this->dataStr = substr($this->dataStr, $length);
