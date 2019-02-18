@@ -117,16 +117,14 @@ class QRmask {
 
 	private function generateMaskNo($maskNo)
 	{
-		$bitMask = array_fill(0, $this->width, array_fill(0, $this->width, 0));
-		
+		$bitMask = [];
+
 		for($y=0; $y<$this->width; $y++) {
 			for($x=0; $x<$this->width; $x++) {
 				if(ord($this->frame[$y][$x]) & 128) { # 0x80
-					#$bitMask[$y][$x] = 0;
+					$bitMask[$y][$x] = 0;
 				} else {
-					if ($this->maskByNum($x, $y, $maskNo)) {
-						$bitMask[$y][$x] = 1;
-					} # else 0
+					$bitMask[$y][$x] = (int)$this->maskByNum($x, $y, $maskNo);
 				}
 			}
 		}
@@ -137,22 +135,20 @@ class QRmask {
 	private function makeMaskNo($maskNo)
 	{
 		$b = 0;
-
 		$bitMask = $this->generateMaskNo($maskNo);
-		$masked = $this->frame;
 
 		for($y=0; $y<$this->width; $y++) {
 			for($x=0; $x<$this->width; $x++) {
 				if($bitMask[$y][$x] == 1) {
-					$masked[$y][$x] = chr(ord($masked[$y][$x]) ^ 1);
+					$this->masked[$y][$x] = chr(ord($this->masked[$y][$x]) ^ 1);
 				}
-				$b += (ord($masked[$y][$x]) & 1);
+				$b += (ord($this->masked[$y][$x]) & 1);
 			}
 		}
 		
-		$this->masked = $masked;
+		$b += $this->writeFormatInformation($maskNo);
 		
-		return $b;
+		return (int)(100 * $b / ($this->width * $this->width));
 	}
 
 	private function calcN1N3($length)
@@ -200,7 +196,6 @@ class QRmask {
 
 	private function evaluateSymbol()
 	{
-		$head = 0;
 		$demerit = 0;
 		
 		$mask = $this->maskToOrd();
@@ -271,27 +266,25 @@ class QRmask {
 	public function get()
 	{
 		$minDemerit = PHP_INT_MAX;
-		$checked_masks = [0,1,2,3,4,5,6,7];
+		$masks = [0,1,2,3,4,5,6,7];
 
 		if (QR_FIND_FROM_RANDOM !== false) {
-			shuffle($checked_masks);
-			$howManuOut = -8+((int)QR_FIND_FROM_RANDOM % 9);
-			$checked_masks = array_slice($checked_masks, 0, $howManuOut);
+			shuffle($masks);
+			$howMany = -8+((int)QR_FIND_FROM_RANDOM % 9);
+			$masks = array_slice($masks, 0, $howMany);
 		}
 
-		foreach($checked_masks as $i) {
+		foreach($masks as $i) {
 			
-			$this->masked = [];
+			$this->masked = $this->frame;
+			
 			$blacks = $this->makeMaskNo($i);
-			$blacks += $this->writeFormatInformation($i);
-			$blacks  = (int)(100 * $blacks / ($this->width * $this->width));
-			$demerit = (int)((int)(abs($blacks - 50) / 5) * QR_N4);
-			$demerit += $this->evaluateSymbol();
+			
+			$demerit = (int)(abs($blacks - 50) / 5) * QR_N4 + $this->evaluateSymbol();
 			
 			if($demerit < $minDemerit) {
 				$minDemerit = $demerit;
 				$bestMask = $this->masked;
-				$bestMaskNum = $i;
 			}
 		}
 

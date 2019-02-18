@@ -349,8 +349,8 @@ class QRFrame {
 	private function createFrame()
 	{
 		$width = $this->tools->capacity[$this->version][QR_CAP_WIDTH];
-		$frameLine = str_repeat ("\0", $width);
-		$this->new_frame = array_fill(0, $width, $frameLine);
+
+		$this->new_frame = array_fill(0, $width, str_repeat ("\0", $width));
 
 		// Finder pattern
 		$this->putFinderPattern(0, 0);
