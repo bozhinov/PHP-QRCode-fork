@@ -115,7 +115,7 @@ class QRmask {
 				$ret = ($x+$y)%3;
 				break;
 			case 4:
-				$ret = (floor($y/2)+floor($x/3))&1;
+				$ret = ((int)($y/2)+(int)($x/3))&1;
 				break;
 			case 5:
 				$ret = (($x*$y)&1)+($x*$y)%3;
@@ -161,9 +161,9 @@ class QRmask {
 		for($y=0; $y<$this->width; $y++) {
 			for($x=0; $x<$this->width; $x++) {
 				if($bitMask[$y][$x] == 1) {
-					$masked[$y][$x] = chr(ord($s[$y][$x]) ^ floor($bitMask[$y][$x]));
+					$masked[$y][$x] = chr(ord($s[$y][$x]) ^ (int)($bitMask[$y][$x]));
 				}
-				$b += floor(ord($masked[$y][$x]) & 1);
+				$b += (int)(ord($masked[$y][$x]) & 1);
 			}
 		}
 
@@ -190,7 +190,7 @@ class QRmask {
 			}
 			if($i & 1) {
 				if(($i >= 3) && ($i < ($length-2)) && ($this->runLength[$i] % 3 == 0)) {
-					$fact = floor($this->runLength[$i] / 3);
+					$fact = (int)($this->runLength[$i] / 3);
 					if(($this->runLength[$i-2] == $fact) &&
 					   ($this->runLength[$i-1] == $fact) &&
 					   ($this->runLength[$i+1] == $fact) &&
@@ -316,8 +316,8 @@ class QRmask {
 
 			$blacks  = $this->makeMaskNo($mask, $i);
 			$blacks += $this->writeFormatInformation($mask, $i);
-			$blacks  = floor(100 * $blacks / ($this->width * $this->width));
-			$demerit = floor(floor(abs($blacks - 50) / 5) * QR_N4);
+			$blacks  = (int)(100 * $blacks / ($this->width * $this->width));
+			$demerit = (int)((int)(abs($blacks - 50) / 5) * QR_N4);
 			$demerit += $this->evaluateSymbol($mask);
 			
 			if($demerit < $minDemerit) {
