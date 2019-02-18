@@ -218,12 +218,18 @@ class QRmask {
 			
 			$frameY = $mask[$y];
 			
-			if ($y>0){
+			if ($y > 0){
 				$frameYM = $mask[$y-1];
 			}
 			
-			for($x=0; $x<$this->width; $x++) {
-				if(($x > 0) && ($y > 0)) {
+			if(ord($frameY[0]) & 1) {
+				$this->runLength[0] = -1;
+				$head = 1;
+				$this->runLength[$head] = 1;
+			}
+			
+			for($x=1; $x<$this->width; $x++) {
+				if($y > 0) {
 					$b22 = ord($frameY[$x]) & ord($frameY[$x-1]) & ord($frameYM[$x]) & ord($frameYM[$x-1]);
 					$w22 = ord($frameY[$x]) | ord($frameY[$x-1]) | ord($frameYM[$x]) | ord($frameYM[$x-1]);
 					
@@ -231,17 +237,12 @@ class QRmask {
 						$demerit += QR_N2;
 					}
 				}
-				if(($x == 0) && (ord($frameY[$x]) & 1)) {
-					$this->runLength[0] = -1;
-					$head = 1;
+				
+				if((ord($frameY[$x]) ^ ord($frameY[$x-1])) & 1) {
+					$head++;
 					$this->runLength[$head] = 1;
-				} elseif($x > 0) {
-					if((ord($frameY[$x]) ^ ord($frameY[$x-1])) & 1) {
-						$head++;
-						$this->runLength[$head] = 1;
-					} else {
-						$this->runLength[$head]++;
-					}
+				} else {
+					$this->runLength[$head]++;
 				}
 			}
 
@@ -251,13 +252,15 @@ class QRmask {
 		for($x=0; $x<$this->width; $x++) {
 			$head = 0;
 			$this->runLength[0] = 1;
-			
+
+			if(ord($mask[0][$x]) & 1) {
+				$this->runLength[0] = -1;
+				$head = 1;
+				$this->runLength[$head] = 1;
+			}
+				
 			for($y=0; $y<$this->width; $y++) {
-				if($y == 0 && (ord($mask[$y][$x]) & 1)) {
-					$this->runLength[0] = -1;
-					$head = 1;
-					$this->runLength[$head] = 1;
-				} elseif($y > 0) {
+				if ($y > 0) {
 					if((ord($mask[$y][$x]) ^ ord($mask[$y-1][$x])) & 1) {
 						$head++;
 						$this->runLength[$head] = 1;
