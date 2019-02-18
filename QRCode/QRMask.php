@@ -21,6 +21,7 @@ class QRmask {
 	private $width;
 	private $level;
 	private $frame;
+	private $masked;
 
 	// See calcFormatInfo in tests/test_qrspec.c (orginal qrencode c lib)
 	private $formatInfo = [
@@ -38,23 +39,11 @@ class QRmask {
 		$this->frame = (new QRFrame($version, $this->level))->getFrame($dataCode);
 	}
 	
-	private function getFormatInfo($mask, $level)
+	private function writeFormatInformation($maskNo)
 	{
-		if($mask < 0 || $mask > 7){
-			return 0;
-		}
-
-		if($level < 0 || $level > 3){
-			return 0;
-		}
-
-		return $this->formatInfo[$level][$mask];
-	}
-
-	private function writeFormatInformation(&$frame, $mask)
-	{
+		$format = $this->formatInfo[$this->level][$maskNo];
+		
 		$blacks = 0;
-		$format = $this->getFormatInfo($mask, $this->level);
 
 		for($i=0; $i<8; $i++) {
 			if($format & 1) {
@@ -64,11 +53,11 @@ class QRmask {
 				$v = 0x84;
 			}
 			
-			$frame[8][$this->width - 1 - $i] = chr($v);
+			$this->masked[8][$this->width - 1 - $i] = chr($v);
 			if($i < 6) {
-				$frame[$i][8] = chr($v);
+				$this->masked[$i][8] = chr($v);
 			} else {
-				$frame[$i + 1][8] = chr($v);
+				$this->masked[$i + 1][8] = chr($v);
 			}
 			$format = $format >> 1;
 		}
@@ -81,11 +70,11 @@ class QRmask {
 				$v = 0x84;
 			}
 			
-			$frame[$this->width - 7 + $i][8] = chr($v);
+			$this->masked[$this->width - 7 + $i][8] = chr($v);
 			if($i == 0) {
-				$frame[8][7] = chr($v);
+				$this->masked[8][7] = chr($v);
 			} else {
-				$frame[8][6 - $i] = chr($v);
+				$this->masked[8][6 - $i] = chr($v);
 			}
 			
 			$format = $format >> 1;
@@ -145,7 +134,7 @@ class QRmask {
 		return $bitMask;
 	}
 
-	private function makeMaskNo(&$masked, $maskNo)
+	private function makeMaskNo($maskNo)
 	{
 		$b = 0;
 
@@ -160,17 +149,10 @@ class QRmask {
 				$b += (ord($masked[$y][$x]) & 1);
 			}
 		}
-
+		
+		$this->masked = $masked;
+		
 		return $b;
-	}
-
-	private function makeMask($maskNo)
-	{
-		$masked = [];
-		$this->makeMaskNo($masked, $maskNo);
-		$this->writeFormatInformation($masked, $maskNo);
-   
-		return $masked;
 	}
 
 	private function calcN1N3($length)
@@ -201,11 +183,11 @@ class QRmask {
 		return $demerit;
 	}
 	
-	private function maskToOrd($mask)
+	private function maskToOrd()
 	{
 		$new_mask = [];
 		
-		foreach($mask as $m){
+		foreach($this->masked as $m){
 			$val = [];
 			foreach(str_split($m) as $n){
 				$val[] = ord($n);
@@ -216,12 +198,12 @@ class QRmask {
 		return $new_mask;
 	}
 
-	private function evaluateSymbol($mask)
+	private function evaluateSymbol()
 	{
 		$head = 0;
 		$demerit = 0;
-
-		$mask = $this->maskToOrd($mask);
+		
+		$mask = $this->maskToOrd();
 
 		for($y=0; $y<$this->width; $y++) {
 			$head = 0;
@@ -286,49 +268,35 @@ class QRmask {
 		return $demerit;
 	}
 
-	private function mask()
+	public function get()
 	{
 		$minDemerit = PHP_INT_MAX;
-		$bestMaskNum = 0;
 		$checked_masks = [0,1,2,3,4,5,6,7];
 
 		if (QR_FIND_FROM_RANDOM !== false) {
-			
-			$howManuOut = 8-(QR_FIND_FROM_RANDOM % 9);
-			for ($i = 0; $i < $howManuOut; $i++) {
-				$remPos = rand (0, count($checked_masks)-1);
-				unset($checked_masks[$remPos]);
-				$checked_masks = array_values($checked_masks);
-			}
+			shuffle($checked_masks);
+			$howManuOut = -8+((int)QR_FIND_FROM_RANDOM % 9);
+			$checked_masks = array_slice($checked_masks, 0, $howManuOut);
 		}
-
-		$bestMask = $this->frame;
 
 		foreach($checked_masks as $i) {
 			
-			$mask = [];
-
-			$blacks  = $this->makeMaskNo($mask, $i);
-			$blacks += $this->writeFormatInformation($mask, $i);
+			$this->masked = [];
+			$blacks = $this->makeMaskNo($i);
+			$blacks += $this->writeFormatInformation($i);
 			$blacks  = (int)(100 * $blacks / ($this->width * $this->width));
 			$demerit = (int)((int)(abs($blacks - 50) / 5) * QR_N4);
-			$demerit += $this->evaluateSymbol($mask);
+			$demerit += $this->evaluateSymbol();
 			
 			if($demerit < $minDemerit) {
 				$minDemerit = $demerit;
-				$bestMask = $mask;
+				$bestMask = $this->masked;
 				$bestMaskNum = $i;
 			}
 		}
 
 		return $bestMask;
 	}
-
-	public function get()
-	{
-		return $this->mask();
-	}
-
 }
 
 ?>
