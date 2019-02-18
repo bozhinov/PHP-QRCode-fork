@@ -38,16 +38,17 @@ class QRinput {
 		$this->version = $version;
 	}
 
-	private function getMinimumVersion($size, $level)
+	private function getMinimumVersion($bits)
 	{
+		$size = floor(($bits + 7) / 8);
 		for($i=1; $i<= QR_SPEC_VERSION_MAX; $i++) {
-			$words  = $this->tools->capacity[$i][QR_CAP_WORDS] - $this->tools->capacity[$i][QR_CAP_EC][$level];
+			$words  = $this->tools->capacity[$i][QR_CAP_WORDS] - $this->tools->capacity[$i][QR_CAP_EC][$this->level];
 			if($words >= $size){
 				return $i;
 			}
 		}
 
-		return -1;
+		throw QRException::Std('Unable to determine minimal version!');
 	}
 
 	public function append($mode, $size, $data)
@@ -73,10 +74,8 @@ class QRinput {
 		do {
 			$prev = $version;
 			$bits = $this->estimateBitStreamSize($prev);
-			$version = $this->getMinimumVersion(floor(($bits + 7) / 8), $this->level);
-			if ($version < 0) {
-				return -1;
-			}
+			$version = $this->getMinimumVersion($bits);
+
 		} while ($version > $prev);
 
 		return $version;
@@ -103,18 +102,11 @@ class QRinput {
 			$this->setVersion($ver);
 		}
 
-		while (true) {
-
-			$bits = $this->createBitStream();
-			$ver = $this->getMinimumVersion(floor(($bits + 7) / 8), $this->level);
-			
-			if($ver < 0) {
-				throw QRException::Std('Wrong version!');
-			} elseif($ver > $this->version) {
-				$this->setVersion($ver);
-			} else {
-				break;
-			}
+		$bits = $this->createBitStream();
+		$ver = $this->getMinimumVersion($bits);
+		
+		if($ver > $this->version) {
+			$this->setVersion($ver);
 		}
 	}
 
@@ -131,10 +123,6 @@ class QRinput {
 
 	private function bstream_toByte($bstream)
 	{
-		if(empty($bstream)) {
-			return [];
-		}
-
 		$dataStr = "";
 
 		foreach($bstream as $d){
@@ -207,7 +195,7 @@ class QRinput {
 			throw QRException::Std('Wrong version!');
 		}
 		if($this->level > QR_ECLEVEL_H) {
-			throw QRException::Std('wrong level');
+			throw QRException::Std('Wrong level');
 		}
 
 		$dataCode = $this->getByteStream();
