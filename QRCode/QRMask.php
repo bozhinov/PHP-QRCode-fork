@@ -206,11 +206,28 @@ class QRmask {
 		}
 		return $demerit;
 	}
+	
+	private function maskToOrd($mask)
+	{
+		$new_mask = [];
+		
+		foreach($mask as $m){
+			$val = [];
+			foreach(str_split($m) as $n){
+				$val[] = ord($n);
+			}
+			$new_mask[] = $val;
+		}
+		
+		return $new_mask;
+	}
 
 	private function evaluateSymbol($mask)
 	{
 		$head = 0;
 		$demerit = 0;
+
+		$mask = $this->maskToOrd($mask);
 
 		for($y=0; $y<$this->width; $y++) {
 			$head = 0;
@@ -222,7 +239,7 @@ class QRmask {
 				$frameYM = $mask[$y-1];
 			}
 			
-			if(ord($frameY[0]) & 1) {
+			if($frameY[0] & 1) {
 				$this->runLength[0] = -1;
 				$head = 1;
 				$this->runLength[$head] = 1;
@@ -230,15 +247,14 @@ class QRmask {
 			
 			for($x=1; $x<$this->width; $x++) {
 				if($y > 0) {
-					$b22 = ord($frameY[$x]) & ord($frameY[$x-1]) & ord($frameYM[$x]) & ord($frameYM[$x-1]);
-					$w22 = ord($frameY[$x]) | ord($frameY[$x-1]) | ord($frameYM[$x]) | ord($frameYM[$x-1]);
-					
+					$b22 = $frameY[$x] & $frameY[$x-1] & $frameYM[$x] & $frameYM[$x-1];
+					$w22 = $frameY[$x] | $frameY[$x-1] | $frameYM[$x] | $frameYM[$x-1];
 					if(($b22 | ($w22 ^ 1))&1) {
 						$demerit += QR_N2;
 					}
 				}
 				
-				if((ord($frameY[$x]) ^ ord($frameY[$x-1])) & 1) {
+				if(($frameY[$x] ^ $frameY[$x-1]) & 1) {
 					$head++;
 					$this->runLength[$head] = 1;
 				} else {
@@ -253,7 +269,7 @@ class QRmask {
 			$head = 0;
 			$this->runLength[0] = 1;
 
-			if(ord($mask[0][$x]) & 1) {
+			if(($mask[0][$x]) & 1) {
 				$this->runLength[0] = -1;
 				$head = 1;
 				$this->runLength[$head] = 1;
@@ -261,7 +277,7 @@ class QRmask {
 				
 			for($y=0; $y<$this->width; $y++) {
 				if ($y > 0) {
-					if((ord($mask[$y][$x]) ^ ord($mask[$y-1][$x])) & 1) {
+					if(($mask[$y][$x] ^ $mask[$y-1][$x]) & 1) {
 						$head++;
 						$this->runLength[$head] = 1;
 					} else {
