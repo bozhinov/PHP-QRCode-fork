@@ -43,8 +43,8 @@ class QRsplit {
 		if ($pos >= $this->dataStrLen){
 			return false;
 		}
-		
-		return ((ord($this->dataStr[$pos]) >= ord('0'))&&(ord($this->dataStr[$pos]) <= ord('9')));
+		# ord('0') = 48 && ord('9') = 57
+		return ((ord($this->dataStr[$pos]) >= 48)&&(ord($this->dataStr[$pos]) <= 57));
 	}
 
 	private function isalnumat($pos)
@@ -110,7 +110,7 @@ class QRsplit {
 			}
 		}
 		
-		$this->input->append(QR_MODE_NUM, $run, str_split($this->dataStr));
+		$this->input->append(QR_MODE_NUM, $run, $this->dataStr);
 
 		return $run;
 	}
@@ -151,7 +151,7 @@ class QRsplit {
 			}
 		}
 
-		$this->input->append(QR_MODE_AN, $run, str_split($this->dataStr));
+		$this->input->append(QR_MODE_AN, $run, $this->dataStr);
 
 		return $run;
 	}
@@ -164,7 +164,7 @@ class QRsplit {
 			$p += 2;
 		}
 		
-		$this->input->append(QR_MODE_KANJI, $p, str_split($this->dataStr));
+		$this->input->append(QR_MODE_KANJI, $p, $this->dataStr);
 		
 		return $p;
 	}
@@ -210,7 +210,7 @@ class QRsplit {
 			}
 		}
 
-		$this->input->append(QR_MODE_8, $p, str_split($this->dataStr));
+		$this->input->append(QR_MODE_8, $p, $this->dataStr);
 		
 		return $p;
 	}
@@ -224,7 +224,8 @@ class QRsplit {
 			if($mode == QR_MODE_KANJI) {
 				$p += 2;
 			} else {
-				if (ord($this->dataStr[$p]) >= ord('a') && ord($this->dataStr[$p]) <= ord('z')) {
+				#  ord('a') = 97 && ord('z') = 122
+				if (ord($this->dataStr[$p]) >= 97 && ord($this->dataStr[$p]) <= 122) {
 					$this->dataStr[$p] = chr(ord($this->dataStr[$p]) - 32);
 				}
 				$p++;

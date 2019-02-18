@@ -258,17 +258,9 @@ class QRFrame {
 		return $this->versionPattern[$this->version -7];
 	}
 
-	private function set_qrstr($x, $y, $repl, $replLen = false) 
+	private function set_qrstr($x, $y, $repl, $replLen) 
 	{
-		if ($replLen !== false){
-			$str1 = substr($repl,0,$replLen);
-			$str2 = $replLen;
-		} else {
-			$str1 = $repl;
-			$str2 = strlen($repl);
-		}
-
-		$this->new_frame[$y] = substr_replace($this->new_frame[$y], $str1, $x, $str2);
+		$this->new_frame[$y] = substr_replace($this->new_frame[$y], $repl, $x, $replLen);
 	}
 
 	/** 
@@ -290,7 +282,7 @@ class QRFrame {
 		$xStart = $ox-2;
 		
 		for($y=0; $y<5; $y++) {
-			$this->set_qrstr($xStart, $yStart+$y, $finder[$y]);
+			$this->set_qrstr($xStart, $yStart+$y, $finder[$y], 5);
 		}
 	}
 
@@ -350,7 +342,7 @@ class QRFrame {
 		];
 		
 		for($y=0; $y<7; $y++) {
-			$this->set_qrstr($ox, $oy+$y, $finder[$y]);
+			$this->set_qrstr($ox, $oy+$y, $finder[$y], 7);
 		}
 	}
 
@@ -377,14 +369,14 @@ class QRFrame {
 		
 		$setPattern = str_repeat("\xc0", 8);
 		
-		$this->set_qrstr(0, 7, $setPattern);
-		$this->set_qrstr($width-8, 7, $setPattern);
-		$this->set_qrstr(0, $width - 8, $setPattern);
+		$this->set_qrstr(0, 7, $setPattern, 8);
+		$this->set_qrstr($width-8, 7, $setPattern, 8);
+		$this->set_qrstr(0, $width - 8, $setPattern, 8);
 	
 		// Format info
 		$setPattern = str_repeat("\x84", 9);
-		$this->set_qrstr(0, 8, $setPattern);
-		$this->set_qrstr($width - 8, 8, $setPattern, 8);
+		$this->set_qrstr(0, 8, $setPattern, 9);
+		$this->set_qrstr($width - 8, 8, substr($setPattern, 0, 8), 8);
 		
 		$yOffset = $width - 8;
 

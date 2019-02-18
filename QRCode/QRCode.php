@@ -90,7 +90,7 @@ class QRcode {
 	{
 		$input = new QRinput(1, $this->level);
 
-		$input->append(QR_MODE_8, strlen($string), str_split($string));
+		$input->append(QR_MODE_8, strlen($string), $string);
 
 		return $input->encodeMask(-1);
 	}

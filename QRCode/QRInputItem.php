@@ -25,22 +25,17 @@ class QRinputItem {
 
 	private $tools;
 
-	function __construct(int $mode, int $size, array $data, int $version)
+	function __construct(int $mode, int $size, string $data, int $version)
 	{
-		$setData = array_slice($data, 0, $size);
-
-		if (empty($setData)){
-			throw QRException::Std('trying to allocate more than we have in the array');
-		}
+		$setData = str_split(substr($data, 0, $size));
 
 		$this->tools = new QRTools();
-		$this->bstream = [];
 
 		if(!$this->tools->Check($mode, $size, $setData)) {
-			throw QRException::Std('Error m:'.$mode.',s:'.$size.',d:'.join(',',$setData));
-			return null;
+			throw QRException::Std('Error m:'.$mode.',s:'.$size.',d:'.$data);
 		}
 
+		$this->bstream = [];
 		$this->mode = $mode;
 		$this->size = $size;
 		$this->data = $setData;
@@ -49,39 +44,39 @@ class QRinputItem {
 
 	private function encodeModeNum()
 	{
-		$words = floor($this->size / 3);
+		$words = (int)($this->size / 3);
 
 		$val = 1;
 		$this->bstream[] = [4, $val];
 		$this->bstream[] = [$this->tools->lengthIndicator(QR_MODE_NUM, $this->version), $this->size];
 
 		for($i=0; $i<$words; $i++) {
-			$val  = (ord($this->data[$i*3  ]) - ord('0')) * 100;
-			$val += (ord($this->data[$i*3+1]) - ord('0')) * 10;
-			$val += (ord($this->data[$i*3+2]) - ord('0'));
+			$val  = (ord($this->data[$i*3]) - 48) * 100; # ord('0') == 48
+			$val += (ord($this->data[$i*3+1]) - 48) * 10;
+			$val += (ord($this->data[$i*3+2]) - 48);
 			$this->bstream[] = [10, $val];
 		}
 
 		if($this->size - $words * 3 == 1) {
-			$val = ord($this->data[$words*3]) - ord('0');
+			$val = ord($this->data[$words*3]) - 48;
 			$this->bstream[] = [4, $val];
 		} else if($this->size - $words * 3 == 2) {
-			$val  = (ord($this->data[$words*3  ]) - ord('0')) * 10;
-			$val += (ord($this->data[$words*3+1]) - ord('0'));
+			$val  = (ord($this->data[$words*3]) - 48) * 10;
+			$val += (ord($this->data[$words*3+1]) - 48);
 			$this->bstream[] = [7, $val];
 		}
 	}
 
 	private function encodeModeAn()
 	{
-		$words = floor($this->size / 2);
+		$words = (int)($this->size / 2);
 
 		$this->bstream[] = [4, 2];
 		$this->bstream[] = [$this->tools->lengthIndicator(QR_MODE_AN, $this->version), $this->size];
 
 		for($i=0; $i<$words; $i++) {
-			$val  = floor($this->tools->lookAnTable(ord($this->data[$i*2])) * 45);
-			$val += floor($this->tools->lookAnTable(ord($this->data[$i*2+1])));
+			$val  = (int)($this->tools->lookAnTable(ord($this->data[$i*2])) * 45);
+			$val += (int)($this->tools->lookAnTable(ord($this->data[$i*2+1])));
 
 			$this->bstream[] = [11, $val];
 		}
@@ -105,7 +100,7 @@ class QRinputItem {
 	private function encodeModeKanji()
 	{
 		$this->bstream[] = [4, 8];
-		$this->bstream[] = [$this->tools->lengthIndicator(QR_MODE_KANJI, $this->version), floor($this->size / 2)];
+		$this->bstream[] = [$this->tools->lengthIndicator(QR_MODE_KANJI, $this->version), (int)($this->size / 2)];
 
 		for($i=0; $i<$this->size; $i+=2) {
 			$val = (ord($this->data[$i]) << 8) | ord($this->data[$i+1]);
@@ -159,7 +154,7 @@ class QRinputItem {
 
 		$l = $this->tools->lengthIndicator($this->mode, $this->version);
 		$m = 1 << $l;
-		$num = floor(($this->size + $m - 1) / $m);
+		$num = (int)(($this->size + $m - 1) / $m);
 
 		$bits += $num * (4 + $l);
 

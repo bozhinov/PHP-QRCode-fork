@@ -165,7 +165,9 @@ class QRTools {
 	private function checkModeNum($size, $data)
 	{
 		for($i=0; $i<$size; $i++) {
-			if((ord($data[$i]) < ord('0')) || (ord($data[$i]) > ord('9'))){
+			# ord('0') = 48 && ord('9') = 57
+			$num = ord($data[$i]);
+			if($num < 48 || $num > 57){
 				return false;
 			}
 		}
@@ -193,8 +195,6 @@ class QRTools {
 				return $this->checkModeKanji($size, $data);
 				break;
 			case QR_MODE_8:
-				return true;
-				break;
 			case QR_MODE_STRUCTURE:
 				return true;
 				break;
