@@ -276,7 +276,7 @@ class QRsplit {
 			$this->dataStrLen -= $length;
 		}
 		
-		return $this->input->encodeMask(-1);
+		return $this->input->encodeMask();
 	}
 }
 

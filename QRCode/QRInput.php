@@ -190,13 +190,13 @@ class QRinput {
 		return $this->bstream_toByte($bstream);
 	}
 
-	public function encodeMask($mask)
+	public function encodeMask()
 	{
 		$dataCode = $this->getByteStream();
 
 		$width = $this->tools->getWidth($this->version);
 		
-		return (new QRmask($dataCode, $width, $this->level, $this->version))->get($mask);
+		return (new QRmask($dataCode, $width, $this->level, $this->version))->get();
 	}
 
 }

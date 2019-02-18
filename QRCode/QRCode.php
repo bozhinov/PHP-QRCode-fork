@@ -53,7 +53,6 @@ define('QR_ECLEVEL_H', 3);
 // Supported output formats
 define('QR_FIND_BEST_MASK', true); // if true, estimates best mask (spec. default, but extremally slow; set to false to significant performance boost but (propably) worst quality code
 define('QR_FIND_FROM_RANDOM', false); // if false, checks all masks available, otherwise value tells count of masks need to be checked, mask id are got randomly
-define('QR_DEFAULT_MASK', 2); // when QR_FIND_BEST_MASK === false
 
 define('QR_SPEC_VERSION_MAX', 40);
 define('QR_SPEC_WIDTH_MAX', 177);
@@ -92,7 +91,7 @@ class QRcode {
 
 		$input->append(QR_MODE_8, strlen($string), $string);
 
-		return $input->encodeMask(-1);
+		return $input->encodeMask();
 	}
 
 	private function encodeString($string)

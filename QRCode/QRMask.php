@@ -21,7 +21,6 @@ class QRmask {
 	private $width;
 	private $level;
 	private $frame;
-	private $empty_grid;
 
 	// See calcFormatInfo in tests/test_qrspec.c (orginal qrencode c lib)
 	private $formatInfo = [
@@ -37,8 +36,6 @@ class QRmask {
 		$this->width = $width;
 		$this->level = $level;
 		$this->frame = (new QRFrame($version, $this->level))->getFrame($dataCode);
-		
-		$this->empty_grid = array_fill(0, $width, array_fill(0, $width, 0));
 	}
 	
 	private function getFormatInfo($mask, $level)
@@ -99,8 +96,6 @@ class QRmask {
 
 	private function maskByNum($x, $y, $num)
 	{
-		$ret = false;
-		
 		switch($num){
 			case 0:
 				$ret = ($x+$y)&1;
@@ -128,20 +123,21 @@ class QRmask {
 				break;
 		}
 		
-		return $ret;
+		return ($ret == 0);
 	}
 
 	private function generateMaskNo($maskNo)
 	{
-		$bitMask = $this->empty_grid;
+		$bitMask = array_fill(0, $this->width, array_fill(0, $this->width, 0));
 		
 		for($y=0; $y<$this->width; $y++) {
 			for($x=0; $x<$this->width; $x++) {
-				if(ord($this->frame[$y][$x]) & 0x80) {
-					$bitMask[$y][$x] = 0;
+				if(ord($this->frame[$y][$x]) & 128) { # 0x80
+					#$bitMask[$y][$x] = 0;
 				} else {
-					$maskFunc = $this->maskByNum($x, $y, $maskNo);
-					$bitMask[$y][$x] = ($maskFunc == 0)?1:0;
+					if ($this->maskByNum($x, $y, $maskNo)) {
+						$bitMask[$y][$x] = 1;
+					} # else 0
 				}
 			}
 		}
@@ -170,7 +166,7 @@ class QRmask {
 
 	private function makeMask($maskNo)
 	{
-		$masked = $this->empty_grid;
+		$masked = [];
 		$this->makeMaskNo($masked, $maskNo);
 		$this->writeFormatInformation($masked, $maskNo);
    
@@ -310,7 +306,7 @@ class QRmask {
 
 		foreach($checked_masks as $i) {
 			
-			$mask = $this->empty_grid;
+			$mask = [];
 
 			$blacks  = $this->makeMaskNo($mask, $i);
 			$blacks += $this->writeFormatInformation($mask, $i);
@@ -328,21 +324,9 @@ class QRmask {
 		return $bestMask;
 	}
 
-	public function get(int $mask)
+	public function get()
 	{
-		# $mask is always -1
-		if($mask < 0) {
-		
-			if (QR_FIND_BEST_MASK) {
-				$masked = $this->mask();
-			} else {
-				$masked = $this->makeMask(QR_DEFAULT_MASK % 8);
-			}
-		} else {
-			$masked = $this->makeMask($mask);
-		}
-
-		return $masked;
+		return $this->mask();
 	}
 
 }
