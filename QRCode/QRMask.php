@@ -154,16 +154,14 @@ class QRmask {
 		$b = 0;
 
 		$bitMask = $this->generateMaskNo($maskNo);
-
-		$s = $this->frame;
 		$masked = $this->frame;
 
 		for($y=0; $y<$this->width; $y++) {
 			for($x=0; $x<$this->width; $x++) {
 				if($bitMask[$y][$x] == 1) {
-					$masked[$y][$x] = chr(ord($s[$y][$x]) ^ (int)($bitMask[$y][$x]));
+					$masked[$y][$x] = chr(ord($masked[$y][$x]) ^ 1);
 				}
-				$b += (int)(ord($masked[$y][$x]) & 1);
+				$b += (ord($masked[$y][$x]) & 1);
 			}
 		}
 
