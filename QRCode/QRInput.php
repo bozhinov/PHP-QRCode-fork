@@ -31,8 +31,8 @@ class QRinput {
 
 	private function setVersion($version)
 	{
-		if($version <= 0 || $version > QR_SPEC_VERSION_MAX || $this->level > QR_ECLEVEL_H) {
-			throw QRException::Std('Invalid version or level');
+		if($version <= 0 || $version > QR_SPEC_VERSION_MAX) {
+			throw QRException::Std('Invalid version');
 		}
 
 		$this->version = $version;

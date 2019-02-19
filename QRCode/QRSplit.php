@@ -20,15 +20,15 @@ class QRsplit {
 	private $dataStr;
 	private $dataStrLen;
 	private $casesensitive;
-	private $modeHint;
+	private $hint;
 	private $input;
 	private $tools;
 	private $la;
 	private $ln;
 
-	function __construct(bool $casesensitive, int $modeHint, int $version, int $level)
+	function __construct(bool $casesensitive, int $hint, int $version, int $level)
 	{
-		$this->modeHint = $modeHint;
+		$this->hint = $hint;
 		$this->casesensitive = $casesensitive;
 		
 		$this->tools = new QRTools();
@@ -68,7 +68,7 @@ class QRsplit {
 			return QR_MODE_NUM;
 		} elseif($this->isalnumat($pos)) {
 			return QR_MODE_AN;
-		} elseif($this->modeHint == QR_MODE_KANJI) {
+		} elseif($this->hint == QR_MODE_KANJI) {
 		
 			if ($pos+1 < $this->dataStrLen) 
 			{
@@ -220,7 +220,7 @@ class QRsplit {
 		$p = 0;
 		
 		while ($p<$this->dataStrLen) {
-			$mode = $this->identifyMode(substr($this->dataStr, $p), $this->modeHint);
+			$mode = $this->identifyMode(substr($this->dataStr, $p), $this->hint);
 			if($mode == QR_MODE_KANJI) {
 				$p += 2;
 			} else {
@@ -258,7 +258,7 @@ class QRsplit {
 					$length = $this->eatAn();
 					break;
 				case QR_MODE_KANJI:
-					if ($this->modeHint == QR_MODE_KANJI){
+					if ($this->hint == QR_MODE_KANJI){
 						$length = $this->eatKanji();
 					} else {
 						$length = $this->eat8();

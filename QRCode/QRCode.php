@@ -17,7 +17,6 @@ namespace QRCode;
 
 use QRCode\QRException;
 use QRCode\QRFrame;
-use QRCode\QRImage;
 use QRCode\QRTools;
 use QRCode\QRInput;
 use QRCode\QRInputItem;
@@ -57,28 +56,79 @@ define('QR_CAP_EC', 3);
 
 class QRcode {
 
-	# QRencode
 	private $casesensitive;
-	private $eightbit;
 	private $size;
 	private $margin;
-	#private $structured = 0; // not supported yet
+	private $hint;
 	private $level;
-	private $hint = QR_MODE_8;
-	
-	function __construct(int $level = QR_ECLEVEL_L, int $size = 3, int $margin = 4, bool $eightbit = false, bool $casesensitive = true)
+
+	function __construct(int $level = QR_ECLEVEL_L, int $size = 3, int $margin = 4, int $hint = QR_MODE_NUM, bool $casesensitive = true)
 	{
 		$this->size = $size;
 		$this->margin = $margin;
-		$this->eightbit = $eightbit;
+		$this->hint = $hint;
 		$this->casesensitive = $casesensitive;
-		
+
 		if (!in_array($level,[0,1,2,3])){
 			throw QRException::Std('unknown error correction level');
 		}
+		
 		$this->level = $level;
 	}
 
+	private function createImage($frame, $filename, $type, $quality = 90)
+	{
+		$h = count($frame);
+		$w = strlen($frame[0]);
+		
+		$imgW = $w + 2*$this->margin;
+		$imgH = $h + 2*$this->margin;
+		
+		$base_image = imageCreate($imgW, $imgH);
+		
+		$white = imageColorAllocate($base_image,255,255,255);
+		$black = imageColorAllocate($base_image,0,0,0);
+
+		imagefill($base_image, 0, 0, $white);
+
+		for($y=0; $y<$h; $y++) {
+			for($x=0; $x<$w; $x++) {
+				if ($frame[$y][$x] == '1') {
+					imageSetPixel($base_image,$x+$this->margin,$y+$this->margin,$black);
+				}
+			}
+		}
+
+		$maxSize = count($frame)+2*$this->margin;
+		$pixelPerPoint = min($this->size, $maxSize);
+		$target_image = imageCreate($imgW * $pixelPerPoint, $imgH * $pixelPerPoint);
+		imageCopyResized($target_image, $base_image, 0, 0, 0, 0, $imgW * $pixelPerPoint, $imgH * $pixelPerPoint, $imgW, $imgH);
+		imageDestroy($base_image);
+		
+		if ((php_sapi_name() == "cli") || ($filename != false)) {
+			if ($type == "PNG"){
+				imagePng($target_image, $filename);
+			} elseif ($type == "JPG"){
+				imageJpeg($target_image, $filename, $quality);
+			}
+		} else {
+			if ($type == "PNG"){
+				header("Content-type: image/png");
+				imagePng($target_image);
+			} elseif ($type == "JPG"){
+				header("Content-type: image/jpeg");
+				imageJpeg($target_image, null, $quality);
+			}
+		}
+
+		imageDestroy($target_image);
+	}
+	
+	private function encodeString($string)
+	{
+		return (new QRsplit($this->casesensitive, $this->hint, 1, $this->level))->splitString($string);
+	}
+	
 	private function encodeString8bit($string)
 	{
 		$input = new QRinput(1, $this->level);
@@ -87,64 +137,47 @@ class QRcode {
 
 		return $input->encodeMask();
 	}
-
-	private function encodeString($string)
-	{
-		if($this->hint != QR_MODE_8 && $this->hint != QR_MODE_KANJI) {
-			throw QRException::Std('bad hint');
-		}
-
-		return (new QRsplit($this->casesensitive, $this->hint, 1, $this->level))->splitString($string);
-	}
 	
 	private function binarize($frame)
 	{
 		$len = count($frame);
 		foreach ($frame as &$frameLine) {
-			
+
 			for($i=0; $i<$len; $i++) {
 				$frameLine[$i] = (ord($frameLine[$i])&1)?'1':'0';
 			}
 		}
-		
+
 		return $frame;
 	}
 	
-	public function jpg(string $text, $outfile)
-	{
-		$encoded = $this->raw($text);
-
-		$tab = $this->binarize($encoded);
-
-		$maxSize = count($tab)+2*$this->margin;
-
-		$pixelPerPoint = min($this->size, $maxSize);
-
-		(new QRimage($tab, $pixelPerPoint, $this->margin))->jpg($outfile, 90);
-	}
-
-	public function png(string $text, $outfile)
-	{
-		$encoded = $this->raw($text);
-
-		$tab = $this->binarize($encoded);
-
-		$maxSize = count($tab)+2*$this->margin;
-
-		$pixelPerPoint = min($this->size, $maxSize);
-
-		(new QRimage($tab, $pixelPerPoint, $this->margin))->png($outfile);
-	}
-
 	public function raw(string $text)
 	{
-		if($this->eightbit) {
+		if($this->hint == QR_MODE_8) { # around 70 chars
 			$encoded = $this->encodeString8bit($text);
 		} else {
 			$encoded = $this->encodeString($text);
 		}
 
 		return $encoded;
+	}
+
+	public function jpg(string $text, $filename, int $quality = 90)
+	{
+		$encoded = $this->raw($text);
+
+		$tab = $this->binarize($encoded);
+
+		$this->createImage($tab, $filename, "JPG", $quality);
+	}
+	
+	public function png(string $text, $filename)
+	{
+		$encoded = $this->raw($text);
+
+		$tab = $this->binarize($encoded);
+
+		$this->createImage($tab, $filename, "PNG");
 	}
 }
 
