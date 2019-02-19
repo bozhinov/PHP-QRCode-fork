@@ -133,7 +133,7 @@ class QRFrame {
 		$dataLength = ($spec[0] * $spec[1]) + ($spec[3] * $spec[4]);
 		$eccLength = ($spec[0] + $spec[3]) * $spec[2];
 
-		$raw = new QRrawcode($dataCode, $dataLength, $eccLength, $spec);
+		$raw = new QRrsItem($dataCode, $dataLength, $eccLength, $spec);
 		
 		// inteleaved data and ecc codes
 		for($i=0; $i < ($dataLength + $eccLength); $i++) {

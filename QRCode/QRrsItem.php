@@ -24,8 +24,88 @@ class QRrsItem {
 	private $genpoly = [];	// Generator polynomial 
 	private $nroots;		// Number of generator roots = number of parity symbols 
 	private $pad;			// Padding bytes in shortened block 
+	
+	// RawCode
+	private $blocks;
+	private $count;
+	private $b1;
+	private $rsblocks = [];
+	private $dataLength;
+	private $eccLength;
+	
+	function __construct(array $dataCode, int $dataLength, int $eccLength, array $spec)
+	{
+		$this->count = 0;
 
-	public function modnn($x)
+		$this->b1 = $spec[0];
+		$this->blocks = $spec[0] + $spec[3];
+		
+		$this->dataLength = $dataLength;
+		$this->eccLength = $eccLength;
+		
+		$dl = $spec[1]; # rsDataCodes1
+		$el = $spec[2]; # rsEccCodes1
+		
+		$blockNo = 0;
+		$dataPos = 0;
+		$eccPos = 0;
+		
+		$ecccode = array_fill(0, $this->eccLength, 0);
+
+		$this->rsInit($el, 255 - $dl - $el);
+
+		for($i = 0; $i < $spec[0]; $i++) { # rsBlockNum1
+
+			$ecc = array_slice($ecccode,$eccPos);
+			$data = array_slice($dataCode, $dataPos);
+
+			$this->rsblocks[$blockNo] = ["dataLength" => $dl, "data" => $data, "ecc" => $this->encode_rs_char($data, $ecc)];
+			$ecccode = array_merge(array_slice($ecccode,0, $eccPos), $ecc);
+			
+			$dataPos += $dl;
+			$eccPos += $el;
+			$blockNo++;
+		}
+
+		if($spec[3] != 0) { # rsBlockNum2
+			for($i = 0; $i < $spec[3]; $i++) {
+
+				$ecc = array_slice($ecccode,$eccPos);
+				
+				$this->rsblocks[$blockNo] = ["dataLength" => $dl, "data" => $data, "ecc" => $this->encode_rs_char($data, $ecc)];
+				$ecccode = array_merge(array_slice($ecccode,0, $eccPos), $ecc);
+
+				$dataPos += $dl;
+				$eccPos += $el;
+				$blockNo++;
+			}
+		}
+	}
+	
+	public function getCode()
+	{
+		$ret = 0;
+
+		if($this->count < $this->dataLength) {
+			$row = $this->count % $this->blocks;
+			$col = $this->count / $this->blocks;
+			if($col >= $this->rsblocks[0]['dataLength']) {
+				$row += $this->b1;
+			}
+			$ret = $this->rsblocks[$row]['data'][$col];
+		} elseif($this->count < $this->dataLength + $this->eccLength) {
+			$row = ($this->count - $this->dataLength) % $this->blocks;
+			$col = ($this->count - $this->dataLength) / $this->blocks;
+			$ret = $this->rsblocks[$row]['ecc'][$col];
+		} else {
+			return 0;
+		}
+		$this->count++;
+
+		return $ret;
+	}
+
+	private function modnn($x)
 	{
 		while ($x >= $this->nn) {
 			$x -= $this->nn;
@@ -35,7 +115,7 @@ class QRrsItem {
 		return $x;
 	}
 	
-	function __construct(int $nroots, int $pad)
+	private function rsInit(int $nroots, int $pad)
 	{
 		// Common code for intializing a Reed-Solomon control block (char or int symbols)
 		// Copyright 2004 Phil Karn, KA9Q
@@ -111,7 +191,7 @@ class QRrsItem {
 		}
 	}
 
-	public function encode_rs_char($data, $parity)
+	private function encode_rs_char($data, $parity)
 	{
 		$parity = array_fill(0, $this->nroots, 0);
 
