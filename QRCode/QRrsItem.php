@@ -49,8 +49,6 @@ class QRrsItem {
 		
 		$blockNo = 0;
 		$dataPos = 0;
-		
-		$ecccode = array_fill(0, $this->eccLength, 0);
 
 		$this->rsInit($el, 255 - $dl - $el);
 
