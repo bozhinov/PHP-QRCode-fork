@@ -34,7 +34,6 @@ define('QR_N4', 10);
 
 // QRinputItem
 define('QR_STRUCTURE_HEADER_BITS', 20);
-//define('MAX_STRUCTURED_SYMBOLS', 16); # UNUSED
 
 // Encoding modes
 define('QR_MODE_NUL', -1);
@@ -49,9 +48,6 @@ define('QR_ECLEVEL_L', 0);
 define('QR_ECLEVEL_M', 1);
 define('QR_ECLEVEL_Q', 2);
 define('QR_ECLEVEL_H', 3);
-
-// Supported output formats
-define('QR_FIND_FROM_RANDOM', false); // if false, checks all masks available // range 1-7
 
 define('QR_SPEC_VERSION_MAX', 40);
 define('QR_SPEC_WIDTH_MAX', 177);

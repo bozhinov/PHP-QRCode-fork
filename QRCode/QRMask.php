@@ -267,15 +267,8 @@ class QRmask {
 	public function get()
 	{
 		$minDemerit = PHP_INT_MAX;
-		$masks = [0,1,2,3,4,5,6,7];
 
-		if (QR_FIND_FROM_RANDOM !== false) {
-			shuffle($masks);
-			$howMany = -8+((int)QR_FIND_FROM_RANDOM % 9);
-			$masks = array_slice($masks, 0, $howMany);
-		}
-
-		foreach($masks as $i) {
+		foreach([0,1,2,3,4,5,6,7] as $i) {
 			
 			$this->masked = $this->frame;
 			
