@@ -168,7 +168,7 @@ class QRFrame {
 		if($b2 == 0) {
 			$spec = [$b1, floor($data / $b1), floor($ecc / $b1), 0, 0];
 		} else {
-			$spec = [$b1, floor($data / ($b1 + $b2)), floor($ecc / ($b1 + $b2)), $b2, $spec[1] + 1];
+			$spec = [$b1, floor($data / ($b1 + $b2)), floor($ecc / ($b1 + $b2)), $b2, 1];
 		}
 
 		return $spec;
@@ -197,7 +197,6 @@ class QRFrame {
 	private function next()
 	{
 		do {
-		
 			if($this->bit == -1) {
 				$this->bit = 0;
 				return ['x'=>$this->x, 'y'=>$this->y];
