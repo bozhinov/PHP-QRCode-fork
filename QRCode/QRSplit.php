@@ -219,7 +219,7 @@ class QRsplit {
 		$p = 0;
 		
 		while ($p<$this->dataStrLen) {
-			$mode = $this->identifyMode(substr($this->dataStr, $p), $this->hint);
+			$mode = $this->identifyMode(substr($this->dataStr, $p));
 			if($mode == QR_MODE_KANJI) {
 				$p += 2;
 			} else {
