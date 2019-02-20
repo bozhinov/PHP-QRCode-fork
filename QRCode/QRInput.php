@@ -56,7 +56,7 @@ class QRinput {
 	{
 		$this->items[] = new QRinputItem($mode, $size, $data, $this->version);
 	}
-	
+
 	private function estimateBitStreamSize($version)
 	{
 		$bits = 0;
@@ -87,7 +87,7 @@ class QRinput {
 		$total = 0;
 
 		foreach($this->items as $item) {
-			
+
 			$bitsData = $item->encodeBitStream();
 
 			$total += count($bitsData);
@@ -195,7 +195,7 @@ class QRinput {
 		$dataCode = $this->getByteStream();
 
 		$width = $this->tools->getWidth($this->version);
-		
+
 		return (new QRmask($dataCode, $width, $this->level, $this->version))->get();
 	}
 

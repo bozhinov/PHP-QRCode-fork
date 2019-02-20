@@ -30,7 +30,7 @@ class QRmask {
 		[0x355f, 0x3068, 0x3f31, 0x3a06, 0x24b4, 0x2183, 0x2eda, 0x2bed],
 		[0x1689, 0x13be, 0x1ce7, 0x19d0, 0x0762, 0x0255, 0x0d0c, 0x083b]
 	];
-	
+
 	function __construct(array $dataCode, int $width, int $level, int $version)
 	{
 		$this->runLength = array_fill(0, QR_SPEC_WIDTH_MAX + 1, 0);
@@ -38,11 +38,11 @@ class QRmask {
 		$this->level = $level;
 		$this->frame = (new QRFrame($version, $this->level))->getFrame($dataCode);
 	}
-	
+
 	private function writeFormatInformation($maskNo)
 	{
 		$format = $this->formatInfo[$this->level][$maskNo];
-		
+
 		$blacks = 0;
 
 		for($i=0; $i<8; $i++) {
@@ -61,7 +61,7 @@ class QRmask {
 			}
 			$format = $format >> 1;
 		}
-		
+
 		for($i=0; $i<7; $i++) {
 			if($format & 1) {
 				$blacks += 2;
@@ -69,14 +69,14 @@ class QRmask {
 			} else {
 				$v = 0x84;
 			}
-			
+
 			$this->masked[$this->width - 7 + $i][8] = chr($v);
 			if($i == 0) {
 				$this->masked[8][7] = chr($v);
 			} else {
 				$this->masked[8][6 - $i] = chr($v);
 			}
-			
+
 			$format = $format >> 1;
 		}
 
@@ -111,7 +111,7 @@ class QRmask {
 				$ret = ((($x*$y)%3)+(($x+$y)&1))&1;
 				break;
 		}
-		
+
 		return ($ret == 0);
 	}
 
@@ -128,7 +128,7 @@ class QRmask {
 				}
 			}
 		}
-		
+
 		return $bitMask;
 	}
 
@@ -157,7 +157,7 @@ class QRmask {
 		$demerit = 0;
 
 		for($i=0; $i<$length; $i++) {
-			
+
 			if($this->runLength[$i] >= 5) {
 				$demerit += (QR_N1 + ($this->runLength[$i] - 5));
 			}
@@ -179,11 +179,11 @@ class QRmask {
 		}
 		return $demerit;
 	}
-	
+
 	private function maskToOrd()
 	{
 		$new_mask = [];
-		
+
 		foreach($this->masked as $m){
 			$val = [];
 			foreach(str_split($m) as $n){
@@ -191,32 +191,32 @@ class QRmask {
 			}
 			$new_mask[] = $val;
 		}
-		
+
 		return $new_mask;
 	}
 
 	private function evaluateSymbol()
 	{
 		$demerit = 0;
-		
+
 		$mask = $this->maskToOrd();
 
 		for($y=0; $y<$this->width; $y++) {
 			$head = 0;
 			$this->runLength[0] = 1;
-			
+
 			$frameY = $mask[$y];
-			
+
 			if ($y > 0){
 				$frameYM = $mask[$y-1];
 			}
-			
+
 			if($frameY[0] & 1) {
 				$this->runLength[0] = -1;
 				$head = 1;
 				$this->runLength[$head] = 1;
 			}
-			
+
 			for($x=1; $x<$this->width; $x++) {
 				if($y > 0) {
 					$b22 = $frameY[$x] & $frameY[$x-1] & $frameYM[$x] & $frameYM[$x-1];
@@ -225,7 +225,7 @@ class QRmask {
 						$demerit += QR_N2;
 					}
 				}
-				
+
 				if(($frameY[$x] ^ $frameY[$x-1]) & 1) {
 					$head++;
 					$this->runLength[$head] = 1;
@@ -246,7 +246,7 @@ class QRmask {
 				$head = 1;
 				$this->runLength[$head] = 1;
 			}
-				
+
 			for($y=0; $y<$this->width; $y++) {
 				if ($y > 0) {
 					if(($mask[$y][$x] ^ $mask[$y-1][$x]) & 1) {
@@ -257,7 +257,7 @@ class QRmask {
 					}
 				}
 			}
-		
+
 			$demerit += $this->calcN1N3($head+1);
 		}
 
@@ -269,13 +269,13 @@ class QRmask {
 		$minDemerit = PHP_INT_MAX;
 
 		foreach([0,1,2,3,4,5,6,7] as $i) {
-			
+
 			$this->masked = $this->frame;
-			
+
 			$blacks = $this->makeMaskNo($i);
-			
+
 			$demerit = (int)(abs($blacks - 50) / 5) * QR_N4 + $this->evaluateSymbol();
-			
+
 			if($demerit < $minDemerit) {
 				$minDemerit = $demerit;
 				$bestMask = $this->masked;

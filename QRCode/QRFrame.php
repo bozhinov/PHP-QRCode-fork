@@ -25,7 +25,7 @@ class QRFrame {
 	private $y;
 	private $dir;
 	private $bit;
-	
+
 	// those two came from the QRSpec class
 	private $new_frame;
 	private $tools;
@@ -95,7 +95,7 @@ class QRFrame {
 		[30, 56], [34, 60], [30, 58], [34, 62], [30, 54], //31-35
 		[24, 50], [28, 54], [32, 58], [26, 54], [30, 58] //35-40
 	];
-	
+
 	// Version information pattern (BCH coded).
 	// See Table 1 in Appendix D (pp.68) of JIS X0510:2004.
 	// size: [QR_SPEC_VERSION_MAX - 6]
@@ -112,9 +112,9 @@ class QRFrame {
 		if($version < 1 || $version > QR_SPEC_VERSION_MAX){
 			throw QRException::Std('Version invalid');
 		}
-		
+
 		$this->tools = new QRTools();
-		
+
 		$this->version = $version;
 		$this->level = $level;
 		$this->width = $this->tools->getWidth($version);
@@ -129,12 +129,12 @@ class QRFrame {
 	public function getFrame($dataCode)
 	{
 		$spec = $this->getEccSpec($this->level);
-		
+
 		$dataLength = ($spec[0] * $spec[1]) + ($spec[3] * $spec[4]);
 		$eccLength = ($spec[0] + $spec[3]) * $spec[2];
 
 		$raw = new QRrsItem($dataCode, $dataLength, $eccLength, $spec);
-		
+
 		// inteleaved data and ecc codes
 		for($i=0; $i < ($dataLength + $eccLength); $i++) {
 			$code = $raw->getCode();
@@ -147,7 +147,7 @@ class QRFrame {
 		}
 
 		unset($raw);
-		
+
 		// remainder bits
 		$j = $this->getRemainder($this->version);
 		for($i=0; $i<$j; $i++) {
@@ -276,10 +276,10 @@ class QRFrame {
 			"\xa1\xa0\xa0\xa0\xa1",
 			"\xa1\xa1\xa1\xa1\xa1"
 		];
-		
+
 		$yStart = $oy-2;
 		$xStart = $ox-2;
-		
+
 		for($y=0; $y<5; $y++) {
 			$this->set_qrstr($xStart, $yStart+$y, $finder[$y], 5);
 		}
@@ -322,7 +322,7 @@ class QRFrame {
 			$cy += $d;
 		}
 	}
-	
+
 	/** 
 	 * Put a finder pattern.
 	 * @param width
@@ -355,28 +355,28 @@ class QRFrame {
 		$this->putFinderPattern(0, 0);
 		$this->putFinderPattern($width - 7, 0);
 		$this->putFinderPattern(0, $width - 7);
-		
+
 		// Separator
 		$yOffset = $width - 7;
-		
+
 		for($y=0; $y<7; $y++) {
 			$this->new_frame[$y][7] = "\xc0";
 			$this->new_frame[$y][$width - 8] = "\xc0";
 			$this->new_frame[$yOffset][7] = "\xc0";
 			$yOffset++;
 		}
-		
+
 		$setPattern = str_repeat("\xc0", 8);
-		
+
 		$this->set_qrstr(0, 7, $setPattern, 8);
 		$this->set_qrstr($width-8, 7, $setPattern, 8);
 		$this->set_qrstr(0, $width - 8, $setPattern, 8);
-	
+
 		// Format info
 		$setPattern = str_repeat("\x84", 9);
 		$this->set_qrstr(0, 8, $setPattern, 9);
 		$this->set_qrstr($width - 8, 8, substr($setPattern, 0, 8), 8);
-		
+
 		$yOffset = $width - 8;
 
 		for($y=0; $y<8; $y++,$yOffset++) {
@@ -384,21 +384,21 @@ class QRFrame {
 			$this->new_frame[$yOffset][8] = "\x84";
 		}
 
-		// Timing pattern  
+		// Timing pattern
 		for($i=1; $i<$width-15; $i++) {
 			$this->new_frame[6][7+$i] = chr(0x90 | ($i & 1));
 			$this->new_frame[7+$i][6] = chr(0x90 | ($i & 1));
 		}
-		
-		// Alignment pattern  
+
+		// Alignment pattern
 		$this->putAlignmentPattern($width);
-		
-		// Version information 
+
+		// Version information
 		if($this->version >= 7) {
 			$vinf = $this->getVersionPattern();
 
 			$v = $vinf;
-			
+
 			for($x=0; $x<6; $x++) {
 				for($y=0; $y<3; $y++) {
 					$this->new_frame[($width - 11)+$y][$x] = chr(0x88 | ($v & 1));
@@ -415,9 +415,9 @@ class QRFrame {
 			}
 		}
 
-		// and a little bit...  
+		// and a little bit...
 		$this->new_frame[$width - 8][8] = "\x81";
-		
+
 		return $this->new_frame;
 	}
 

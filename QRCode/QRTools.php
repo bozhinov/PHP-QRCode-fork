@@ -27,14 +27,14 @@ class QRTools {
 			-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 			-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
 		];
-		
+
 	private $lengthTableBits = [
 		[10, 12, 14],
 		[9, 11, 13],
 		[8, 16, 16],
 		[8, 10, 12]
 	];
-	
+
 	public $capacity = [
 		[0, 0, 0, [0, 0, 0, 0]],
 		[21, 26, 0, [7, 10, 13, 17]], // 1
@@ -83,17 +83,17 @@ class QRTools {
 	{
 		return $this->capacity[$version][QR_CAP_WIDTH];
 	}
-	
+
 	public function getDataLength($version, $level)
 	{
 		return $this->capacity[$version][QR_CAP_WORDS] - $this->capacity[$version][QR_CAP_EC][$level];
 	}
-		
+
 	public function estimateBitsModeNum($size)
 	{
 		$w = floor($size / 3);
 		$bits = $w * 10;
-		
+
 		switch($size - $w * 3) {
 			case 1:
 				$bits += 4;
@@ -107,12 +107,12 @@ class QRTools {
 
 		return $bits;
 	}
-	
+
 	public function estimateBitsModeAn($size)
 	{
 		$w = floor($size / 2);
 		$bits = $w * 11;
-		
+
 		if($size & 1) {
 			$bits += 6;
 		}
@@ -151,7 +151,7 @@ class QRTools {
 		if($size & 1){
 			return false;
 		}
-		
+
 		for($i=0; $i<$size; $i+=2) {
 			$val = (ord($data[$i]) << 8) | ord($data[$i+1]);
 			if($val < 0x8140 || ($val > 0x9ffc && $val < 0xe040) || $val > 0xebbf) {
@@ -204,7 +204,7 @@ class QRTools {
 
 		return false;
 	}
-	
+
 	public function lengthIndicator($mode, $version)
 	{
 		if ($mode == QR_MODE_STRUCTURE){

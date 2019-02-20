@@ -25,7 +25,7 @@ class QRrsItem {
 	private $nroots;		// Number of generator roots = number of parity symbols 
 	private $pad;			// Padding bytes in shortened block 
 	private $parity;
-	
+
 	// RawCode
 	private $blocks;
 	private $count;
@@ -33,20 +33,20 @@ class QRrsItem {
 	private $rsblocks = [];
 	private $dataLength;
 	private $eccLength;
-	
+
 	function __construct(array $dataCode, int $dataLength, int $eccLength, array $spec)
 	{
 		$this->count = 0;
 
 		$this->b1 = $spec[0];
 		$this->blocks = $spec[0] + $spec[3];
-		
+
 		$this->dataLength = $dataLength;
 		$this->eccLength = $eccLength;
-		
+
 		$dl = $spec[1]; # rsDataCodes1
 		$el = $spec[2]; # rsEccCodes1
-		
+
 		$blockNo = 0;
 		$dataPos = 0;
 
@@ -57,7 +57,7 @@ class QRrsItem {
 			$data = array_slice($dataCode, $dataPos);
 
 			$this->rsblocks[$blockNo] = ["dataLength" => $dl, "data" => $data, "ecc" => $this->encode_rs_char($data)];
-			
+
 			$dataPos += $dl;
 			$blockNo++;
 		}
@@ -72,7 +72,7 @@ class QRrsItem {
 			}
 		}
 	}
-	
+
 	public function getCode()
 	{
 		if($this->count < $this->dataLength) {
@@ -103,7 +103,7 @@ class QRrsItem {
 
 		return $x;
 	}
-	
+
 	private function rsInit(int $nroots, int $pad)
 	{
 		// Common code for intializing a Reed-Solomon control block (char or int symbols)
@@ -122,7 +122,7 @@ class QRrsItem {
 		if($pad < 0 || $pad >= ((1<<$symsize) -1 - $nroots)){
 			throw QRException::Std('Too much padding');
 		}
-		
+
 		$this->parity = array_fill(0, $nroots, 0);
 
 		$this->mm = $symsize;
@@ -155,11 +155,11 @@ class QRrsItem {
 		$this->genpoly = array_fill(0, $nroots+1, 0);
 		$this->nroots = $nroots;
 		$this->genpoly[0] = 1;
-		
+
 		$root = $fcr * $prim;
 
 		for ($i = 0; $i < $nroots; $i++) {
-			
+
 			$this->genpoly[$i+1] = 1;
 
 			// Multiply rs->genpoly[] by  @**(root + x)
