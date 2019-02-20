@@ -13,6 +13,20 @@ use QRCode\QRException;
 $errorCorrectionLevel = 2;
 $matrixPointSize = 10;
 
-(new QRcode($errorCorrectionLevel, $matrixPointSize, $margin = 4))->png('http://www.test.bg/фффф', "example.QRcode.png");
+## Start timer
+$mtime = explode(" ",microtime());
+$starttime = $mtime[1] + $mtime[0];
+
+(new QRcode($errorCorrectionLevel, $matrixPointSize, $margin = 4))->png('http://www.test.bg/фффф TEST TEST  TEST  TEST  TEST  TEST  TEST  TEST  TEST ', "example.QRcode.png");
+
+(new QRcode(3, 8, 4))->png('http://www.test.bg/фффф', "example2.QRcode.png");
+
+(new QRcode(1, 6, 4))->png('momchil@bojinov.info', "example3.QRcode.png");
+
+(new QRcode(3, 7, 4))->jpg('momchil@bojinov.info', "example4.QRcode.jpg");
+
+## Stop timer
+$mtime = explode(" ",microtime());
+echo "Op took ".(($mtime[1] + $mtime[0]) - $starttime)." seconds";
 
 ?>
