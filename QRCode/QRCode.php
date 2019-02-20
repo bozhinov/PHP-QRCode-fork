@@ -124,16 +124,16 @@ class QRcode {
 		imageDestroy($target_image);
 	}
 	
-	private function encodeString($string)
+	private function encodeString($text)
 	{
-		return (new QRsplit($this->casesensitive, $this->hint, 1, $this->level))->splitString($string);
+		return (new QRsplit($this->casesensitive, $this->hint, 1, $this->level))->splitString($text);
 	}
 	
-	private function encodeString8bit($string)
+	private function encodeString8bit($text)
 	{
 		$input = new QRinput(1, $this->level);
 
-		$input->append(QR_MODE_8, strlen($string), $string);
+		$input->append(QR_MODE_8, strlen($text), $text);
 
 		return $input->encodeMask();
 	}
@@ -153,6 +153,10 @@ class QRcode {
 	
 	public function raw(string $text)
 	{
+		if($text == '\0' || $text == '') {
+			throw QRException::Std('empty string!');
+		}
+		
 		if($this->hint == QR_MODE_8) { # around 70 chars
 			$encoded = $this->encodeString8bit($text);
 		} else {

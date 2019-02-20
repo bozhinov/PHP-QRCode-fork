@@ -233,11 +233,7 @@ class QRsplit {
 	}
 
 	public function splitString($dataStr)
-	{
-		if($dataStr == '\0' || $dataStr == '') {
-			throw QRException::Std('empty string!');
-		}
-		
+	{		
 		$this->dataStr = $dataStr;
 		$this->dataStrLen = strlen($dataStr);
 		
