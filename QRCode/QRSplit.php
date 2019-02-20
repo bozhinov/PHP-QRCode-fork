@@ -30,10 +30,10 @@ class QRsplit {
 	{
 		$this->hint = $hint;
 		$this->casesensitive = $casesensitive;
-		
+
 		$this->tools = new QRTools();
 		$this->input = new QRinput($version, $level);
-		
+
 		$this->la = $this->tools->lengthIndicator(QR_MODE_AN, $version);
 		$this->ln = $this->tools->lengthIndicator(QR_MODE_NUM, $version);
 	}
@@ -53,7 +53,6 @@ class QRsplit {
 		if ($pos >= $this->dataStrLen){
 			return false;
 		}
-
 		return ($this->tools->lookAnTable(ord($this->dataStr[$pos])) >= 0);
 	}
 
@@ -62,13 +61,13 @@ class QRsplit {
 		if ($pos >= $this->dataStrLen){
 			return QR_MODE_NUL;
 		}
-		
+
 		if($this->isdigitat($pos)) {
 			return QR_MODE_NUM;
 		} elseif($this->isalnumat($pos)) {
 			return QR_MODE_AN;
 		} elseif($this->hint == QR_MODE_KANJI) {
-		
+
 			if ($pos+1 < $this->dataStrLen) 
 			{
 				$word = (ord($this->dataStr[$pos]) << 8) | ord($this->dataStr[$pos+1]);
@@ -87,10 +86,10 @@ class QRsplit {
 		while($this->isdigitat($p)) {
 			$p++;
 		}
-		
+
 		$run = $p;
 		$mode = $this->identifyMode($p);
-		
+
 		if($mode == QR_MODE_8) {
 			$dif = $this->tools->estimateBitsModeNum($run) + 4 + $this->ln
 				 + $this->tools->estimateBitsMode8(1)         // + 4 + l8
@@ -107,7 +106,7 @@ class QRsplit {
 				return $this->eatAn();
 			}
 		}
-		
+
 		$this->input->append(QR_MODE_NUM, $run, $this->dataStr);
 
 		return $run;
@@ -116,18 +115,18 @@ class QRsplit {
 	private function eatAn()
 	{
 		$p = 0;
-		
+
 		while($this->isalnumat($p)) {
 			if($this->isdigitat($p)) {
 				$q = $p;
 				while($this->isdigitat($q)) {
 					$q++;
 				}
-				
+
 				$dif = $this->tools->estimateBitsModeAn($p) // + 4 + la
 					 + $this->tools->estimateBitsModeNum($q - $p) + 4 + $this->ln
 					 - $this->tools->estimateBitsModeAn($q); // - 4 - la
-					 
+
 				if($dif < 0) {
 					break;
 				} else {
@@ -157,22 +156,22 @@ class QRsplit {
 	private function eatKanji()
 	{
 		$p = 0;
-		
+
 		while($this->identifyMode($p) == QR_MODE_KANJI) {
 			$p += 2;
 		}
-		
+
 		$this->input->append(QR_MODE_KANJI, $p, $this->dataStr);
-		
+
 		return $p;
 	}
 
 	private function eat8()
 	{
 		$p = 1;
-		
+
 		while($p < $this->dataStrLen) {
-			
+
 			switch($this->identifyMode($p)){
 				case QR_MODE_KANJI:
 					break 2;
@@ -210,14 +209,14 @@ class QRsplit {
 		}
 
 		$this->input->append(QR_MODE_8, $p, $this->dataStr);
-		
+
 		return $p;
 	}
-	
+
 	private function toUpper()
 	{
 		$p = 0;
-		
+
 		while ($p<$this->dataStrLen) {
 			$mode = $this->identifyMode(substr($this->dataStr, $p));
 			if($mode == QR_MODE_KANJI) {
@@ -233,14 +232,14 @@ class QRsplit {
 	}
 
 	public function splitString($dataStr)
-	{		
+	{
 		$this->dataStr = $dataStr;
 		$this->dataStrLen = strlen($dataStr);
-		
+
 		if(!$this->casesensitive){
 			$this->toUpper();
 		}
-		
+
 		while ($this->dataStrLen > 0)
 		{
 			switch ($this->identifyMode(0)) {
@@ -264,11 +263,11 @@ class QRsplit {
 			if($length == 0){
 				break;
 			}
-			
+
 			$this->dataStr = substr($this->dataStr, $length);
 			$this->dataStrLen -= $length;
 		}
-		
+
 		return $this->input->encodeMask();
 	}
 }
