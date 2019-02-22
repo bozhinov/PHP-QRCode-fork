@@ -79,12 +79,11 @@ class QRcode {
 	private function createImage($frame, $filename, $type, $quality = 90)
 	{
 		$h = count($frame);
-		
 		$imgH = $h + 2 * $this->margin;
-		$imgW = $imgH;
-		
-		$base_image = imageCreate($imgW, $imgH);
-		
+		$pixelPerPoint = min($this->size, $imgH);
+
+		$base_image = imageCreate($imgH, $imgH);
+
 		$white = imageColorAllocate($base_image,255,255,255);
 		$black = imageColorAllocate($base_image,0,0,0);
 
@@ -98,10 +97,8 @@ class QRcode {
 			}
 		}
 
-		$maxSize = count($frame)+2*$this->margin;
-		$pixelPerPoint = min($this->size, $maxSize);
-		$target_image = imageCreate($imgW * $pixelPerPoint, $imgH * $pixelPerPoint);
-		imageCopyResized($target_image, $base_image, 0, 0, 0, 0, $imgW * $pixelPerPoint, $imgH * $pixelPerPoint, $imgW, $imgH);
+		$target_image = imageCreate($imgH * $pixelPerPoint, $imgH * $pixelPerPoint);
+		imageCopyResized($target_image, $base_image, 0, 0, 0, 0, $imgH * $pixelPerPoint, $imgH * $pixelPerPoint, $imgH, $imgH);
 		imageDestroy($base_image);
 		
 		if ((php_sapi_name() == "cli") || ($filename != false)) {
