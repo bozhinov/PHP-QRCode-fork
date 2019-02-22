@@ -53,11 +53,11 @@ class QRmask {
 				$v = 0x84;
 			}
 			
-			$this->masked[8][$this->width - 1 - $i] = chr($v);
+			$this->masked[8][$this->width - 1 - $i] = $v;
 			if($i < 6) {
-				$this->masked[$i][8] = chr($v);
+				$this->masked[$i][8] = $v;
 			} else {
-				$this->masked[$i + 1][8] = chr($v);
+				$this->masked[$i + 1][8] = $v;
 			}
 			$format = $format >> 1;
 		}
@@ -70,11 +70,11 @@ class QRmask {
 				$v = 0x84;
 			}
 
-			$this->masked[$this->width - 7 + $i][8] = chr($v);
+			$this->masked[$this->width - 7 + $i][8] = $v;
 			if($i == 0) {
-				$this->masked[8][7] = chr($v);
+				$this->masked[8][7] = $v;
 			} else {
-				$this->masked[8][6 - $i] = chr($v);
+				$this->masked[8][6 - $i] = $v;
 			}
 
 			$format = $format >> 1;
@@ -121,7 +121,7 @@ class QRmask {
 
 		for($y=0; $y<$this->width; $y++) {
 			for($x=0; $x<$this->width; $x++) {
-				if(ord($this->frame[$y][$x]) & 128) { # 0x80
+				if(($this->frame[$y][$x]) & 128) { # 0x80
 					$bitMask[$y][$x] = 0;
 				} else {
 					$bitMask[$y][$x] = (int)$this->maskByNum($x, $y, $maskNo);
@@ -139,9 +139,9 @@ class QRmask {
 
 		for($y=0; $y<$this->width; $y++) {
 			for($x=0; $x<$this->width; $x++) {
-				$ord = ord($this->masked[$y][$x]);
+				$ord = ($this->masked[$y][$x]);
 				if($bitMask[$y][$x] == 1) {
-					$this->masked[$y][$x] = chr($ord ^ 1);
+					$this->masked[$y][$x] = ($ord ^ 1);
 				}
 				$b += ($ord & 1);
 			}
@@ -180,26 +180,10 @@ class QRmask {
 		return $demerit;
 	}
 
-	private function maskToOrd()
-	{
-		$new_mask = [];
-
-		foreach($this->masked as $m){
-			$val = [];
-			foreach(str_split($m) as $n){
-				$val[] = ord($n);
-			}
-			$new_mask[] = $val;
-		}
-
-		return $new_mask;
-	}
-
 	private function evaluateSymbol()
 	{
 		$demerit = 0;
-
-		$mask = $this->maskToOrd();
+		$mask = $this->masked;
 
 		for($y=0; $y<$this->width; $y++) {
 			$head = 0;

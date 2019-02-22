@@ -79,10 +79,9 @@ class QRcode {
 	private function createImage($frame, $filename, $type, $quality = 90)
 	{
 		$h = count($frame);
-		$w = strlen($frame[0]);
 		
-		$imgW = $w + 2*$this->margin;
-		$imgH = $h + 2*$this->margin;
+		$imgH = $h + 2 * $this->margin;
+		$imgW = $imgH;		
 		
 		$base_image = imageCreate($imgW, $imgH);
 		
@@ -92,8 +91,8 @@ class QRcode {
 		imagefill($base_image, 0, 0, $white);
 
 		for($y=0; $y<$h; $y++) {
-			for($x=0; $x<$w; $x++) {
-				if ($frame[$y][$x] == '1') {
+			for($x=0; $x<$h; $x++) {
+				if ($frame[$y][$x]&1) {
 					imageSetPixel($base_image,$x+$this->margin,$y+$this->margin,$black);
 				}
 			}
@@ -137,20 +136,7 @@ class QRcode {
 
 		return $input->encodeMask();
 	}
-	
-	private function binarize($frame)
-	{
-		$len = count($frame);
-		foreach ($frame as &$frameLine) {
-
-			for($i=0; $i<$len; $i++) {
-				$frameLine[$i] = (ord($frameLine[$i])&1)?'1':'0';
-			}
-		}
-
-		return $frame;
-	}
-	
+		
 	public function raw(string $text)
 	{
 		if($text == '\0' || $text == '') {
@@ -170,18 +156,14 @@ class QRcode {
 	{
 		$encoded = $this->raw($text);
 
-		$tab = $this->binarize($encoded);
-
-		$this->createImage($tab, $filename, "JPG", $quality);
+		$this->createImage($encoded, $filename, "JPG", $quality);
 	}
 	
 	public function png(string $text, $filename)
 	{
 		$encoded = $this->raw($text);
 
-		$tab = $this->binarize($encoded);
-
-		$this->createImage($tab, $filename, "PNG");
+		$this->createImage($encoded, $filename, "PNG");
 	}
 }
 

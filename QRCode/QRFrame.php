@@ -138,10 +138,10 @@ class QRFrame {
 		// inteleaved data and ecc codes
 		for($i=0; $i < ($dataLength + $eccLength); $i++) {
 			$code = $raw->getCode();
-			$bit = 0x80;
+			$bit = 128;
 			for($j=0; $j<8; $j++) {
 				$addr = $this->next();
-				$this->setFrameAt($addr, 0x02 | (($bit & $code) != 0));
+				$this->setFrameAt($addr, 2 | (($bit & $code) != 0));
 				$bit = $bit >> 1;
 			}
 		}
@@ -152,7 +152,7 @@ class QRFrame {
 		$j = $this->getRemainder($this->version);
 		for($i=0; $i<$j; $i++) {
 			$addr = $this->next();
-			$this->setFrameAt($addr, 0x02);
+			$this->setFrameAt($addr, 2);
 		}
 
 		return $this->frame;
@@ -186,12 +186,7 @@ class QRFrame {
 
 	private function setFrameAt($at, $val)
 	{
-		$this->frame[$at['y']][$at['x']] = chr($val);
-	}
-
-	private function getFrameAt($at)  # UNSED
-	{
-		return ord($this->frame[$at['y']][$at['x']]);
+		$this->frame[$at['y']][$at['x']] = $val;
 	}
 
 	private function next()
@@ -243,7 +238,7 @@ class QRFrame {
 			$this->x = $x;
 			$this->y = $y;
 
-		} while(ord($this->frame[$y][$x]) & 0x80);
+		} while(($this->frame[$y][$x]) & 128);
 
 		return ['x'=>$x, 'y'=>$y];
 	}
@@ -256,10 +251,10 @@ class QRFrame {
 
 		return $this->versionPattern[$this->version -7];
 	}
-
-	private function set_qrstr($x, $y, $repl, $replLen) 
+	
+	function set_qrstr($x, $y, $repl, $replLen)
 	{
-		$this->new_frame[$y] = substr_replace($this->new_frame[$y], $repl, $x, $replLen);
+		array_splice($this->new_frame[$y], $x, $replLen, $repl);
 	}
 
 	/** 
@@ -270,11 +265,11 @@ class QRFrame {
 	private function putAlignmentMarker($ox, $oy)
 	{
 		$finder = [
-			"\xa1\xa1\xa1\xa1\xa1",
-			"\xa1\xa0\xa0\xa0\xa1",
-			"\xa1\xa0\xa1\xa0\xa1",
-			"\xa1\xa0\xa0\xa0\xa1",
-			"\xa1\xa1\xa1\xa1\xa1"
+			[161, 161, 161, 161, 161],
+			[161, 160, 160, 160, 161],
+			[161, 160, 161, 160, 161],
+			[161, 160, 160, 160, 161],
+			[161, 161, 161, 161, 161]
 		];
 
 		$yStart = $oy-2;
@@ -331,13 +326,13 @@ class QRFrame {
 	private function putFinderPattern($ox, $oy)
 	{
 		$finder = [
-			"\xc1\xc1\xc1\xc1\xc1\xc1\xc1",
-			"\xc1\xc0\xc0\xc0\xc0\xc0\xc1",
-			"\xc1\xc0\xc1\xc1\xc1\xc0\xc1",
-			"\xc1\xc0\xc1\xc1\xc1\xc0\xc1",
-			"\xc1\xc0\xc1\xc1\xc1\xc0\xc1",
-			"\xc1\xc0\xc0\xc0\xc0\xc0\xc1",
-			"\xc1\xc1\xc1\xc1\xc1\xc1\xc1"
+			[193, 193, 193, 193, 193, 193, 193],
+			[193, 192, 192, 192, 192, 192, 193],
+			[193, 192, 193, 193, 193, 192, 193],
+			[193, 192, 193, 193, 193, 192, 193],
+			[193, 192, 193, 193, 193, 192, 193],
+			[193, 192, 192, 192, 192, 192, 193],
+			[193, 193, 193, 193, 193, 193, 193]
 		];
 		
 		for($y=0; $y<7; $y++) {
@@ -349,7 +344,7 @@ class QRFrame {
 	{
 		$width = $this->tools->capacity[$this->version][QR_CAP_WIDTH];
 
-		$this->new_frame = array_fill(0, $width, str_repeat ("\0", $width));
+		$this->new_frame = array_fill(0, $width, array_fill(0, $width, 0));
 
 		// Finder pattern
 		$this->putFinderPattern(0, 0);
@@ -360,34 +355,34 @@ class QRFrame {
 		$yOffset = $width - 7;
 
 		for($y=0; $y<7; $y++) {
-			$this->new_frame[$y][7] = "\xc0";
-			$this->new_frame[$y][$width - 8] = "\xc0";
-			$this->new_frame[$yOffset][7] = "\xc0";
+			$this->new_frame[$y][7] = 192;
+			$this->new_frame[$y][$width - 8] = 192;
+			$this->new_frame[$yOffset][7] = 192;
 			$yOffset++;
 		}
 
-		$setPattern = str_repeat("\xc0", 8);
+		$setPattern = [192,192,192,192,192,192,192,192];
 
 		$this->set_qrstr(0, 7, $setPattern, 8);
 		$this->set_qrstr($width-8, 7, $setPattern, 8);
 		$this->set_qrstr(0, $width - 8, $setPattern, 8);
 
 		// Format info
-		$setPattern = str_repeat("\x84", 9);
+		$setPattern = [132,132,132,132,132,132,132,132,132];
 		$this->set_qrstr(0, 8, $setPattern, 9);
-		$this->set_qrstr($width - 8, 8, substr($setPattern, 0, 8), 8);
+		$this->set_qrstr($width - 8, 8, array_slice($setPattern, 0, 8), 8);
 
 		$yOffset = $width - 8;
 
 		for($y=0; $y<8; $y++,$yOffset++) {
-			$this->new_frame[$y][8] = "\x84";
-			$this->new_frame[$yOffset][8] = "\x84";
+			$this->new_frame[$y][8] = 132;
+			$this->new_frame[$yOffset][8] = 132;
 		}
 
 		// Timing pattern
 		for($i=1; $i<$width-15; $i++) {
-			$this->new_frame[6][7+$i] = chr(0x90 | ($i & 1));
-			$this->new_frame[7+$i][6] = chr(0x90 | ($i & 1));
+			$this->new_frame[6][7+$i] = (144 | ($i & 1));
+			$this->new_frame[7+$i][6] = (144 | ($i & 1));
 		}
 
 		// Alignment pattern
@@ -401,7 +396,7 @@ class QRFrame {
 
 			for($x=0; $x<6; $x++) {
 				for($y=0; $y<3; $y++) {
-					$this->new_frame[($width - 11)+$y][$x] = chr(0x88 | ($v & 1));
+					$this->new_frame[($width - 11)+$y][$x] = (136 | ($v & 1));
 					$v = $v >> 1;
 				}
 			}
@@ -409,14 +404,14 @@ class QRFrame {
 			$v = $vinf;
 			for($y=0; $y<6; $y++) {
 				for($x=0; $x<3; $x++) {
-					$this->new_frame[$y][$x+($width - 11)] = chr(0x88 | ($v & 1));
+					$this->new_frame[$y][$x+($width - 11)] = (136 | ($v & 1));
 					$v = $v >> 1;
 				}
 			}
 		}
 
 		// and a little bit...
-		$this->new_frame[$width - 8][8] = "\x81";
+		$this->new_frame[$width - 8][8] = 129;
 
 		return $this->new_frame;
 	}
