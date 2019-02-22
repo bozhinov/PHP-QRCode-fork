@@ -138,7 +138,7 @@ class QRTools {
 	private function checkModeAn($size, $data)
 	{
 		for($i=0; $i<$size; $i++) {
-			if ($this->lookAnTable(ord($data[$i])) == -1) {
+			if ($this->lookAnTable($data[$i]) == -1) {
 				return false;
 			}
 		}
@@ -153,7 +153,7 @@ class QRTools {
 		}
 
 		for($i=0; $i<$size; $i+=2) {
-			$val = (ord($data[$i]) << 8) | ord($data[$i+1]);
+			$val = ($data[$i] << 8) | $data[$i+1];
 			if($val < 0x8140 || ($val > 0x9ffc && $val < 0xe040) || $val > 0xebbf) {
 				return false;
 			}
@@ -166,8 +166,7 @@ class QRTools {
 	{
 		for($i=0; $i<$size; $i++) {
 			# ord('0') = 48 && ord('9') = 57
-			$num = ord($data[$i]);
-			if($num < 48 || $num > 57){
+			if($data[$i] < 48 || $data[$i] > 57){
 				return false;
 			}
 		}

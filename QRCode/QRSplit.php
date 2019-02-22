@@ -71,7 +71,7 @@ class QRsplit {
 			if ($pos+1 < $this->dataStrLen) 
 			{
 				$word = (ord($this->dataStr[$pos]) << 8) | ord($this->dataStr[$pos+1]);
-				if(($word >= 0x8140 && $word <= 0x9ffc) || ($word >= 0xe040 && $word <= 0xebbf)) {
+				if(($word >= 33088 && $word <= 40956) || ($word >= 57408 && $word <= 60351)) {
 					return QR_MODE_KANJI;
 				}
 			}
