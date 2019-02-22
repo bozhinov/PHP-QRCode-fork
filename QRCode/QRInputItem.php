@@ -27,17 +27,17 @@ class QRinputItem {
 
 	function __construct(int $mode, int $size, array $data, int $version)
 	{
-		$setData = array_slice($data, 0, $size);
+		$data = array_slice($data, 0, $size);
 		$this->tools = new QRTools();
 
-		if(!$this->tools->Check($mode, $size, $setData)) {
+		if(!$this->tools->Check($mode, $size, $data)) {
 			throw QRException::Std('InputItem check failed');
 		}
 
 		$this->bstream = [];
 		$this->mode = $mode;
 		$this->size = $size;
-		$this->data = $setData;
+		$this->data = $data;
 		$this->version = $version;
 	}
 

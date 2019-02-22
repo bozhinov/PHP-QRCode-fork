@@ -218,7 +218,7 @@ class QRsplit {
 		$p = 0;
 
 		while ($p<$this->dataStrLen) {
-			$mode = $this->identifyMode(array_slice($this->dataStr, $p, $this->dataStrLen));
+			$mode = $this->identifyMode(array_slice($this->dataStr, $p));
 			if($mode == QR_MODE_KANJI) {
 				$p += 2;
 			} else {
@@ -265,7 +265,7 @@ class QRsplit {
 			}
 
 			$this->dataStrLen -= $length;
-			$this->dataStr = array_slice($this->dataStr, $length, $this->dataStrLen);
+			$this->dataStr = array_slice($this->dataStr, $length);
 		}
 
 		return $this->input->encodeMask();
