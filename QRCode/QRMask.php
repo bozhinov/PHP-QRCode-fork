@@ -48,9 +48,9 @@ class QRmask {
 		for($i=0; $i<8; $i++) {
 			if($format & 1) {
 				$blacks += 2;
-				$v = 0x85;
+				$v = 133;
 			} else {
-				$v = 0x84;
+				$v = 132;
 			}
 			
 			$this->masked[8][$this->width - 1 - $i] = $v;
@@ -65,9 +65,9 @@ class QRmask {
 		for($i=0; $i<7; $i++) {
 			if($format & 1) {
 				$blacks += 2;
-				$v = 0x85;
+				$v = 133;
 			} else {
-				$v = 0x84;
+				$v = 132;
 			}
 
 			$this->masked[$this->width - 7 + $i][8] = $v;
@@ -83,38 +83,6 @@ class QRmask {
 		return $blacks;
 	}
 
-	private function maskByNum($x, $y, $num)
-	{
-		switch($num){
-			case 0:
-				$ret = ($x+$y)&1;
-				break;
-			case 1:
-				$ret = ($y&1);
-				break;
-			case 2:
-				$ret = ($x%3);
-				break;
-			case 3:
-				$ret = ($x+$y)%3;
-				break;
-			case 4:
-				$ret = ((int)($y/2)+(int)($x/3))&1;
-				break;
-			case 5:
-				$ret = (($x*$y)&1)+($x*$y)%3;
-				break;
-			case 6:
-				$ret = ((($x*$y)&1)+($x*$y)%3)&1;
-				break;
-			case 7:
-				$ret = ((($x*$y)%3)+(($x+$y)&1))&1;
-				break;
-		}
-
-		return ($ret == 0);
-	}
-
 	private function generateMaskNo($maskNo)
 	{
 		$bitMask = [];
@@ -122,9 +90,39 @@ class QRmask {
 		for($y=0; $y<$this->width; $y++) {
 			for($x=0; $x<$this->width; $x++) {
 				if(($this->frame[$y][$x]) & 128) { # 0x80
-					$bitMask[$y][$x] = 0;
+					#$bitMask[$y][$x] = 0;
 				} else {
-					$bitMask[$y][$x] = (int)$this->maskByNum($x, $y, $maskNo);
+
+					switch($maskNo){
+						case 0:
+							$ret = ($x+$y)&1;
+							break;
+						case 1:
+							$ret = ($y&1);
+							break;
+						case 2:
+							$ret = ($x%3);
+							break;
+						case 3:
+							$ret = ($x+$y)%3;
+							break;
+						case 4:
+							$ret = ((int)($y/2)+(int)($x/3))&1;
+							break;
+						case 5:
+							$ret = (($x*$y)&1)+($x*$y)%3;
+							break;
+						case 6:
+							$ret = ((($x*$y)&1)+($x*$y)%3)&1;
+							break;
+						case 7:
+							$ret = ((($x*$y)%3)+(($x+$y)&1))&1;
+							break;
+					}
+
+					if ($ret == 0){
+						$bitMask[$y][$x] = 1;
+					}
 				}
 			}
 		}
@@ -139,11 +137,12 @@ class QRmask {
 
 		for($y=0; $y<$this->width; $y++) {
 			for($x=0; $x<$this->width; $x++) {
-				$ord = ($this->masked[$y][$x]);
-				if($bitMask[$y][$x] == 1) {
-					$this->masked[$y][$x] = ($ord ^ 1);
+				if(isset($bitMask[$y])) {
+					if(isset($bitMask[$y][$x])) {
+						$this->masked[$y][$x] = ($this->masked[$y][$x] ^ 1);
+					}
 				}
-				$b += ($ord & 1);
+				$b += ($this->masked[$y][$x] & 1);
 			}
 		}
 		
