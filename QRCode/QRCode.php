@@ -72,7 +72,7 @@ class QRcode {
 		if (!in_array($level,[0,1,2,3])){
 			throw QRException::Std('unknown error correction level');
 		}
-		
+
 		$this->level = $level;
 	}
 
@@ -81,7 +81,7 @@ class QRcode {
 		$h = count($frame);
 		
 		$imgH = $h + 2 * $this->margin;
-		$imgW = $imgH;		
+		$imgW = $imgH;
 		
 		$base_image = imageCreate($imgW, $imgH);
 		
@@ -122,31 +122,36 @@ class QRcode {
 
 		imageDestroy($target_image);
 	}
-	
-	private function encodeString($text)
+
+	private function encodeString($dataStr)
 	{
-		return (new QRsplit($this->casesensitive, $this->hint, 1, $this->level))->splitString($text);
+		return (new QRsplit($this->casesensitive, $this->hint, 1, $this->level))->splitString($dataStr);
 	}
-	
-	private function encodeString8bit($text)
+
+	private function encodeString8bit($dataStr)
 	{
 		$input = new QRinput(1, $this->level);
 
-		$input->append(QR_MODE_8, strlen($text), $text);
+		$input->append(QR_MODE_8, count($dataStr), $dataStr);
 
 		return $input->encodeMask();
 	}
-		
+
 	public function raw(string $text)
 	{
 		if($text == '\0' || $text == '') {
 			throw QRException::Std('empty string!');
 		}
-		
+
+		$dataStr = [];
+		foreach(str_split($text)as $val){
+			$dataStr[] = ord($val);
+		}
+
 		if($this->hint == QR_MODE_8) { # around 70 chars
-			$encoded = $this->encodeString8bit($text);
+			$encoded = $this->encodeString8bit($dataStr);
 		} else {
-			$encoded = $this->encodeString($text);
+			$encoded = $this->encodeString($dataStr);
 		}
 
 		return $encoded;
@@ -158,7 +163,7 @@ class QRcode {
 
 		$this->createImage($encoded, $filename, "JPG", $quality);
 	}
-	
+
 	public function png(string $text, $filename)
 	{
 		$encoded = $this->raw($text);

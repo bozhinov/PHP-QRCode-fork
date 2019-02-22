@@ -44,7 +44,7 @@ class QRsplit {
 			return false;
 		}
 		# ord('0') = 48 && ord('9') = 57
-		$ord = ord($this->dataStr[$pos]);
+		$ord = $this->dataStr[$pos];
 		return ($ord >= 48 && $ord <= 57);
 	}
 
@@ -53,7 +53,7 @@ class QRsplit {
 		if ($pos >= $this->dataStrLen){
 			return false;
 		}
-		return ($this->tools->lookAnTable(ord($this->dataStr[$pos])) >= 0);
+		return ($this->tools->lookAnTable($this->dataStr[$pos]) >= 0);
 	}
 
 	private function identifyMode($pos)
@@ -70,7 +70,7 @@ class QRsplit {
 
 			if ($pos+1 < $this->dataStrLen) 
 			{
-				$word = (ord($this->dataStr[$pos]) << 8) | ord($this->dataStr[$pos+1]);
+				$word = ($this->dataStr[$pos]) << 8 | $this->dataStr[$pos+1];
 				if(($word >= 33088 && $word <= 40956) || ($word >= 57408 && $word <= 60351)) {
 					return QR_MODE_KANJI;
 				}
@@ -218,23 +218,23 @@ class QRsplit {
 		$p = 0;
 
 		while ($p<$this->dataStrLen) {
-			$mode = $this->identifyMode(substr($this->dataStr, $p));
+			$mode = $this->identifyMode(array_slice($this->dataStr, $p, $this->dataStrLen));
 			if($mode == QR_MODE_KANJI) {
 				$p += 2;
 			} else {
 				#  ord('a') = 97 && ord('z') = 122
-				if (ord($this->dataStr[$p]) >= 97 && ord($this->dataStr[$p]) <= 122) {
-					$this->dataStr[$p] = chr(ord($this->dataStr[$p]) - 32);
+				if ($this->dataStr[$p] >= 97 && $this->dataStr[$p] <= 122) {
+					$this->dataStr[$p] -= 32;
 				}
 				$p++;
 			}
 		}
 	}
 
-	public function splitString($dataStr)
+	public function splitString(array $dataStr)
 	{
 		$this->dataStr = $dataStr;
-		$this->dataStrLen = strlen($dataStr);
+		$this->dataStrLen = count($this->dataStr);
 
 		if(!$this->casesensitive){
 			$this->toUpper();
@@ -264,8 +264,8 @@ class QRsplit {
 				break;
 			}
 
-			$this->dataStr = substr($this->dataStr, $length);
 			$this->dataStrLen -= $length;
+			$this->dataStr = array_slice($this->dataStr, $length, $this->dataStrLen);
 		}
 
 		return $this->input->encodeMask();
