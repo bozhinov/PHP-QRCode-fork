@@ -140,8 +140,7 @@ class QRFrame {
 			$code = $raw->getCode();
 			$bit = 128;
 			for($j=0; $j<8; $j++) {
-				$addr = $this->next();
-				$this->setFrameAt($addr, 2 | (($bit & $code) != 0));
+				$this->setNext(2 | (($bit & $code) != 0));
 				$bit = $bit >> 1;
 			}
 		}
@@ -151,8 +150,7 @@ class QRFrame {
 		// remainder bits
 		$j = $this->getRemainder($this->version);
 		for($i=0; $i<$j; $i++) {
-			$addr = $this->next();
-			$this->setFrameAt($addr, 2);
+			$this->setNext(2);
 		}
 
 		return $this->frame;
@@ -184,17 +182,13 @@ class QRFrame {
 		return $this->tools->capacity[$this->version][QR_CAP_REMINDER];
 	}
 
-	private function setFrameAt($at, $val)
-	{
-		$this->frame[$at['y']][$at['x']] = $val;
-	}
-
-	private function next()
+	private function setNext($val)
 	{
 		do {
 			if($this->bit == -1) {
 				$this->bit = 0;
-				return ['x'=>$this->x, 'y'=>$this->y];
+				$this->frame[$this->y][$this->x] = $val;
+				return;
 			}
 
 			$x = $this->x;
@@ -232,7 +226,7 @@ class QRFrame {
 				}
 			}
 			if($x < 0 || $y < 0){
-				return null;
+				throw QRException::Std('Invalid dimentions');
 			}
 
 			$this->x = $x;
@@ -240,7 +234,8 @@ class QRFrame {
 
 		} while(($this->frame[$y][$x]) & 128);
 
-		return ['x'=>$x, 'y'=>$y];
+		$this->frame[$y][$x] = $val;
+		return;
 	}
 
 	private function getVersionPattern()
