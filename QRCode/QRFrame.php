@@ -128,7 +128,7 @@ class QRFrame {
 
 	public function getFrame($dataCode)
 	{
-		$spec = $this->getEccSpec($this->level);
+		$spec = $this->getEccSpec();
 
 		$dataLength = ($spec[0] * $spec[1]) + ($spec[3] * $spec[4]);
 		$eccLength = ($spec[0] + $spec[3]) * $spec[2];
@@ -148,7 +148,7 @@ class QRFrame {
 		unset($raw);
 
 		// remainder bits
-		$j = $this->getRemainder($this->version);
+		$j = $this->tools->capacity[$this->version][QR_CAP_REMINDER];
 		for($i=0; $i<$j; $i++) {
 			$this->setNext(2);
 		}
@@ -161,7 +161,7 @@ class QRFrame {
 		$b1   = $this->eccTable[$this->version][$this->level][0];
 		$b2   = $this->eccTable[$this->version][$this->level][1];
 		$data = $this->tools->getDataLength($this->version, $this->level);
-		$ecc  = $this->getECCLength();
+		$ecc  = $this->tools->capacity[$this->version][QR_CAP_EC][$this->level];
 
 		if($b2 == 0) {
 			$spec = [$b1, floor($data / $b1), floor($ecc / $b1), 0, 0];
@@ -170,16 +170,6 @@ class QRFrame {
 		}
 
 		return $spec;
-	}
-
-	private function getECCLength()
-	{
-		return $this->tools->capacity[$this->version][QR_CAP_EC][$this->level];
-	}
-
-	private function getRemainder()
-	{
-		return $this->tools->capacity[$this->version][QR_CAP_REMINDER];
 	}
 
 	private function setNext($val)
@@ -193,7 +183,6 @@ class QRFrame {
 
 			$x = $this->x;
 			$y = $this->y;
-			$w = $this->width;
 
 			if($this->bit == 0) {
 				$x--;
@@ -215,8 +204,8 @@ class QRFrame {
 					}
 				}
 			} else {
-				if($y == $w) {
-					$y = $w - 1;
+				if($y == $this->width) {
+					$y = $this->width - 1;
 					$x -= 2;
 					$this->dir = -1;
 					if($x == 6) {
@@ -240,16 +229,11 @@ class QRFrame {
 
 	private function getVersionPattern()
 	{
-		if($this->version < 7 || $this->version > QR_SPEC_VERSION_MAX){
+		if($this->version > QR_SPEC_VERSION_MAX){
 			return 0;
 		}
 
 		return $this->versionPattern[$this->version -7];
-	}
-	
-	function set_qrstr($x, $y, $repl, $replLen)
-	{
-		array_splice($this->new_frame[$y], $x, $replLen, $repl);
 	}
 
 	/** 
@@ -271,7 +255,7 @@ class QRFrame {
 		$xStart = $ox-2;
 
 		for($y=0; $y<5; $y++) {
-			$this->set_qrstr($xStart, $yStart+$y, $finder[$y], 5);
+			array_splice($this->new_frame[$yStart+$y], $xStart, 5, $finder[$y]);
 		}
 	}
 
@@ -331,7 +315,7 @@ class QRFrame {
 		];
 		
 		for($y=0; $y<7; $y++) {
-			$this->set_qrstr($ox, $oy+$y, $finder[$y], 7);
+			array_splice($this->new_frame[$oy+$y], $ox, 7, $finder[$y]);
 		}
 	}
 
@@ -357,15 +341,14 @@ class QRFrame {
 		}
 
 		$setPattern = [192,192,192,192,192,192,192,192];
-
-		$this->set_qrstr(0, 7, $setPattern, 8);
-		$this->set_qrstr($width-8, 7, $setPattern, 8);
-		$this->set_qrstr(0, $width - 8, $setPattern, 8);
+		array_splice($this->new_frame[7], 0, 8, $setPattern);
+		array_splice($this->new_frame[7], $width - 8, 8, $setPattern);
+		array_splice($this->new_frame[$width - 8], 0, 8, $setPattern);
 
 		// Format info
 		$setPattern = [132,132,132,132,132,132,132,132,132];
-		$this->set_qrstr(0, 8, $setPattern, 9);
-		$this->set_qrstr($width - 8, 8, array_slice($setPattern, 0, 8), 8);
+		array_splice($this->new_frame[8], 0, 9, $setPattern);
+		array_splice($this->new_frame[8], $width - 8, 8, array_slice($setPattern, 0, 8));
 
 		$yOffset = $width - 8;
 
