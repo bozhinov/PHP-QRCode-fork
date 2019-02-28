@@ -158,8 +158,7 @@ class QRFrame {
 
 	private function getEccSpec()
 	{
-		$b1   = $this->eccTable[$this->version][$this->level][0];
-		$b2   = $this->eccTable[$this->version][$this->level][1];
+		list($b1,$b2) = $this->eccTable[$this->version][$this->level];
 		$data = $this->tools->getDataLength($this->version, $this->level);
 		$ecc  = $this->tools->capacity[$this->version][QR_CAP_EC][$this->level];
 

@@ -110,8 +110,7 @@ class QRTools {
 
 	public function estimateBitsModeAn($size)
 	{
-		$w = floor($size / 2);
-		$bits = $w * 11;
+		$bits = (int)($size / 2) * 11;
 
 		if($size & 1) {
 			$bits += 6;
@@ -120,14 +119,9 @@ class QRTools {
 		return $bits;
 	}
 
-	public function estimateBitsMode8($size)
-	{
-		return $size * 8;
-	}
-
 	public function estimateBitsModeKanji($size)
 	{
-		return floor(($size / 2) * 13);
+		return (int)(($size / 2) * 13);
 	}
 
 	public function lookAnTable($c)

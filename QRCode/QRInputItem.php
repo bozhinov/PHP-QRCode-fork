@@ -136,7 +136,7 @@ class QRinputItem {
 				$bits = $this->tools->estimateBitsModeAn($this->size);
 				break;
 			case QR_MODE_8:
-				$bits = $this->tools->estimateBitsMode8($this->size);
+				$bits = 8 * $this->size;
 				break;
 			case QR_MODE_KANJI:
 				$bits = $this->tools->estimateBitsModeKanji($this->size);

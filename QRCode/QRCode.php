@@ -122,12 +122,12 @@ class QRcode {
 
 	private function encodeString($dataStr)
 	{
-		return (new QRsplit($this->casesensitive, $this->hint, 1, $this->level))->splitString($dataStr);
+		return (new QRsplit($this->casesensitive, $this->hint, $this->level))->splitString($dataStr);
 	}
 
 	private function encodeString8bit($dataStr)
 	{
-		$input = new QRinput(1, $this->level);
+		$input = new QRinput($this->level);
 
 		$input->append(QR_MODE_8, count($dataStr), $dataStr);
 

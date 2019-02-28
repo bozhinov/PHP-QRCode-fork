@@ -22,29 +22,26 @@ class QRinput {
 	private $level;
 	private $tools;
 
-	function __construct(int $version, int $level)
+	function __construct(int $level)
 	{
 		$this->level = $level;
-		$this->setVersion($version);
+		$this->version = 1;
 		$this->tools = new QRTools();
 	}
 
 	private function setVersion($version)
 	{
-		if($version <= 0 || $version > QR_SPEC_VERSION_MAX) {
-			throw QRException::Std('Invalid version');
+		if ($version > $this->version){
+			$this->version = $version;
 		}
-
-		$this->version = $version;
 	}
 
 	/* Momchil: version can't be 0 */
 	private function getMinimumVersion($bits)
 	{
-		$size = floor(($bits + 7) / 8);
+		$size = (int)(($bits + 7) / 8);
 		for($i=1; $i<= QR_SPEC_VERSION_MAX; $i++) {
-			$words = $this->tools->capacity[$i][QR_CAP_WORDS] - $this->tools->capacity[$i][QR_CAP_EC][$this->level];
-			if($words >= $size){
+			if($this->tools->getDataLength($i, $this->level) >= $size){
 				return $i;
 			}
 		}
@@ -79,7 +76,7 @@ class QRinput {
 
 		} while ($version > $prev);
 
-		return $version;
+		$this->setVersion($version);
 	}
 
 	private function createBitStream()
@@ -94,21 +91,6 @@ class QRinput {
 		}
 
 		return $total;
-	}
-
-	private function convertData()
-	{
-		$ver = $this->estimateVersion();
-		if($ver > $this->version) {
-			$this->setVersion($ver);
-		}
-
-		$bits = $this->createBitStream();
-		$ver = $this->getMinimumVersion($bits);
-		
-		if($ver > $this->version) {
-			$this->setVersion($ver);
-		}
 	}
 
 	private function get_bstream_size($bstream)
@@ -151,7 +133,8 @@ class QRinput {
 
 	private function getByteStream()
 	{
-		$this->convertData();
+		$this->estimateVersion();
+		$this->setVersion($this->getMinimumVersion($this->createBitStream()));
 
 		$bstream = [];
 
