@@ -117,7 +117,7 @@ class QRFrame {
 
 		$this->version = $version;
 		$this->level = $level;
-		$this->width = $this->tools->getWidth($version);
+		$this->width = $this->tools->capacity[$version][QR_CAP_WIDTH];
 		$this->frame = $this->createFrame();
 
 		$this->x = $this->width - 1;
@@ -226,18 +226,8 @@ class QRFrame {
 		return;
 	}
 
-	private function getVersionPattern()
-	{
-		if($this->version > QR_SPEC_VERSION_MAX){
-			return 0;
-		}
-
-		return $this->versionPattern[$this->version -7];
-	}
-
 	/** 
 	 * Put an alignment marker.
-	 * @param width
 	 * @param ox,oy center coordinate of the pattern
 	 */
 	private function putAlignmentMarker($ox, $oy)
@@ -258,36 +248,36 @@ class QRFrame {
 		}
 	}
 
-	private function putAlignmentPattern($width)
+	private function putAlignmentPattern()
 	{
 		if($this->version < 2){
 			return;
 		}
+		
+		list($v0, $v1) = $this->alignmentPattern[$this->version];
 
-		$d = $this->alignmentPattern[$this->version][1] - $this->alignmentPattern[$this->version][0];
+		$d = $v1 - $v0;
 		if($d < 0) {
 			$w = 2;
 		} else {
-			$w = floor(($width - $this->alignmentPattern[$this->version][0]) / $d + 2);
+			$w = floor(($this->width - $v0) / $d + 2);
 		}
 
 		if($w * $w - 3 == 1) {
-			$x = $this->alignmentPattern[$this->version][0];
-			$y = $this->alignmentPattern[$this->version][0];
-			$this->putAlignmentMarker($x, $y);
+			$this->putAlignmentMarker($v0, $v0);
 			return;
 		}
 
-		$cx = $this->alignmentPattern[$this->version][0];
+		$cx = $v0;
 		for($x=1; $x<$w - 1; $x++) {
 			$this->putAlignmentMarker(6, $cx);
 			$this->putAlignmentMarker($cx, 6);
 			$cx += $d;
 		}
 
-		$cy = $this->alignmentPattern[$this->version][0];
+		$cy = $v0;
 		for($y=0; $y<$w-1; $y++) {
-			$cx = $this->alignmentPattern[$this->version][0];
+			$cx = $v0;
 			for($x=0; $x<$w-1; $x++) {
 				$this->putAlignmentMarker($cx, $cy);
 				$cx += $d;
@@ -298,7 +288,6 @@ class QRFrame {
 
 	/** 
 	 * Put a finder pattern.
-	 * @param width
 	 * @param ox,oy upper-left coordinate of the pattern
 	 */
 	private function putFinderPattern($ox, $oy)
@@ -320,36 +309,34 @@ class QRFrame {
 
 	private function createFrame()
 	{
-		$width = $this->tools->capacity[$this->version][QR_CAP_WIDTH];
-
-		$this->new_frame = array_fill(0, $width, array_fill(0, $width, 0));
+		$this->new_frame = array_fill(0, $this->width, array_fill(0, $this->width, 0));
 
 		// Finder pattern
 		$this->putFinderPattern(0, 0);
-		$this->putFinderPattern($width - 7, 0);
-		$this->putFinderPattern(0, $width - 7);
+		$this->putFinderPattern($this->width - 7, 0);
+		$this->putFinderPattern(0, $this->width - 7);
 
 		// Separator
-		$yOffset = $width - 7;
+		$yOffset = $this->width - 7;
 
 		for($y=0; $y<7; $y++) {
 			$this->new_frame[$y][7] = 192;
-			$this->new_frame[$y][$width - 8] = 192;
+			$this->new_frame[$y][$this->width - 8] = 192;
 			$this->new_frame[$yOffset][7] = 192;
 			$yOffset++;
 		}
 
 		$setPattern = [192,192,192,192,192,192,192,192];
 		array_splice($this->new_frame[7], 0, 8, $setPattern);
-		array_splice($this->new_frame[7], $width - 8, 8, $setPattern);
-		array_splice($this->new_frame[$width - 8], 0, 8, $setPattern);
+		array_splice($this->new_frame[7], $this->width - 8, 8, $setPattern);
+		array_splice($this->new_frame[$this->width - 8], 0, 8, $setPattern);
 
 		// Format info
 		$setPattern = [132,132,132,132,132,132,132,132,132];
 		array_splice($this->new_frame[8], 0, 9, $setPattern);
-		array_splice($this->new_frame[8], $width - 8, 8, array_slice($setPattern, 0, 8));
+		array_splice($this->new_frame[8], $this->width - 8, 8, array_slice($setPattern, 0, 8));
 
-		$yOffset = $width - 8;
+		$yOffset = $this->width - 8;
 
 		for($y=0; $y<8; $y++,$yOffset++) {
 			$this->new_frame[$y][8] = 132;
@@ -357,23 +344,23 @@ class QRFrame {
 		}
 
 		// Timing pattern
-		for($i=1; $i<$width-15; $i++) {
+		for($i=1; $i<$this->width-15; $i++) {
 			$this->new_frame[6][7+$i] = (144 | ($i & 1));
 			$this->new_frame[7+$i][6] = (144 | ($i & 1));
 		}
 
 		// Alignment pattern
-		$this->putAlignmentPattern($width);
+		$this->putAlignmentPattern();
 
 		// Version information
 		if($this->version >= 7) {
-			$vinf = $this->getVersionPattern();
+			$vinf = $this->versionPattern[$this->version -7];
 
 			$v = $vinf;
 
 			for($x=0; $x<6; $x++) {
 				for($y=0; $y<3; $y++) {
-					$this->new_frame[($width - 11)+$y][$x] = (136 | ($v & 1));
+					$this->new_frame[($this->width - 11)+$y][$x] = (136 | ($v & 1));
 					$v = $v >> 1;
 				}
 			}
@@ -381,14 +368,14 @@ class QRFrame {
 			$v = $vinf;
 			for($y=0; $y<6; $y++) {
 				for($x=0; $x<3; $x++) {
-					$this->new_frame[$y][$x+($width - 11)] = (136 | ($v & 1));
+					$this->new_frame[$y][$x+($this->width - 11)] = (136 | ($v & 1));
 					$v = $v >> 1;
 				}
 			}
 		}
 
 		// and a little bit...
-		$this->new_frame[$width - 8][8] = 129;
+		$this->new_frame[$this->width - 8][8] = 129;
 
 		return $this->new_frame;
 	}

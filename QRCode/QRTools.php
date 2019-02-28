@@ -79,11 +79,6 @@ class QRTools {
 		[177, 3706, 0, [750, 1372, 2040, 2430]] //40
 	];
 	
-	public function getWidth($version)
-	{
-		return $this->capacity[$version][QR_CAP_WIDTH];
-	}
-
 	public function getDataLength($version, $level)
 	{
 		return $this->capacity[$version][QR_CAP_WORDS] - $this->capacity[$version][QR_CAP_EC][$level];
@@ -91,10 +86,9 @@ class QRTools {
 
 	public function estimateBitsModeNum($size)
 	{
-		$w = floor($size / 3);
-		$bits = $w * 10;
+		$bits = (int)($size / 3) * 10;
 
-		switch($size - $w * 3) {
+		switch($size - ($size % 3)) {
 			case 1:
 				$bits += 4;
 				break;
