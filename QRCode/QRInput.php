@@ -145,15 +145,10 @@ class QRinput {
 		$bits = $this->get_bstream_size($bstream);
 		$maxwords = $this->tools->getDataLength($this->version, $this->level);
 		$maxbits = $maxwords * 8;
-		
-		if ($maxbits == $bits) {
-			throw QRException::Std('null imput string');
-		}
 
 		if ($maxbits - $bits < 5) {
 			$bstream[] = [$maxbits - $bits, 0];
-			throw QRException::Std('Please let me know how you got here');
-			# return; # Momchil: no idea why that's here
+			return $this->bstream_toByte($bstream);
 		}
 
 		$bits += 4;
