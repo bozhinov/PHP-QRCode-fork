@@ -30,16 +30,12 @@ define('QR_N2', 3);
 define('QR_N3', 40);
 define('QR_N4', 10);
 
-// QRinputItem
-define('QR_STRUCTURE_HEADER_BITS', 20);
-
 // Encoding modes
 define('QR_MODE_NUL', -1);
 define('QR_MODE_NUM', 0);
 define('QR_MODE_AN', 1);
 define('QR_MODE_8', 2);
 define('QR_MODE_KANJI', 3);
-define('QR_MODE_STRUCTURE', 4);
 
 // Levels of error correction.
 define('QR_ECLEVEL_L', 0);

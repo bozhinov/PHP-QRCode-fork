@@ -23,17 +23,8 @@ class QRTools {
 			36, -1, -1, -1, 37, 38, -1, -1, -1, -1, 39, 40, -1, 41, 42, 43,
 			 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 44, -1, -1, -1, -1, -1,
 			-1, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
-			25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, -1, -1, -1, -1, -1,
-			-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-			-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
+			25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35
 		];
-
-	private $lengthTableBits = [
-		[10, 12, 14],
-		[9, 11, 13],
-		[8, 16, 16],
-		[8, 10, 12]
-	];
 
 	public $capacity = [
 		[0, 0, 0, [0, 0, 0, 0]],
@@ -120,7 +111,7 @@ class QRTools {
 
 	public function lookAnTable($c)
 	{
-		return (($c > 127) ? -1 : $this->anTable[$c]);
+		return (($c > 90) ? -1 : $this->anTable[$c]);
 	}
 
 	private function checkModeAn($size, $data)
@@ -182,7 +173,6 @@ class QRTools {
 				return $this->checkModeKanji($size, $data);
 				break;
 			case QR_MODE_8:
-			case QR_MODE_STRUCTURE:
 				return true;
 				break;
 			default:
@@ -190,47 +180,6 @@ class QRTools {
 		}
 
 		return false;
-	}
-
-	public function lengthIndicator($mode, $version)
-	{
-		if ($mode == QR_MODE_STRUCTURE){
-			return 0;
-		}
-
-		if ($version <= 9) {
-			$l = 0;
-		} else if ($version <= 26) {
-			$l = 1;
-		} else {
-			$l = 2;
-		}
-
-		return $this->lengthTableBits[$mode][$l];
-	}
-
-	public function maximumWords($mode, $version)
-	{
-		if($mode == QR_MODE_STRUCTURE){
-			return 3;
-		}
-
-		if($version <= 9) {
-			$l = 0;
-		} elseif($version <= 26) {
-			$l = 1;
-		} else {
-			$l = 2;
-		}
-
-		$bits = $this->lengthTableBits[$mode][$l];
-		$words = (1 << $bits) - 1;
-		
-		if($mode == QR_MODE_KANJI) {
-			$words *= 2; // the number of bytes is required
-		}
-
-		return $words;
 	}
 
 }
