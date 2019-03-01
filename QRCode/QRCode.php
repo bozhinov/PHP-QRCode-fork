@@ -31,7 +31,6 @@ define('QR_N3', 40);
 define('QR_N4', 10);
 
 // Encoding modes
-define('QR_MODE_NUL', -1);
 define('QR_MODE_NUM', 0);
 define('QR_MODE_AN', 1);
 define('QR_MODE_8', 2);

@@ -22,15 +22,14 @@ class QRinputItem {
 	private $data;
 	private $version;
 	private $tools;
-	
-	public $bstream;
-	
 	private $lengthTableBits = [
 		[10, 12, 14],
 		[9, 11, 13],
 		[8, 16, 16],
 		[8, 10, 12]
 	];
+
+	public $bstream;
 
 	function __construct(int $mode, int $size, array $data, int $version)
 	{
@@ -47,7 +46,7 @@ class QRinputItem {
 		$this->data = $data;
 		$this->version = $version;
 	}
-	
+
 	private function maximumWords()
 	{
 		if($this->version <= 9) {
@@ -60,14 +59,14 @@ class QRinputItem {
 
 		$bits = $this->lengthTableBits[$this->mode][$l];
 		$words = (1 << $bits) - 1;
-		
+
 		if($this->mode == QR_MODE_KANJI) {
 			$words *= 2; // the number of bytes is required
 		}
 
 		return $words;
 	}
-	
+
 	private function lengthIndicator($mode)
 	{
 		if ($this->version <= 9) {

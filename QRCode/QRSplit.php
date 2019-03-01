@@ -57,7 +57,7 @@ class QRsplit {
 	private function identifyMode($pos)
 	{
 		if ($pos >= $this->dataStrLen){
-			return QR_MODE_NUL;
+			return -1; // all int input
 		}
 
 		if($this->isdigitat($pos)) {
@@ -80,13 +80,12 @@ class QRsplit {
 
 	private function eatNum()
 	{
-		$p = 0;
-		while($this->isdigitat($p)) {
-			$p++;
+		$run = 0;
+		while($this->isdigitat($run)) {
+			$run++;
 		}
 
-		$run = $p;
-		$mode = $this->identifyMode($p);
+		$mode = $this->identifyMode($run);
 
 		if($mode == QR_MODE_8) {
 			$dif = $this->tools->estimateBitsModeNum($run) + 14 - (8 * $run); // estimateBitsMode8
