@@ -17,7 +17,7 @@ namespace QRCode;
 
 class QRinput {
 
-	public $items;
+	private $items;
 	private $version;
 	private $level;
 	private $tools;
@@ -47,11 +47,6 @@ class QRinput {
 		}
 
 		throw QRException::Std('Unable to determine minimal version!');
-	}
-
-	public function append($mode, $size, $data)
-	{
-		$this->items[] = new QRinputItem($mode, $size, $data, $this->version);
 	}
 
 	private function estimateBitStreamSize($version)
@@ -139,7 +134,7 @@ class QRinput {
 		$bstream = [];
 
 		foreach($this->items as $item) {
-			$bstream = array_merge($bstream, $item->bstream);
+			$bstream = array_merge($bstream, $item->getBStream());
 		}
 
 		$bits = $this->get_bstream_size($bstream);
@@ -166,6 +161,11 @@ class QRinput {
 		}
 
 		return $this->bstream_toByte($bstream);
+	}
+	
+	public function append($mode, $size, $data)
+	{
+		$this->items[] = new QRinputItem($mode, $size, $data, $this->version);
 	}
 
 	public function encodeMask()

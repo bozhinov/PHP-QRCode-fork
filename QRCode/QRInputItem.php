@@ -22,14 +22,13 @@ class QRinputItem {
 	private $data;
 	private $version;
 	private $tools;
+	private $bstream;
 	private $lengthTableBits = [
 		[10, 12, 14],
 		[9, 11, 13],
 		[8, 16, 16],
 		[8, 10, 12]
 	];
-
-	public $bstream;
 
 	function __construct(int $mode, int $size, array $data, int $version)
 	{
@@ -130,7 +129,7 @@ class QRinputItem {
 		$this->bstream[] = [$this->lengthIndicator(QR_MODE_NUM), $this->size];
 
 		for($i=0; $i<$words; $i++) {
-			$val  = ($this->data[$i*3] - 48) * 100; # ord('0') == 48
+			$val  = ($this->data[$i*3] - 48) * 100;
 			$val += ($this->data[$i*3+1] - 48) * 10;
 			$val += ($this->data[$i*3+2] - 48);
 			$this->bstream[] = [10, $val];
@@ -198,8 +197,6 @@ class QRinputItem {
 
 	public function estimateBitStreamSizeOfEntry()
 	{
-		$bits = 0;
-
 		switch($this->mode) {
 			case QR_MODE_NUM:
 				$bits = $this->tools->estimateBitsModeNum($this->size);
@@ -268,6 +265,11 @@ class QRinputItem {
 
 		}
 
+		return $this->bstream;
+	}
+	
+	public function getBStream()
+	{
 		return $this->bstream;
 	}
 }

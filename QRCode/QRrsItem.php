@@ -17,13 +17,13 @@ namespace QRCode;
 
 class QRrsItem {
 
-	private $mm;			// Bits per symbol 
-	private $nn;			// Symbols per block (= (1<<mm)-1) 
-	private $alpha_to = [];	// log lookup table 
-	private $index_of = [];	// Antilog lookup table 
-	private $genpoly = [];	// Generator polynomial 
-	private $nroots;		// Number of generator roots = number of parity symbols 
-	private $pad;			// Padding bytes in shortened block 
+	private $mm;		// Bits per symbol 
+	private $nn;		// Symbols per block (= (1<<mm)-1) 
+	private $alpha_to;	// log lookup table 
+	private $index_of;	// Antilog lookup table 
+	private $genpoly;	// Generator polynomial 
+	private $nroots;	// Number of generator roots = number of parity symbols 
+	private $pad;		// Padding bytes in shortened block 
 	private $parity;
 
 	// RawCode
@@ -109,12 +109,11 @@ class QRrsItem {
 		// Common code for intializing a Reed-Solomon control block (char or int symbols)
 		// Copyright 2004 Phil Karn, KA9Q
 		// May be used under the terms of the GNU Lesser General Public License (LGPL)
-		
 		$symsize = 8;
 		$gfpoly	= 0x11d;
 		$fcr = 0;
 		$prim = 1;
-		
+
 		// Check parameter ranges
 		if($nroots < 0 || $nroots >= (1<<$symsize)){
 			throw QRException::Std("Can't have more roots than symbol values!");
