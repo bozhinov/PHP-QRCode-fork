@@ -109,26 +109,6 @@ class QRinputItem {
 		}
 	}
 
-	private function maximumWords()
-	{
-		if($this->version <= 9) {
-			$l = 0;
-		} elseif($this->version <= 26) {
-			$l = 1;
-		} else {
-			$l = 2;
-		}
-
-		$bits = $this->lengthTableBits[$this->mode][$l];
-		$words = (1 << $bits) - 1;
-
-		if($this->mode == QR_MODE_KANJI) {
-			$words *= 2; // the number of bytes is required
-		}
-
-		return $words;
-	}
-
 	private function lengthIndicator($mode)
 	{
 		if ($this->version <= 9) {
@@ -255,12 +235,17 @@ class QRinputItem {
 			$data = $this->data;
 		}
 
-		$words = $this->maximumWords();
+		$bits = $this->lengthIndicator($this->mode);
+		$maxWords = (1 << $bits) - 1;
 
-		if($this->size > $words) {
+		if($this->mode == QR_MODE_KANJI) {
+			$maxWords *= 2; // the number of bytes is required
+		}
 
-			$bstreamData1 = $this->encodeBitStream($words);
-			$bstreamData2 = $this->encodeBitStream($this->size - $words, array_slice($this->data, $words));
+		if($this->size > $maxWords) {
+
+			$bstreamData1 = $this->encodeBitStream($maxWords);
+			$bstreamData2 = $this->encodeBitStream($this->size - $maxWords, array_slice($this->data, $maxWords));
 
 			$this->bstream = array_merge($bstreamData1, $bstreamData2);
 
