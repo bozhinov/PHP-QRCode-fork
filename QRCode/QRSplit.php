@@ -31,9 +31,6 @@ class QRsplit {
 
 		$this->tools = new QRTools();
 		$this->input = new QRinput($level);
-
-		#$this->la = $this->tools->lengthIndicator(QR_MODE_AN, 1); = 9
-		#$this->ln = $this->tools->lengthIndicator(QR_MODE_NUM, 1); = 10
 	}
 
 	private function isdigitat($pos)
@@ -41,7 +38,6 @@ class QRsplit {
 		if ($pos >= $this->dataStrLen){
 			return false;
 		}
-		# ord('0') = 48 && ord('9') = 57
 		$ord = $this->dataStr[$pos];
 		return ($ord >= 48 && $ord <= 57);
 	}
@@ -66,8 +62,7 @@ class QRsplit {
 			return QR_MODE_AN;
 		} elseif($this->hint == QR_MODE_KANJI) {
 
-			if ($pos+1 < $this->dataStrLen) 
-			{
+			if ($pos+1 < $this->dataStrLen) {
 				$word = ($this->dataStr[$pos]) << 8 | $this->dataStr[$pos+1];
 				if(($word >= 33088 && $word <= 40956) || ($word >= 57408 && $word <= 60351)) {
 					return QR_MODE_KANJI;
@@ -94,9 +89,9 @@ class QRsplit {
 			}
 		}
 		if($mode == QR_MODE_AN) {
-			$dif = $this->tools->estimateBitsModeNum($run) + 4 + 10 //$this->ln
-				 + $this->tools->estimateBitsModeAn(1)        // + 4 + la
-				 - $this->tools->estimateBitsModeAn($run + 1);// - 4 - la
+			$dif = $this->tools->estimateBitsModeNum($run) + 14
+				 + $this->tools->estimateBitsModeAn(1)
+				 - $this->tools->estimateBitsModeAn($run + 1);
 			if($dif > 0) {
 				return $this->eatAn();
 			}
@@ -118,9 +113,9 @@ class QRsplit {
 					$q++;
 				}
 
-				$dif = $this->tools->estimateBitsModeAn($p) // + 4 + la
-					 + $this->tools->estimateBitsModeNum($q - $p) + 4 + 10 //$this->ln
-					 - $this->tools->estimateBitsModeAn($q); // - 4 - la
+				$dif = $this->tools->estimateBitsModeAn($p)
+					 + $this->tools->estimateBitsModeNum($q - $p) + 14
+					 - $this->tools->estimateBitsModeAn($q);
 
 				if($dif < 0) {
 					break;
@@ -173,7 +168,7 @@ class QRsplit {
 					while($this->isdigitat($q)) {
 						$q++;
 					}
-					$dif = (8 * ($p - $q)) + $this->tools->estimateBitsModeNum($q - $p) + 4 + 10; //$this->ln
+					$dif = (8 * ($p - $q)) + $this->tools->estimateBitsModeNum($q - $p) + 14;
 					if($dif < 0) {
 						break 2;
 					} else {
@@ -185,7 +180,7 @@ class QRsplit {
 					while($this->isalnumat($q)) {
 						$q++;
 					}
-					$dif = (8 * ($p - $q)) + $this->tools->estimateBitsModeAn($q - $p) + 4 + 9; //$this->la
+					$dif = (8 * ($p - $q)) + $this->tools->estimateBitsModeAn($q - $p) + 13;
 					if($dif < 0) {
 						break 2;
 					} else {
@@ -211,7 +206,6 @@ class QRsplit {
 			if($mode == QR_MODE_KANJI) {
 				$p += 2;
 			} else {
-				#  ord('a') = 97 && ord('z') = 122
 				if ($this->dataStr[$p] >= 97 && $this->dataStr[$p] <= 122) {
 					$this->dataStr[$p] -= 32;
 				}

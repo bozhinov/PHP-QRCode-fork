@@ -52,7 +52,7 @@ class QRmask {
 			} else {
 				$v = 132;
 			}
-			
+
 			$this->masked[8][$this->width - 1 - $i] = $v;
 			if($i < 6) {
 				$this->masked[$i][8] = $v;
@@ -145,9 +145,9 @@ class QRmask {
 				$b += ($this->masked[$y][$x] & 1);
 			}
 		}
-		
+
 		$b += $this->writeFormatInformation($maskNo);
-		
+
 		return (int)(100 * $b / ($this->width * $this->width));
 	}
 

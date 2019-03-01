@@ -69,7 +69,7 @@ class QRTools {
 		[173, 3532, 0, [720, 1316, 1950, 2310]],
 		[177, 3706, 0, [750, 1372, 2040, 2430]] //40
 	];
-	
+
 	public function getDataLength($version, $level)
 	{
 		return $this->capacity[$version][QR_CAP_WORDS] - $this->capacity[$version][QR_CAP_EC][$level];
@@ -153,9 +153,6 @@ class QRTools {
 		return true;
 	}
 
-	/*
-	 * Validation
-	*/
 	public function Check($mode, $size, $data)
 	{
 		if($size <= 0) {
