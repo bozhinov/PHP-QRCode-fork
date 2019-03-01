@@ -61,14 +61,19 @@ class QRcode {
 	{
 		$this->size = $size;
 		$this->margin = $margin;
-		$this->hint = $hint;
 		$this->casesensitive = $casesensitive;
 
-		if (!in_array($level,[0,1,2,3])){
+		$valid = [0,1,2,3];
+		if (!in_array($level,$valid)){
 			throw QRException::Std('unknown error correction level');
 		}
 
+		if (!in_array($hint,$valid)){
+			throw QRException::Std('unknown hint');
+		}
+
 		$this->level = $level;
+		$this->hint = $hint;
 	}
 
 	private function createImage($frame, $filename, $type, $quality = 90)
@@ -140,7 +145,7 @@ class QRcode {
 			$dataStr[] = ord($val);
 		}
 
-		if($this->hint == QR_MODE_8) { # around 70 chars
+		if($this->hint == QR_MODE_8) {
 			$encoded = $this->encodeString8bit($dataStr);
 		} else {
 			$encoded = $this->encodeString($dataStr);
