@@ -117,7 +117,7 @@ class QRFrame {
 
 		$this->version = $version;
 		$this->level = $level;
-		$this->width = $this->tools->capacity[$version][QR_CAP_WIDTH];
+		$this->width = $this->tools->getWidth($version);
 		$this->frame = $this->createFrame();
 
 		$this->x = $this->width - 1;
@@ -148,7 +148,7 @@ class QRFrame {
 		unset($raw);
 
 		// remainder bits
-		$j = $this->tools->capacity[$this->version][QR_CAP_REMINDER];
+		$j = $this->tools->getReminder($this->version);
 		for($i=0; $i<$j; $i++) {
 			$this->setNext(2);
 		}
@@ -160,7 +160,7 @@ class QRFrame {
 	{
 		list($b1,$b2) = $this->eccTable[$this->version][$this->level];
 		$data = $this->tools->getDataLength($this->version, $this->level);
-		$ecc  = $this->tools->capacity[$this->version][QR_CAP_EC][$this->level];
+		$ecc  = $this->tools->getEC($this->version, $this->level);
 
 		if($b2 == 0) {
 			$spec = [$b1, floor($data / $b1), floor($ecc / $b1), 0, 0];

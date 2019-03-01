@@ -172,7 +172,7 @@ class QRinput {
 	{
 		$dataCode = $this->getByteStream();
 
-		$width = $this->tools->capacity[$this->version][QR_CAP_WIDTH];
+		$width = $this->tools->getWidth($this->version);
 
 		return (new QRmask($dataCode, $width, $this->level, $this->version))->get();
 	}

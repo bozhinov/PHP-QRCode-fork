@@ -26,7 +26,7 @@ class QRTools {
 			25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35
 		];
 
-	public $capacity = [
+	private $capacity = [
 		[0, 0, 0, [0, 0, 0, 0]],
 		[21, 26, 0, [7, 10, 13, 17]], // 1
 		[25, 44, 7, [10, 16, 22, 28]],
@@ -69,6 +69,21 @@ class QRTools {
 		[173, 3532, 0, [720, 1316, 1950, 2310]],
 		[177, 3706, 0, [750, 1372, 2040, 2430]] //40
 	];
+
+	public function getWidth($version)
+	{
+		return $this->capacity[$version][QR_CAP_WIDTH];
+	}
+
+	public function getReminder($version)
+	{
+		return $this->capacity[$version][QR_CAP_REMINDER];
+	}
+
+	public function getEC($version, $level)
+	{
+		return $this->capacity[$version][QR_CAP_EC][$level];
+	}
 
 	public function getDataLength($version, $level)
 	{
