@@ -36,15 +36,77 @@ class QRinputItem {
 		$data = array_slice($data, 0, $size);
 		$this->tools = new QRTools();
 
-		if(!$this->tools->Check($mode, $size, $data)) {
-			throw QRException::Std('InputItem check failed');
-		}
-
 		$this->bstream = [];
 		$this->mode = $mode;
 		$this->size = $size;
 		$this->data = $data;
 		$this->version = $version;
+		
+		if(!$this->Check()) {
+			throw QRException::Std('InputItem check failed');
+		}
+	}
+	
+	private function checkModeAn()
+	{
+		for($i=0; $i<$this->size; $i++) {
+			if ($this->tools->lookAnTable($this->data[$i]) == -1) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	private function checkModeKanji()
+	{
+		if($this->size & 1){
+			return false;
+		}
+
+		for($i=0; $i<$this->size; $i+=2) {
+			$val = ($this->data[$i] << 8) | $this->data[$i+1];
+			if($val < 33088 || ($val > 40956 && $val < 57408) || $val > 60351) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	private function checkModeNum()
+	{
+		for($i=0; $i<$this->size; $i++) {
+			if($this->data[$i] < 48 || $this->data[$i] > 57){
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	private function Check()
+	{
+		if($this->size <= 0) {
+			return false;
+		}
+
+		switch($this->mode) {
+			case QR_MODE_NUM:
+				return $this->checkModeNum();
+				break;
+			case QR_MODE_AN:
+				return $this->checkModeAn();
+				break;
+			case QR_MODE_KANJI:
+				return $this->checkModeKanji();
+				break;
+			case QR_MODE_8:
+				return true;
+				break;
+			default:
+				return false;
+		}
 	}
 
 	private function maximumWords()
@@ -84,8 +146,7 @@ class QRinputItem {
 	{
 		$words = (int)($this->size / 3);
 
-		$val = 1;
-		$this->bstream[] = [4, $val];
+		$this->bstream[] = [4, 1];
 		$this->bstream[] = [$this->lengthIndicator(QR_MODE_NUM), $this->size];
 
 		for($i=0; $i<$words; $i++) {

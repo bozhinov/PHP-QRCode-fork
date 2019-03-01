@@ -17,7 +17,7 @@ namespace QRCode;
 
 class QRmask {
 
-	private $runLength = [];
+	private $runLength;
 	private $width;
 	private $level;
 	private $frame;
