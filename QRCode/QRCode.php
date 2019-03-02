@@ -68,8 +68,7 @@ class QRcode {
 
 	private function createImage($filename, $type, $quality = 90)
 	{
-		$frame = $this->encoded;
-		$h = count($frame);
+		$h = count($this->encoded);
 		$imgH = $h + 2 * $this->margin;
 		$pixelPerPoint = min($this->size, $imgH);
 
@@ -82,7 +81,7 @@ class QRcode {
 
 		for($y=0; $y<$h; $y++) {
 			for($x=0; $x<$h; $x++) {
-				if ($frame[$y][$x]&1) {
+				if ($this->encoded[$y][$x]&1) {
 					imageSetPixel($base_image,$x+$this->margin,$y+$this->margin,$black);
 				}
 			}
@@ -171,7 +170,7 @@ class QRcode {
 		if (($ext == "JPG") || ($ext == "PNG")) {
 			$this->createImage(false, $ext, $quality);
 		} else {
-			throw QRException::Std('file extension unsupported!');
+			throw QRException::Std('file type unsupported!');
 		}
 	}
 }
