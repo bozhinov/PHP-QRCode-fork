@@ -19,23 +19,44 @@ use QRCode\QRException;
 $mtime = explode(" ",microtime());
 $starttime = $mtime[1] + $mtime[0];
 
+/* Usage
+
+Single line:
+(new QRcode(QR_ECLEVEL_Q, 10, 4))->encode('http://www.test.bg/')->toFile("example.QRcode.png");
+
+Or:
 $QRCode = new QRcode(QR_ECLEVEL_Q, 10, 4);
-$QRCode->png('http://www.test.bg/фффф TEST TEST  TEST  TEST  TEST  TEST  TEST  TEST  TEST ', "example.QRcode.png");
+$QRCode->encode('http://www.test.bg/', $casesensitive);
+
+$QRCode->toFile("example.QRcode.png");
+$QRCode->toFile("example.QRcode.jpg");
+
+Dump the matrix:
+echo json_encode($QRCode->toArray());
+
+Add HTTP headers:
+$QRCode->forWeb("PNG");
+$QRCode->forWeb("JPG", $quality = 90);
+
+*/
+
+$QRCode = new QRcode(QR_ECLEVEL_Q, 10, 4);
+$QRCode->encode('http://www.test.bg/фффф TEST TEST  TEST  TEST  TEST  TEST  TEST  TEST  TEST ')->toFile("example.QRcode.png");
 
 $QRCode->config(["error_correction" => QR_ECLEVEL_H, "matrix_point_size" => 8, "margin" => 4]);
-$QRCode->png('http://www.test.bg/фффф', "example2.QRcode.png");
+$QRCode->encode('http://www.test.bg/фффф')->toFile("example2.QRcode.png");
 
 $QRCode->config(["error_correction" => QR_ECLEVEL_M, "matrix_point_size" => 6, "margin" => 4]);
-$QRCode->png('momchil@bojinov.info', "example3.QRcode.png");
+$QRCode->encode('momchil@bojinov.info')->toFile("example3.QRcode.png");
 
 $QRCode->config(["error_correction" => QR_ECLEVEL_H, "matrix_point_size" => 7, "margin" => 4]);
-$QRCode->jpg('momchil@bojinov.info', "example4.QRcode.jpg");
+$QRCode->encode('momchil@bojinov.info')->toFile("example4.QRcode.jpg");
 
 $QRCode->config(["error_correction" => QR_ECLEVEL_Q, "matrix_point_size" => 10, "margin" => 4]);
-$QRCode->png('http://www.test.bg/фффф TEST TEST  TEST  TEST  TEST  TEST  TEST  TEST ', "example5.QRcode.png", QR_MODE_8); // 70 chars
+$QRCode->encode('http://www.test.bg/фффф TEST TEST  TEST  TEST  TEST  TEST  TEST  TEST ', QR_MODE_8)->toFile("example5.QRcode.png"); // 70 chars
 
 $QRCode->config(["error_correction" => QR_ECLEVEL_L, "matrix_point_size" => 7, "margin" => 4]);
-$QRCode->jpg('00359888888888', "example6.QRcode.png", $quality = 90, $hint = QR_MODE_NUM);
+$QRCode->encode('00359888888888', $hint = QR_MODE_NUM, $casesensitive = true)->toFile("example6.QRcode.jpg", $quality = 90);
 
 ## Stop timer
 $mtime = explode(" ",microtime());

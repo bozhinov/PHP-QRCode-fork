@@ -53,6 +53,7 @@ class QRcode {
 	private $size;
 	private $margin;
 	private $level;
+	private $encoded = [];
 
 	function __construct(int $level = QR_ECLEVEL_L, int $size = 3, int $margin = 4)
 	{
@@ -65,8 +66,9 @@ class QRcode {
 		}
 	}
 
-	private function createImage($frame, $filename, $type, $quality = 90)
+	private function createImage($filename, $type, $quality = 90)
 	{
+		$frame = $this->encoded;
 		$h = count($frame);
 		$imgH = $h + 2 * $this->margin;
 		$pixelPerPoint = min($this->size, $imgH);
@@ -108,7 +110,7 @@ class QRcode {
 
 		imageDestroy($target_image);
 	}
-	
+
 	public function config(array $opts)
 	{
 		if (isset($opts["error_correction"])){
@@ -128,7 +130,7 @@ class QRcode {
 		}
 	}
 
-	public function raw(string $text, int $hint = -1, bool $casesensitive = true)
+	public function encode(string $text, int $hint = -1, bool $casesensitive = true)
 	{
 		if($text == '\0' || $text == '') {
 			throw QRException::Std('empty string!');
@@ -143,21 +145,34 @@ class QRcode {
 			$dataStr[] = ord($val);
 		}
 
-		return (new QRInput($this->level))->encodeString($dataStr, $casesensitive, $hint);
+		$this->encoded = (new QRInput($this->level))->encodeString($dataStr, $casesensitive, $hint);
+
+		return $this;
 	}
 
-	public function jpg(string $text, $filename, int $quality = 90, int $hint = -1, bool $casesensitive = true)
+	public function toArray()
 	{
-		$encoded = $this->raw($text, $hint, $casesensitive);
-
-		$this->createImage($encoded, $filename, "JPG", $quality);
+		return $this->encoded;
 	}
 
-	public function png(string $text, $filename, int $hint = -1, bool $casesensitive = true)
+	public function toFile(string $filename, int $quality = 90)
 	{
-		$encoded = $this->raw($text, $hint, $casesensitive);
+		$ext = strtoupper(substr($filename, -3));
+		if (($ext == "JPG") || ($ext == "PNG")) {
+			$this->createImage($filename, $ext, $quality);
+		} else {
+			throw QRException::Std('file extension unsupported!');
+		}
+	}
 
-		$this->createImage($encoded, $filename, "PNG");
+	public function forWeb(string $ext, int $quality = 90)
+	{
+		$ext = strtoupper($ext);
+		if (($ext == "JPG") || ($ext == "PNG")) {
+			$this->createImage(false, $ext, $quality);
+		} else {
+			throw QRException::Std('file extension unsupported!');
+		}
 	}
 }
 
