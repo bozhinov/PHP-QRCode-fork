@@ -154,6 +154,11 @@ class QRcode {
 		return $this->encoded;
 	}
 
+	public function fromArray(array $encoded)
+	{
+		$this->encoded = $encoded;
+	}
+
 	public function toFile(string $filename, int $quality = 90)
 	{
 		$ext = strtoupper(substr($filename, -3));

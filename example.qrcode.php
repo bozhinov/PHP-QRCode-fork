@@ -28,11 +28,14 @@ Or:
 $QRCode = new QRcode(QR_ECLEVEL_Q, 10, 4);
 $QRCode->encode('http://www.test.bg/', $hint, $casesensitive);
 
-$QRCode->toFile("example.QRcode.png");
-$QRCode->toFile("example.QRcode.jpg");
-
 Dump the matrix:
 echo json_encode($QRCode->toArray());
+
+Load a matrix:
+$QRCode->fromArray($matix);
+
+$QRCode->toFile("example.QRcode.png");
+$QRCode->toFile("example.QRcode.jpg");
 
 Add HTTP headers:
 $QRCode->forWeb("PNG");
