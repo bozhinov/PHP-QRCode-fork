@@ -22,7 +22,6 @@ use QRCode\QRInput;
 use QRCode\QRInputItem;
 use QRCode\QRMask;
 use QRCode\QRrsItem;
-use QRCode\QRSplit;
 
 // QRMask
 define('QR_N1', 3);
@@ -51,29 +50,19 @@ define('QR_CAP_EC', 3);
 
 class QRcode {
 
-	private $casesensitive;
 	private $size;
 	private $margin;
-	private $hint;
 	private $level;
 
-	function __construct(int $level = QR_ECLEVEL_L, int $size = 3, int $margin = 4, int $hint = QR_MODE_NUM, bool $casesensitive = true)
+	function __construct(int $level = QR_ECLEVEL_L, int $size = 3, int $margin = 4)
 	{
 		$this->size = $size;
+		$this->level = $level;
 		$this->margin = $margin;
-		$this->casesensitive = $casesensitive;
 
-		$valid = [0,1,2,3];
-		if (!in_array($level,$valid)){
+		if (!in_array($level,[0,1,2,3])){
 			throw QRException::Std('unknown error correction level');
 		}
-
-		if (!in_array($hint,$valid)){
-			throw QRException::Std('unknown hint');
-		}
-
-		$this->level = $level;
-		$this->hint = $hint;
 	}
 
 	private function createImage($frame, $filename, $type, $quality = 90)
@@ -119,25 +108,34 @@ class QRcode {
 
 		imageDestroy($target_image);
 	}
-
-	private function encodeString($dataStr)
+	
+	public function config(array $opts)
 	{
-		return (new QRsplit($this->casesensitive, $this->hint, $this->level))->splitString($dataStr);
+		if (isset($opts["error_correction"])){
+			$this->level = $opts["error_correction"];
+		}
+
+		if (isset($opts["matrix_point_size"])){
+			$this->size = $opts["matrix_point_size"];
+		}
+
+		if (isset($opts["margin"])){
+			$this->margin = $opts["margin"];
+		}
+
+		if (!in_array($this->level,[0,1,2,3])){
+			throw QRException::Std('unknown error correction level');
+		}
 	}
 
-	private function encodeString8bit($dataStr)
-	{
-		$input = new QRinput($this->level);
-
-		$input->append(QR_MODE_8, count($dataStr), $dataStr);
-
-		return $input->encodeMask();
-	}
-
-	public function raw(string $text)
+	public function raw(string $text, int $hint = -1, bool $casesensitive = true)
 	{
 		if($text == '\0' || $text == '') {
 			throw QRException::Std('empty string!');
+		}
+
+		if (!in_array($hint,[-1,0,1,2,3])){
+			throw QRException::Std('unknown hint');
 		}
 
 		$dataStr = [];
@@ -145,25 +143,19 @@ class QRcode {
 			$dataStr[] = ord($val);
 		}
 
-		if($this->hint == QR_MODE_8) {
-			$encoded = $this->encodeString8bit($dataStr);
-		} else {
-			$encoded = $this->encodeString($dataStr);
-		}
-
-		return $encoded;
+		return (new QRInput($this->level))->encodeString($dataStr, $casesensitive, $hint);
 	}
 
-	public function jpg(string $text, $filename, int $quality = 90)
+	public function jpg(string $text, $filename, int $quality = 90, int $hint = -1, bool $casesensitive = true)
 	{
-		$encoded = $this->raw($text);
+		$encoded = $this->raw($text, $hint);
 
 		$this->createImage($encoded, $filename, "JPG", $quality);
 	}
 
-	public function png(string $text, $filename)
+	public function png(string $text, $filename, int $hint = -1, bool $casesensitive = true)
 	{
-		$encoded = $this->raw($text);
+		$encoded = $this->raw($text, $hint);
 
 		$this->createImage($encoded, $filename, "PNG");
 	}

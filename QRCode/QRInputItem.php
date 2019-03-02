@@ -20,7 +20,6 @@ class QRinputItem {
 	private $mode;
 	private $size;
 	private $data;
-	private $version;
 	private $tools;
 	private $bstream;
 	private $lengthTableBits = [
@@ -30,7 +29,7 @@ class QRinputItem {
 		[8, 10, 12]
 	];
 
-	function __construct(int $mode, int $size, array $data, int $version)
+	function __construct(int $mode, int $size, array $data)
 	{
 		$data = array_slice($data, 0, $size);
 		$this->tools = new QRTools();
@@ -39,7 +38,6 @@ class QRinputItem {
 		$this->mode = $mode;
 		$this->size = $size;
 		$this->data = $data;
-		$this->version = $version;
 		
 		if(!$this->Check()) {
 			throw QRException::Std('InputItem check failed');
@@ -110,15 +108,7 @@ class QRinputItem {
 
 	private function lengthIndicator($mode)
 	{
-		if ($this->version <= 9) {
-			$l = 0;
-		} else if ($this->version <= 26) {
-			$l = 1;
-		} else {
-			$l = 2;
-		}
-
-		return $this->lengthTableBits[$mode][$l];
+		return $this->lengthTableBits[$mode][0];
 	}
 
 	private function encodeModeNum()
