@@ -148,14 +148,14 @@ class QRcode {
 
 	public function jpg(string $text, $filename, int $quality = 90, int $hint = -1, bool $casesensitive = true)
 	{
-		$encoded = $this->raw($text, $hint);
+		$encoded = $this->raw($text, $hint, $casesensitive);
 
 		$this->createImage($encoded, $filename, "JPG", $quality);
 	}
 
 	public function png(string $text, $filename, int $hint = -1, bool $casesensitive = true)
 	{
-		$encoded = $this->raw($text, $hint);
+		$encoded = $this->raw($text, $hint, $casesensitive);
 
 		$this->createImage($encoded, $filename, "PNG");
 	}
