@@ -26,7 +26,7 @@ Single line:
 
 Or:
 $QRCode = new QRcode(QR_ECLEVEL_Q, 10, 4);
-$QRCode->encode('http://www.test.bg/', $casesensitive);
+$QRCode->encode('http://www.test.bg/', $hint, $casesensitive);
 
 $QRCode->toFile("example.QRcode.png");
 $QRCode->toFile("example.QRcode.jpg");
