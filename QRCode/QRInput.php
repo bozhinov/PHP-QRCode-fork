@@ -210,24 +210,6 @@ class QRInput {
 		while($this->isdigitat($p)) {
 			$p++;
 		}
-
-		$mode = $this->identifyMode($p);
-
-		if($mode == QR_MODE_8) {
-			$dif = $this->tools->estimateBitsModeNum($p) + 14 - (8 * $p); // estimateBitsMode8
-			if($dif > 0) {
-				return $this->eat8();
-			}
-		}
-		if($mode == QR_MODE_AN) {
-			$dif = $this->tools->estimateBitsModeNum($p) + 14
-				 + $this->tools->estimateBitsModeAn(1)
-				 - $this->tools->estimateBitsModeAn($p + 1);
-			if($dif > 0) {
-				return $this->eatAn();
-			}
-		}
-
 		return $p;
 	}
 
@@ -256,16 +238,7 @@ class QRInput {
 			}
 		}
 
-		$run = $p;
-
-		if(!$this->isalnumat($p)) {
-			$dif = $this->tools->estimateBitsModeAn($run) + 13 - (8 * $run);
-			if($dif > 0) {
-				return $this->eat8();
-			}
-		}
-
-		return $run;
+		return $p;
 	}
 
 	private function eatKanji()
@@ -364,19 +337,10 @@ class QRInput {
 	
 	private function append($mode, array $data)
 	{
-			if(!$this->Check($mode, $data)) {
-				throw QRException::Std('InputItem check failed');
-			}
+		if(!$this->Check($mode, $data)) {
+			throw QRException::Std('InputItem check failed');
+		}
 		$this->items[] = new QRinputItem($mode, $data);
-	}
-
-	private function encodeMask()
-	{
-		$dataCode = $this->getByteStream();
-
-		$width = $this->tools->getWidth($this->version);
-
-		return (new QRmask($dataCode, $width, $this->level, $this->version))->get();
 	}
 
 	public function encodeString($dataStr, $hint)
@@ -400,33 +364,30 @@ class QRInput {
 				switch ($mod) {
 					case QR_MODE_NUM:
 						$length = $this->eatNum();
-						$mod_identified = QR_MODE_NUM;
 						break;
 					case QR_MODE_AN:
 						$length = $this->eatAn();
-						$mod_identified = QR_MODE_AN;
+						break;
+					case QR_MODE_8:
+						$length = $this->eat8();
 						break;
 					case QR_MODE_KANJI:
 						$length = $this->eatKanji();
-						$mod_identified = QR_MODE_KANJI;
 						break;
-					default:
-						$length = $this->eat8();
-						$mod_identified = QR_MODE_8;
 				}
 
 				if($length == 0){
 					break;
 				}
 				
-				$this->append($mod_identified, array_slice($this->dataStr, 0, $length));
+				$this->append($mod, array_slice($this->dataStr, 0, $length));
 
 				$this->dataStrLen -= $length;
 				$this->dataStr = array_slice($this->dataStr, $length);
 			}
 		}
 
-		return $this->encodeMask();
+		return (new QRmask($this->getByteStream(), $this->tools->getWidth($this->version), $this->level, $this->version))->get();
 	}
 }
 
