@@ -123,13 +123,15 @@ class QRcode {
 		if (isset($opts["margin"])){
 			$this->margin = $opts["margin"];
 		}
+		
+		$this->encoded = [];
 
 		if (!in_array($this->level,[0,1,2,3])){
 			throw QRException::Std('unknown error correction level');
 		}
 	}
 
-	public function encode(string $text, int $hint = -1, bool $casesensitive = true)
+	public function encode(string $text, int $hint = -1)
 	{
 		if($text == '\0' || $text == '') {
 			throw QRException::Std('empty string!');
@@ -144,7 +146,7 @@ class QRcode {
 			$dataStr[] = ord($val);
 		}
 
-		$this->encoded = (new QRInput($this->level))->encodeString($dataStr, $casesensitive, $hint);
+		$this->encoded = (new QRInput($this->level))->encodeString($dataStr, $hint);
 
 		return $this;
 	}

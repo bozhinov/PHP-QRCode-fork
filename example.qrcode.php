@@ -26,7 +26,7 @@ Single line:
 
 Or:
 $QRCode = new QRcode(QR_ECLEVEL_Q, 10, 4);
-$QRCode->encode('http://www.test.bg/', $hint, $casesensitive);
+$QRCode->encode('http://www.test.bg/', $hint);
 
 Dump the matrix:
 echo json_encode($QRCode->toArray());
@@ -59,7 +59,7 @@ $QRCode->config(["error_correction" => QR_ECLEVEL_Q, "matrix_point_size" => 10, 
 $QRCode->encode('http://www.test.bg/фффф TEST TEST  TEST  TEST  TEST  TEST  TEST  TEST ', QR_MODE_8)->toFile("example5.QRcode.png"); // 70 chars
 
 $QRCode->config(["error_correction" => QR_ECLEVEL_L, "matrix_point_size" => 7, "margin" => 4]);
-$QRCode->encode('00359888888888', $hint = QR_MODE_NUM, $casesensitive = true)->toFile("example6.QRcode.jpg", $quality = 90);
+$QRCode->encode('00359888888888', $hint = QR_MODE_NUM)->toFile("example6.QRcode.jpg", $quality = 90);
 
 ## Stop timer
 $mtime = explode(" ",microtime());

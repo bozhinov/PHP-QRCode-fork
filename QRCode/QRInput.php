@@ -164,20 +164,6 @@ class QRInput {
 		return $this->bstream_toByte($bstream);
 	}
 
-	private function append($mode, $size, $data)
-	{
-		$this->items[] = new QRinputItem($mode, $size, $data);
-	}
-
-	private function encodeMask()
-	{
-		$dataCode = $this->getByteStream();
-
-		$width = $this->tools->getWidth($this->version);
-
-		return (new QRmask($dataCode, $width, $this->level, $this->version))->get();
-	}
-
 	private function isdigitat($pos)
 	{
 		if ($pos >= $this->dataStrLen){
@@ -234,8 +220,6 @@ class QRInput {
 			}
 		}
 
-		$this->append(QR_MODE_NUM, $p, $this->dataStr);
-
 		return $p;
 	}
 
@@ -273,8 +257,6 @@ class QRInput {
 			}
 		}
 
-		$this->append(QR_MODE_AN, $run, $this->dataStr);
-
 		return $run;
 	}
 
@@ -285,8 +267,6 @@ class QRInput {
 		while($this->identifyMode($p) == QR_MODE_KANJI) {
 			$p += 2;
 		}
-
-		$this->append(QR_MODE_KANJI, $p, $this->dataStr);
 
 		return $p;
 	}
@@ -329,70 +309,112 @@ class QRInput {
 			}
 		}
 
-		$this->append(QR_MODE_8, $p, $this->dataStr);
-
 		return $p;
 	}
 
-	private function toUpper()
+	private function Check($mode, $data)
 	{
-		$p = 0;
-
-		while ($p<$this->dataStrLen) {
-			$mode = $this->identifyMode(array_slice($this->dataStr, $p));
-			if($mode == QR_MODE_KANJI) {
-				$p += 2;
-			} else {
-				if ($this->dataStr[$p] >= 97 && $this->dataStr[$p] <= 122) {
-					$this->dataStr[$p] -= 32;
-				}
-				$p++;
-			}
+		$size = count($data);
+		
+		if($size <= 0) {
+			return false;
 		}
+
+		switch($mode) {
+			case QR_MODE_NUM:
+				for($i=0; $i<$size; $i++) {
+					if($data[$i] < 48 || $data[$i] > 57){
+						return false;
+					}
+				}
+				break;
+			case QR_MODE_AN:
+				for($i=0; $i<$size; $i++) {
+					if ($this->tools->lookAnTable($data[$i]) == -1) {
+						return false;
+					}
+				}
+				break;
+			case QR_MODE_KANJI:
+				if($size & 1){
+					return false;
+				}
+
+				for($i=0; $i<$size; $i+=2) {
+					$val = ($data[$i] << 8) | $data[$i+1];
+					if($val < 33088 || ($val > 40956 && $val < 57408) || $val > 60351) {
+						return false;
+					}
+				}
+				break;
+			#case QR_MODE_8:
+			#	break;
+		}
+		
+		return true;
+	}
+	
+	private function append($mode, array $data)
+	{
+			if(!$this->Check($mode, $data)) {
+				throw QRException::Std('InputItem check failed');
+			}
+		$this->items[] = new QRinputItem($mode, $data);
 	}
 
-	public function encodeString($dataStr, $casesensitive, $hint)
+	private function encodeMask()
+	{
+		$dataCode = $this->getByteStream();
+
+		$width = $this->tools->getWidth($this->version);
+
+		return (new QRmask($dataCode, $width, $this->level, $this->version))->get();
+	}
+
+	public function encodeString($dataStr, $hint)
 	{
 		$this->dataStr = $dataStr;
 		$this->dataStrLen = count($this->dataStr);
-
-		if(!$casesensitive){
-			$this->toUpper();
-		}
 		
 		if ($hint == QR_MODE_8) {
-			$this->append(QR_MODE_8, $this->dataStrLen, $dataStr);
-			return $this->encodeMask();
-		}
+			$this->append(QR_MODE_8, $dataStr);
+		} else {
+		
+			$mod = $hint;
 
-		while ($this->dataStrLen > 0)
-		{
-			if ($hint == -1){
-				$mod = $this->identifyMode(0);
-			} else {
-				$mod = $hint;
-			}
+			while ($this->dataStrLen > 0)
+			{
+				if ($hint == -1){
+					$mod = $this->identifyMode(0);
+				}
 
-			switch ($mod) {
-				case QR_MODE_NUM:
-					$length = $this->eatNum();
+				switch ($mod) {
+					case QR_MODE_NUM:
+						$length = $this->eatNum();
+						$mod_identified = QR_MODE_NUM;
+						break;
+					case QR_MODE_AN:
+						$length = $this->eatAn();
+						$mod_identified = QR_MODE_AN;
+						break;
+					case QR_MODE_KANJI:
+						$length = $this->eatKanji();
+						$mod_identified = QR_MODE_KANJI;
+						break;
+					default:
+						$length = $this->eat8();
+						$mod_identified = QR_MODE_8;
+				}
+
+				if($length == 0){
 					break;
-				case QR_MODE_AN:
-					$length = $this->eatAn();
-					break;
-				case QR_MODE_KANJI:
-					$length = $this->eatKanji();
-					break;
-				default:
-					$length = $this->eat8();
-			}
+				}
+				
+				$this->append($mod_identified, array_slice($this->dataStr, 0, $length));
 
-			if($length == 0){
-				break;
+				$this->dataStrLen -= $length;
+				$this->dataStr = array_slice($this->dataStr, $length);
 			}
-
-			$this->dataStrLen -= $length;
-			$this->dataStr = array_slice($this->dataStr, $length);
 		}
 
 		return $this->encodeMask();
