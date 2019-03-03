@@ -293,63 +293,13 @@ class QRInput {
 		return $p;
 	}
 
-	private function Check($mode, $data)
-	{
-		$size = count($data);
-		
-		if($size <= 0) {
-			return false;
-		}
-
-		switch($mode) {
-			case QR_MODE_NUM:
-				for($i=0; $i<$size; $i++) {
-					if($data[$i] < 48 || $data[$i] > 57){
-						return false;
-					}
-				}
-				break;
-			case QR_MODE_AN:
-				for($i=0; $i<$size; $i++) {
-					if ($this->tools->lookAnTable($data[$i]) == -1) {
-						return false;
-					}
-				}
-				break;
-			case QR_MODE_KANJI:
-				if($size & 1){
-					return false;
-				}
-
-				for($i=0; $i<$size; $i+=2) {
-					$val = ($data[$i] << 8) | $data[$i+1];
-					if($val < 33088 || ($val > 40956 && $val < 57408) || $val > 60351) {
-						return false;
-					}
-				}
-				break;
-			#case QR_MODE_8:
-			#	break;
-		}
-		
-		return true;
-	}
-	
-	private function append($mode, array $data)
-	{
-		if(!$this->Check($mode, $data)) {
-			throw QRException::Std('InputItem check failed');
-		}
-		$this->items[] = new QRinputItem($mode, $data);
-	}
-
 	public function encodeString($dataStr, $hint)
 	{
 		$this->dataStr = $dataStr;
 		$this->dataStrLen = count($this->dataStr);
 		
 		if ($hint == QR_MODE_8) {
-			$this->append(QR_MODE_8, $dataStr);
+			$this->items[] = new QRinputItem(QR_MODE_8, $dataStr);
 		} else {
 		
 			$this->hint = $hint;
@@ -368,19 +318,19 @@ class QRInput {
 					case QR_MODE_AN:
 						$length = $this->eatAn();
 						break;
-					case QR_MODE_8:
-						$length = $this->eat8();
-						break;
 					case QR_MODE_KANJI:
 						$length = $this->eatKanji();
 						break;
+					default:
+						$mod = QR_MODE_8;
+						$length = $this->eat8();
 				}
 
 				if($length == 0){
 					break;
 				}
 				
-				$this->append($mod, array_slice($this->dataStr, 0, $length));
+				$this->items[] = new QRinputItem($mod, array_slice($this->dataStr, 0, $length));
 
 				$this->dataStrLen -= $length;
 				$this->dataStr = array_slice($this->dataStr, $length);
