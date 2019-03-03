@@ -294,14 +294,15 @@ class QRInput {
 	}
 
 	public function encodeString($dataStr, $hint)
-	{
-		$this->dataStr = $dataStr;
-		$this->dataStrLen = count($this->dataStr);
-		
+	{		
 		if ($hint == QR_MODE_8) {
+			
 			$this->items[] = new QRinputItem(QR_MODE_8, $dataStr);
+			
 		} else {
 		
+			$this->dataStr = $dataStr;
+			$this->dataStrLen = count($this->dataStr);
 			$this->hint = $hint;
 			$mod = $hint;
 
