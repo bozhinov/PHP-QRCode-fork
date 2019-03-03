@@ -19,150 +19,45 @@ class QRInput {
 
 	private $dataStr;
 	private $dataStrLen;
-	private $items;
 	private $hint;
-	private $version = 1;
 	private $level;
 	private $tools;
-	
+	private $QRStreams;
+
 	function __construct(int $level)
 	{
 		$this->level = $level;
 		$this->tools = new QRTools();
+		$this->QRStreams = new QRStreams($level);
 	}
 
-	private function setVersion($version)
+	private function estimateBitsModeNum($size)
 	{
-		if ($version > $this->version){
-			$this->version = $version;
-		}
-	}
+		$bits = (int)($size / 3) * 10;
 
-	/* Momchil: version can't be 0 */
-	private function getMinimumVersion($bits)
-	{
-		$size = (int)(($bits + 7) / 8);
-		for($i=1; $i<= QR_SPEC_VERSION_MAX; $i++) {
-			if($this->tools->getDataLength($i, $this->level) >= $size){
-				return $i;
-			}
-		}
-
-		throw QRException::Std('Unable to determine minimal version!');
-	}
-
-	private function estimateBitStreamSize($version)
-	{
-		$bits = 0;
-
-		foreach($this->items as $item) {
-			$bits += $item->estimateBitStreamSizeOfEntry($version);
+		switch($size - ($size % 3)) {
+			case 1:
+				$bits += 4;
+				break;
+			case 2:
+				$bits += 7;
+				break;
+			default:
+				break;
 		}
 
 		return $bits;
 	}
 
-	private function estimateVersion()
+	private function estimateBitsModeAn($size)
 	{
-		$version = 0;
-		$prev = 0;
-		do {
-			$prev = $version;
-			$bits = $this->estimateBitStreamSize($prev);
-			$version = $this->getMinimumVersion($bits);
+		$bits = (int)($size / 2) * 11;
 
-		} while ($version > $prev);
-
-		$this->setVersion($version);
-	}
-
-	private function createBitStream()
-	{
-		$total = 0;
-
-		foreach($this->items as $item) {
-
-			$bitsData = $item->encodeBitStream();
-
-			$total += count($bitsData);
+		if($size & 1) {
+			$bits += 6;
 		}
 
-		return $total;
-	}
-
-	private function get_bstream_size($bstream)
-	{
-		$size = 0;
-
-		foreach($bstream as $d){
-			$size += $d[0];
-		}
-
-		return $size;
-	}
-
-	private function bstream_toByte($bstream)
-	{
-		$dataStr = "";
-
-		foreach($bstream as $d){
-
-			list($bits, $num) = $d;
-
-			$bin = decbin($num);
-			$diff = $bits - strlen($bin);
-
-			if ($diff != 0){
-				$bin = str_repeat("0", $diff).$bin;
-			}
-
-			$dataStr .= $bin;
-		}
-
-		$data = str_split($dataStr, 8);
-
-		array_walk($data, function(&$val) {
-			$val = bindec($val);
-		});
-
-		return $data;
-	}
-
-	private function getByteStream()
-	{
-		$this->estimateVersion();
-		$this->setVersion($this->getMinimumVersion($this->createBitStream()));
-
-		$bstream = [];
-
-		foreach($this->items as $item) {
-			$bstream = array_merge($bstream, $item->getBStream());
-		}
-
-		$bits = $this->get_bstream_size($bstream);
-		$maxwords = $this->tools->getDataLength($this->version, $this->level);
-		$maxbits = $maxwords * 8;
-
-		if ($maxbits - $bits < 5) {
-			$bstream[] = [$maxbits - $bits, 0];
-			return $this->bstream_toByte($bstream);
-		}
-
-		$bits += 4;
-		$words = floor(($bits + 7) / 8);
-
-		$bstream[] = [$words * 8 - $bits + 4, 0];
-
-		$padlen = $maxwords - $words;
-
-		if($padlen > 0) {
-			for($i=0; $i<$padlen; $i+=2) {
-				$bstream[] = [8, 236];
-				$bstream[] = [8, 17];
-			}
-		}
-
-		return $this->bstream_toByte($bstream);
+		return $bits;
 	}
 
 	private function isdigitat($pos)
@@ -224,9 +119,9 @@ class QRInput {
 					$q++;
 				}
 
-				$dif = $this->tools->estimateBitsModeAn($p)
-					 + $this->tools->estimateBitsModeNum($q - $p) + 14
-					 - $this->tools->estimateBitsModeAn($q);
+				$dif = $this->estimateBitsModeAn($p)
+					 + $this->estimateBitsModeNum($q - $p) + 14
+					 - $this->estimateBitsModeAn($q);
 
 				if($dif < 0) {
 					break;
@@ -266,7 +161,7 @@ class QRInput {
 					while($this->isdigitat($q)) {
 						$q++;
 					}
-					$dif = (8 * ($p - $q)) + $this->tools->estimateBitsModeNum($q - $p) + 14;
+					$dif = (8 * ($p - $q)) + $this->estimateBitsModeNum($q - $p) + 14;
 					if($dif < 0) {
 						break 2;
 					} else {
@@ -278,7 +173,7 @@ class QRInput {
 					while($this->isalnumat($q)) {
 						$q++;
 					}
-					$dif = (8 * ($p - $q)) + $this->tools->estimateBitsModeAn($q - $p) + 13;
+					$dif = (8 * ($p - $q)) + $this->estimateBitsModeAn($q - $p) + 13;
 					if($dif < 0) {
 						break 2;
 					} else {
@@ -294,13 +189,13 @@ class QRInput {
 	}
 
 	public function encodeString($dataStr, $hint)
-	{		
+	{
 		if ($hint == QR_MODE_8) {
-			
-			$this->items[] = new QRinputItem(QR_MODE_8, $dataStr);
-			
+
+			$this->QRStreams->add(QR_MODE_8, $dataStr);
+
 		} else {
-		
+
 			$this->dataStr = $dataStr;
 			$this->dataStrLen = count($this->dataStr);
 			$this->hint = $hint;
@@ -330,15 +225,18 @@ class QRInput {
 				if($length == 0){
 					break;
 				}
-				
-				$this->items[] = new QRinputItem($mod, array_slice($this->dataStr, 0, $length));
+
+				$this->QRStreams->add($mod, array_slice($this->dataStr, 0, $length));
+
 
 				$this->dataStrLen -= $length;
 				$this->dataStr = array_slice($this->dataStr, $length);
 			}
 		}
 
-		return (new QRmask($this->getByteStream(), $this->tools->getWidth($this->version), $this->level, $this->version))->get();
+		list($bstream, $version) = $this->QRStreams->getBytes();
+
+		return (new QRmask($bstream, $this->tools->getWidth($version), $this->level, $version))->get();
 	}
 }
 

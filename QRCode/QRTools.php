@@ -89,45 +89,12 @@ class QRTools {
 	{
 		return $this->capacity[$version][QR_CAP_WORDS] - $this->capacity[$version][QR_CAP_EC][$level];
 	}
-
-	public function estimateBitsModeNum($size)
-	{
-		$bits = (int)($size / 3) * 10;
-
-		switch($size - ($size % 3)) {
-			case 1:
-				$bits += 4;
-				break;
-			case 2:
-				$bits += 7;
-				break;
-			default:
-				break;
-		}
-
-		return $bits;
-	}
-
-	public function estimateBitsModeAn($size)
-	{
-		$bits = (int)($size / 2) * 11;
-
-		if($size & 1) {
-			$bits += 6;
-		}
-
-		return $bits;
-	}
-
-	public function estimateBitsModeKanji($size)
-	{
-		return (int)(($size / 2) * 13);
-	}
-
+	
 	public function lookAnTable($c)
 	{
 		return (($c > 90) ? -1 : $this->anTable[$c]);
 	}
+
 }
 
 ?>
