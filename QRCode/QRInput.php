@@ -20,6 +20,7 @@ class QRInput {
 	private $dataStr;
 	private $dataStrLen;
 	private $items;
+	private $hint;
 	private $version = 1;
 	private $level;
 	private $tools;
@@ -191,6 +192,13 @@ class QRInput {
 			return QR_MODE_NUM;
 		} elseif($this->isalnumat($pos)) {
 			return QR_MODE_AN;
+		} elseif($this->hint == QR_MODE_KANJI) {
+			if ($pos+1 < $this->dataStrLen) {
+				$word = ($this->dataStr[$pos]) << 8 | $this->dataStr[$pos+1];
+				if(($word >= 33088 && $word <= 40956) || ($word >= 57408 && $word <= 60351)) {
+					return QR_MODE_KANJI;
+				}
+			}
 		} else {
 			return QR_MODE_8;
 		}
@@ -380,6 +388,7 @@ class QRInput {
 			$this->append(QR_MODE_8, $dataStr);
 		} else {
 		
+			$this->hint = $hint;
 			$mod = $hint;
 
 			while ($this->dataStrLen > 0)
