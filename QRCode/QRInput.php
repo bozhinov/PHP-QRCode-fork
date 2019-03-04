@@ -110,7 +110,7 @@ class QRInput {
 		}
 	}
 
-	public function add($mode, array $data)
+	private function addStream($mode, array $data)
 	{
 		$size = count($data);
 		$bits = $this->lengthTableBits[$mode][0];
@@ -197,7 +197,7 @@ class QRInput {
 		return $data;
 	}
 
-	public function getBytes()
+	private function getBytes()
 	{
 		$bits = $this->get_bstream_size();
 		$version = $this->getMinimumVersion($bits);
@@ -327,7 +327,7 @@ class QRInput {
 	{
 		if ($hint == QR_MODE_8) {
 
-			$this->add(QR_MODE_8, $dataStr);
+			$this->addStream(QR_MODE_8, $dataStr);
 
 		} else {
 
@@ -361,7 +361,7 @@ class QRInput {
 					break;
 				}
 
-				$this->add($mod, array_slice($this->dataStr, 0, $length));
+				$this->addStream($mod, array_slice($this->dataStr, 0, $length));
 
 
 				$this->dataStrLen -= $length;
