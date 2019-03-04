@@ -276,7 +276,7 @@ class QRInput {
 
 	private function eatAn($p = 0)
 	{
-		while($this->isalnumat($p)) {
+		while($this->isalnumat($p) || $this->isdigitat($p)) {
 			$p++;
 		}
 		return $p;
