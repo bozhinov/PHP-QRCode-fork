@@ -83,15 +83,13 @@ class QRmask {
 		return $blacks;
 	}
 
-	private function generateMaskNo($maskNo)
+	private function makeMaskNo($maskNo)
 	{
-		$bitMask = [];
+		$blacks = 0;
 
 		for($y=0; $y<$this->width; $y++) {
 			for($x=0; $x<$this->width; $x++) {
-				if(($this->frame[$y][$x]) & 128) { # 0x80
-					#$bitMask[$y][$x] = 0;
-				} else {
+				if((($this->frame[$y][$x]) & 128) == false) { # 0x80
 
 					switch($maskNo){
 						case 0:
@@ -121,34 +119,16 @@ class QRmask {
 					}
 
 					if ($ret == 0){
-						$bitMask[$y][$x] = 1;
+						$this->masked[$y][$x]++;
 					}
 				}
+				$blacks += ($this->masked[$y][$x] & 1);
 			}
 		}
 
-		return $bitMask;
-	}
+		$blacks += $this->writeFormatInformation($maskNo);
 
-	private function makeMaskNo($maskNo)
-	{
-		$b = 0;
-		$bitMask = $this->generateMaskNo($maskNo);
-
-		for($y=0; $y<$this->width; $y++) {
-			for($x=0; $x<$this->width; $x++) {
-				if(isset($bitMask[$y])) {
-					if(isset($bitMask[$y][$x])) {
-						$this->masked[$y][$x] = ($this->masked[$y][$x] ^ 1);
-					}
-				}
-				$b += ($this->masked[$y][$x] & 1);
-			}
-		}
-
-		$b += $this->writeFormatInformation($maskNo);
-
-		return (int)(100 * $b / ($this->width * $this->width));
+		return (int)(100 * $blacks / ($this->width * $this->width));
 	}
 
 	private function calcN1N3($length)
