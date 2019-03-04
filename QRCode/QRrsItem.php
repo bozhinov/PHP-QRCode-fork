@@ -17,8 +17,8 @@ namespace QRCode;
 
 class QRrsItem {
 
-	private $mm;		// Bits per symbol 
-	private $nn;		// Symbols per block (= (1<<mm)-1) 
+	#private $mm;		// Bits per symbol = 8
+	#private $nn;		// Symbols per block (= (1<<mm)-1)  = 255
 	private $alpha_to;	// log lookup table 
 	private $index_of;	// Antilog lookup table 
 	private $genpoly;	// Generator polynomial 
@@ -96,9 +96,9 @@ class QRrsItem {
 
 	private function modnn($x)
 	{
-		while ($x >= $this->nn) {
-			$x -= $this->nn;
-			$x = ($x >> $this->mm) + ($x & $this->nn);
+		while ($x >= 255) {
+			$x -= 255;
+			$x = ($x >> 8) + ($x & 255);
 		}
 
 		return $x;
@@ -109,41 +109,41 @@ class QRrsItem {
 		// Common code for intializing a Reed-Solomon control block (char or int symbols)
 		// Copyright 2004 Phil Karn, KA9Q
 		// May be used under the terms of the GNU Lesser General Public License (LGPL)
-		$symsize = 8;
+
 		$gfpoly	= 0x11d;
 		$fcr = 0;
 		$prim = 1;
 
 		// Check parameter ranges
-		if($nroots < 0 || $nroots >= (1<<$symsize)){
+		if($nroots < 0 || $nroots >= 256){
 			throw QRException::Std("Can't have more roots than symbol values!");
 		}
-		if($pad < 0 || $pad >= ((1<<$symsize) -1 - $nroots)){
+		if($pad < 0 || $pad >= (255 - $nroots)){
 			throw QRException::Std('Too much padding');
 		}
 
 		$this->parity = array_fill(0, $nroots, 0);
+		$this->genpoly = $this->parity;
+		array_unshift($this->genpoly,1);
 
-		$this->mm = $symsize;
-		$this->nn = (1<<$symsize)-1;
+		$this->nroots = $nroots;
 		$this->pad = $pad;
 
-		$this->alpha_to = array_fill(0, $this->nn+1, 0);
+		$this->alpha_to = array_fill(0, 256, 0);
 		$this->index_of = $this->alpha_to;
 
 		// Generate Galois field lookup tables
-		$this->index_of[0] = $this->nn; // log(zero) = -inf
-		$this->alpha_to[$this->nn] = 0; // alpha**-inf = 0
+		$this->index_of[0] = 255; // log(zero) = -inf
 		$sr = 1;
 
-		for($i = 0; $i < $this->nn; $i++) {
+		for($i = 0; $i < 255; $i++) {
 			$this->index_of[$sr] = $i;
 			$this->alpha_to[$i] = $sr;
 			$sr <<= 1;
-			if($sr & (1<<$symsize)) {
+			if($sr & 256) {
 				$sr ^= $gfpoly;
 			}
-			$sr &= $this->nn;
+			$sr &= 255;
 		}
 
 		if($sr != 1){
@@ -151,10 +151,6 @@ class QRrsItem {
 		}
 
 		/* Form RS code generator polynomial from its roots */
-		$this->genpoly = array_fill(0, $nroots+1, 0);
-		$this->nroots = $nroots;
-		$this->genpoly[0] = 1;
-
 		$root = $fcr * $prim;
 
 		for ($i = 0; $i < $nroots; $i++) {
@@ -185,10 +181,10 @@ class QRrsItem {
 	{
 		$parity = $this->parity;
 
-		for($i = 0; $i < ($this->nn - $this->nroots - $this->pad); $i++) {
+		for($i = 0; $i < (255 - $this->nroots - $this->pad); $i++) {
 
 			$feedback = $this->index_of[$data[$i] ^ $parity[0]];
-			if($feedback != $this->nn) {
+			if($feedback != 255) {
 				// feedback term is non-zero
 				for($j=1; $j < $this->nroots; $j++) {
 					$parity[$j] ^= $this->alpha_to[$this->modnn($feedback + $this->genpoly[$this->nroots-$j])];
@@ -197,7 +193,7 @@ class QRrsItem {
 
 			// Shift 
 			array_shift($parity);
-			if($feedback != $this->nn) {
+			if($feedback != 255) {
 				array_push($parity, $this->alpha_to[$this->modnn($feedback + $this->genpoly[0])]);
 			} else {
 				array_push($parity, 0);
