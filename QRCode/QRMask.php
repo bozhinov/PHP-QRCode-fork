@@ -59,7 +59,7 @@ class QRmask {
 			} else {
 				$this->masked[$i + 1][8] = $v;
 			}
-			$format = $format >> 1;
+			$format >>= 1;
 		}
 
 		for($i=0; $i<7; $i++) {
@@ -77,7 +77,7 @@ class QRmask {
 				$this->masked[8][6 - $i] = $v;
 			}
 
-			$format = $format >> 1;
+			$format >>= 1;
 		}
 
 		return $blacks;
@@ -89,7 +89,7 @@ class QRmask {
 
 		for($y=0; $y<$this->width; $y++) {
 			for($x=0; $x<$this->width; $x++) {
-				if((($this->frame[$y][$x]) & 128) == false) { # 0x80
+				if((($this->masked[$y][$x]) & 128) == false) { # 0x80
 
 					switch($maskNo){
 						case 0:
@@ -156,22 +156,22 @@ class QRmask {
 				}
 			}
 		}
+
 		return $demerit;
 	}
 
 	private function evaluateSymbol()
 	{
 		$demerit = 0;
-		$mask = $this->masked;
 
 		for($y=0; $y<$this->width; $y++) {
 			$head = 0;
 			$this->runLength[0] = 1;
 
-			$frameY = $mask[$y];
+			$frameY = $this->masked[$y];
 
 			if ($y > 0){
-				$frameYM = $mask[$y-1];
+				$frameYM = $this->masked[$y-1];
 			}
 
 			if($frameY[0] & 1) {
@@ -204,7 +204,7 @@ class QRmask {
 			$head = 0;
 			$this->runLength[0] = 1;
 
-			if(($mask[0][$x]) & 1) {
+			if(($this->masked[0][$x]) & 1) {
 				$this->runLength[0] = -1;
 				$head = 1;
 				$this->runLength[$head] = 1;
@@ -212,7 +212,7 @@ class QRmask {
 
 			for($y=0; $y<$this->width; $y++) {
 				if ($y > 0) {
-					if(($mask[$y][$x] ^ $mask[$y-1][$x]) & 1) {
+					if(($this->masked[$y][$x] ^ $this->masked[$y-1][$x]) & 1) {
 						$head++;
 						$this->runLength[$head] = 1;
 					} else {
