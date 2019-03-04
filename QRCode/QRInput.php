@@ -68,9 +68,7 @@ class QRInput {
 		$this->bstream[] = [$this->lengthTableBits[QR_MODE_AN][0], $size];
 
 		for($i=0; $i<$words; $i++) {
-			$val  = (int)($this->tools->lookAnTable($data[$i*2]) * 45);
-			$val += (int)($this->tools->lookAnTable($data[$i*2+1]));
-
+			$val = ($this->tools->lookAnTable($data[$i*2]) * 45) + $this->tools->lookAnTable($data[$i*2+1]);
 			$this->bstream[] = [11, $val];
 		}
 
@@ -276,7 +274,7 @@ class QRInput {
 
 	private function eatAn($p = 0)
 	{
-		while($this->isalnumat($p) || $this->isdigitat($p)) {
+		while($this->isalnumat($p)) {
 			$p++;
 		}
 		return $p;
