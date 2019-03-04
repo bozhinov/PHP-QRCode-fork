@@ -253,7 +253,7 @@ class QRFrame {
 		if($this->version < 2){
 			return;
 		}
-		
+
 		list($v0, $v1) = $this->alignmentPattern[$this->version];
 
 		$d = $v1 - $v0;

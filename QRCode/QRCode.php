@@ -89,7 +89,7 @@ class QRcode {
 		$target_image = imageCreate($imgH * $pixelPerPoint, $imgH * $pixelPerPoint);
 		imageCopyResized($target_image, $base_image, 0, 0, 0, 0, $imgH * $pixelPerPoint, $imgH * $pixelPerPoint, $imgH, $imgH);
 		imageDestroy($base_image);
-		
+
 		if ((php_sapi_name() == "cli") || ($filename != false)) {
 			if ($type == "PNG"){
 				imagePng($target_image, $filename);
@@ -122,7 +122,7 @@ class QRcode {
 		if (isset($opts["margin"])){
 			$this->margin = $opts["margin"];
 		}
-		
+
 		$this->encoded = [];
 
 		if (!in_array($this->level,[0,1,2,3])){

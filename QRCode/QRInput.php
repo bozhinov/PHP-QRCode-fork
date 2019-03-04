@@ -199,7 +199,7 @@ class QRInput {
 	{
 		$bits = $this->get_bstream_size();
 		$version = $this->getMinimumVersion($bits);
-		
+
 		$maxwords = $this->tools->getDataLength($version, $this->level);
 		$maxbits = $maxwords * 8;
 

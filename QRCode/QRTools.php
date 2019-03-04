@@ -89,7 +89,7 @@ class QRTools {
 	{
 		return $this->capacity[$version][QR_CAP_WORDS] - $this->capacity[$version][QR_CAP_EC][$level];
 	}
-	
+
 	public function lookAnTable($c)
 	{
 		return (($c > 90) ? -1 : $this->anTable[$c]);

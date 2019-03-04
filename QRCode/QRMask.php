@@ -246,7 +246,7 @@ class QRmask {
 
 		return $demerit;
 	}
-	
+
 	public function get()
 	{
 		$minDemerit = PHP_INT_MAX;
