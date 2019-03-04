@@ -107,7 +107,7 @@ class QRFrame {
 		0x27541, 0x28c69
 	];
 
-	function __construct(int $version, int $level)
+	function __construct(int $version, int $width, int $level)
 	{
 		if($version < 1 || $version > QR_SPEC_VERSION_MAX){
 			throw QRException::Std('Version invalid');
@@ -117,7 +117,7 @@ class QRFrame {
 
 		$this->version = $version;
 		$this->level = $level;
-		$this->width = $this->tools->getWidth($version);
+		$this->width = $width;
 		$this->frame = $this->createFrame();
 
 		$this->x = $this->width - 1;

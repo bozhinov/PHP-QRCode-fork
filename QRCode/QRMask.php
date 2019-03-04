@@ -36,7 +36,7 @@ class QRmask {
 		$this->runLength = array_fill(0, QR_SPEC_WIDTH_MAX + 1, 0);
 		$this->width = $width;
 		$this->level = $level;
-		$this->frame = (new QRFrame($version, $this->level))->getFrame($dataCode);
+		$this->frame = (new QRFrame($version, $width, $this->level))->getFrame($dataCode);
 	}
 
 	private function writeFormatInformation($maskNo)
