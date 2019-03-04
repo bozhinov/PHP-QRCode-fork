@@ -19,7 +19,6 @@ use QRCode\QRException;
 use QRCode\QRFrame;
 use QRCode\QRTools;
 use QRCode\QRInput;
-use QRCode\QRStreams;
 use QRCode\QRMask;
 use QRCode\QRrsItem;
 
