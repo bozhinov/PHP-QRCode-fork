@@ -31,42 +31,12 @@ class QRInput {
 		$this->QRStreams = new QRStreams($level);
 	}
 
-	private function estimateBitsModeNum($size)
-	{
-		$bits = (int)($size / 3) * 10;
-
-		switch($size - ($size % 3)) {
-			case 1:
-				$bits += 4;
-				break;
-			case 2:
-				$bits += 7;
-				break;
-			default:
-				break;
-		}
-
-		return $bits;
-	}
-
-	private function estimateBitsModeAn($size)
-	{
-		$bits = (int)($size / 2) * 11;
-
-		if($size & 1) {
-			$bits += 6;
-		}
-
-		return $bits;
-	}
-
 	private function isdigitat($pos)
 	{
 		if ($pos >= $this->dataStrLen){
 			return false;
 		}
-		$ord = $this->dataStr[$pos];
-		return ($ord >= 48 && $ord <= 57);
+		return ($this->dataStr[$pos] >= 48 && $this->dataStr[$pos] <= 57);
 	}
 
 	private function isalnumat($pos)
@@ -83,73 +53,50 @@ class QRInput {
 			return -1; // all int input
 		}
 
-		if($this->isdigitat($pos)) {
-			return QR_MODE_NUM;
-		} elseif($this->isalnumat($pos)) {
-			return QR_MODE_AN;
-		} elseif($this->hint == QR_MODE_KANJI) {
-			if ($pos+1 < $this->dataStrLen) {
-				$word = ($this->dataStr[$pos]) << 8 | $this->dataStr[$pos+1];
-				if(($word >= 33088 && $word <= 40956) || ($word >= 57408 && $word <= 60351)) {
-					return QR_MODE_KANJI;
+		switch (true){
+			case $this->isdigitat($pos):
+				return QR_MODE_NUM;
+			case $this->isalnumat($pos):
+				return QR_MODE_AN;
+			case ($this->hint == QR_MODE_KANJI):
+				if ($pos+1 < $this->dataStrLen) {
+					$word = ($this->dataStr[$pos]) << 8 | $this->dataStr[$pos+1];
+					if(($word >= 33088 && $word <= 40956) || ($word >= 57408 && $word <= 60351)) {
+						return QR_MODE_KANJI;
+					}
 				}
-			}
-		} else {
-			return QR_MODE_8;
 		}
+
+		return QR_MODE_8;
 	}
 
-	private function eatNum()
+	private function eatNum($p = 0)
 	{
-		$p = 0;
 		while($this->isdigitat($p)) {
 			$p++;
 		}
 		return $p;
 	}
 
-	private function eatAn()
+	private function eatAn($p = 0)
 	{
-		$p = 0;
-
 		while($this->isalnumat($p)) {
-			if($this->isdigitat($p)) {
-				$q = $p;
-				while($this->isdigitat($q)) {
-					$q++;
-				}
-
-				$dif = $this->estimateBitsModeAn($p)
-					 + $this->estimateBitsModeNum($q - $p) + 14
-					 - $this->estimateBitsModeAn($q);
-
-				if($dif < 0) {
-					break;
-				} else {
-					$p = $q;
-				}
-			} else {
-				$p++;
-			}
+			$p++;
 		}
-
 		return $p;
 	}
 
-	private function eatKanji()
+	private function eatKanji($p = 0)
 	{
-		$p = 0;
-
 		while($this->identifyMode($p) == QR_MODE_KANJI) {
 			$p += 2;
 		}
-
 		return $p;
 	}
 
 	private function eat8()
 	{
-		$p = 1;
+		$p = 0;
 
 		while($p < $this->dataStrLen) {
 
@@ -157,24 +104,16 @@ class QRInput {
 				case QR_MODE_KANJI:
 					break 2;
 				case QR_MODE_NUM:
-					$q = $p;
-					while($this->isdigitat($q)) {
-						$q++;
-					}
-					$dif = (8 * ($p - $q)) + $this->estimateBitsModeNum($q - $p) + 14;
-					if($dif < 0) {
+					$q = $this->eatNum($p);
+					if(($q - $p) > 3) {
 						break 2;
 					} else {
 						$p = $q;
 					}
 					break;
 				case QR_MODE_AN:
-					$q = $p;
-					while($this->isalnumat($q)) {
-						$q++;
-					}
-					$dif = (8 * ($p - $q)) + $this->estimateBitsModeAn($q - $p) + 13;
-					if($dif < 0) {
+					$q = $this->eatAn($p);
+					if(($q - $p) > 5) {
 						break 2;
 					} else {
 						$p = $q;
