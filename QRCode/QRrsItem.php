@@ -50,7 +50,20 @@ class QRrsItem {
 		$blockNo = 0;
 		$dataPos = 0;
 
-		$this->rsInit($el, 255 - $dl - $el);
+		$this->nroots = $spec[2];
+
+		// Check parameter ranges
+		if($this->nroots >= 256){
+			throw QRException::Std("Can't have more roots than symbol values!");
+		}
+
+		$this->pad = 255 - $dl - $el;
+
+		if($this->pad < 1){
+			throw QRException::Std('Too much padding');
+		}
+
+		$this->rsInit();
 
 		for($i = 0; $i < $spec[0]; $i++) { # rsBlockNum1
 
@@ -94,36 +107,15 @@ class QRrsItem {
 		return $ret;
 	}
 
-	private function modnn($x)
-	{
-		return ($x % 255);
-	}
-
-	private function rsInit(int $nroots, int $pad)
+	private function rsInit()
 	{
 		// Common code for intializing a Reed-Solomon control block (char or int symbols)
 		// Copyright 2004 Phil Karn, KA9Q
 		// May be used under the terms of the GNU Lesser General Public License (LGPL)
 
-		$gfpoly	= 0x11d;
-		$fcr = 0;
-		$prim = 1;
-
-		// Check parameter ranges
-		if($nroots < 0 || $nroots >= 256){
-			throw QRException::Std("Can't have more roots than symbol values!");
-		}
-		if($pad < 0 || $pad >= (255 - $nroots)){
-			throw QRException::Std('Too much padding');
-		}
-
-		$this->parity = array_fill(0, $nroots, 0);
+		$this->parity = array_fill(0, $this->nroots, 0);
 		$this->genpoly = $this->parity;
 		array_unshift($this->genpoly,1);
-
-		$this->nroots = $nroots;
-		$this->pad = $pad;
-
 		$this->alpha_to = array_fill(0, 256, 0);
 		$this->index_of = $this->alpha_to;
 
@@ -136,7 +128,7 @@ class QRrsItem {
 			$this->alpha_to[$i] = $sr;
 			$sr <<= 1;
 			if($sr & 256) {
-				$sr ^= $gfpoly;
+				$sr ^= 285; # gfpoly
 			}
 			$sr &= 255;
 		}
@@ -146,28 +138,26 @@ class QRrsItem {
 		}
 
 		/* Form RS code generator polynomial from its roots */
-		$root = $fcr * $prim;
-
-		for ($i = 0; $i < $nroots; $i++) {
+		$root = 0;
+		for ($i = 0; $i < $this->nroots; $i++) {
 
 			$this->genpoly[$i+1] = 1;
 
 			// Multiply rs->genpoly[] by  @**(root + x)
 			for ($j = $i; $j > 0; $j--) {
 				if ($this->genpoly[$j] != 0) {
-					$this->genpoly[$j] = $this->genpoly[$j-1] ^ $this->alpha_to[$this->modnn($this->index_of[$this->genpoly[$j]] + $root)];
+					$this->genpoly[$j] = $this->genpoly[$j-1] ^ $this->alpha_to[($this->index_of[$this->genpoly[$j]] + $root) % 255];
 				} else {
 					$this->genpoly[$j] = $this->genpoly[$j-1];
 				}
 			}
 			// rs->genpoly[0] can never be zero
-			$this->genpoly[0] = $this->alpha_to[$this->modnn($this->index_of[$this->genpoly[0]] + $root)];
-
-			$root += $prim;
+			$this->genpoly[0] = $this->alpha_to[($this->index_of[$this->genpoly[0]] + $root) % 255];
+			$root++;
 		}
 
 		// convert rs->genpoly[] to index form for quicker encoding
-		for ($i = 0; $i <= $nroots; $i++){
+		for ($i = 0; $i <= $this->nroots; $i++){
 			$this->genpoly[$i] = $this->index_of[$this->genpoly[$i]];
 		}
 	}
@@ -182,14 +172,14 @@ class QRrsItem {
 			if($feedback != 255) {
 				// feedback term is non-zero
 				for($j=1; $j < $this->nroots; $j++) {
-					$parity[$j] ^= $this->alpha_to[$this->modnn($feedback + $this->genpoly[$this->nroots-$j])];
+					$parity[$j] ^= $this->alpha_to[($feedback + $this->genpoly[$this->nroots-$j]) % 255];
 				}
 			}
 
 			// Shift 
 			array_shift($parity);
 			if($feedback != 255) {
-				array_push($parity, $this->alpha_to[$this->modnn($feedback + $this->genpoly[0])]);
+				array_push($parity, $this->alpha_to[($feedback + $this->genpoly[0]) % 255]);
 			} else {
 				array_push($parity, 0);
 			}
@@ -198,3 +188,5 @@ class QRrsItem {
 		return $parity;
 	}
 }
+
+?>
