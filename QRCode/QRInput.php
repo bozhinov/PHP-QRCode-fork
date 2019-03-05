@@ -21,7 +21,6 @@ class QRInput {
 	private $dataStrLen;
 	private $hint;
 	private $level;
-	private $capacity;
 	private $bstream = [];
 	private $lengthTableBits = [
 		[10, 12, 14],
@@ -42,7 +41,6 @@ class QRInput {
 	function __construct(int $level)
 	{
 		$this->level = $level;
-		$this->capacity = new QRCap();
 	}
 
 	private function lookAnTable($c)
@@ -161,12 +159,14 @@ class QRInput {
 		}
 	}
 
-	private function getMinimumVersion($bits)
+	private function getMinimumVersionWithDetails($bits)
 	{
+		$capacity = new QRCap();
 		$size = (int)(($bits + 7) / 8);
 		for($i=1; $i<= 40; $i++) { # QR_SPEC_VERSION_MAX = 40
-			if($this->capacity->getDataLength($i, $this->level) >= $size){
-				return $i;
+			$dataLength = $capacity->getDataLength($i, $this->level);
+			if($dataLength >= $size){
+				return [$i, $dataLength, $capacity->getWidth($i), $this->level];
 			}
 		}
 	}
@@ -209,17 +209,18 @@ class QRInput {
 		return $data;
 	}
 
-	private function getBytes()
+	private function getPackage()
 	{
 		$bits = $this->get_bstream_size();
-		$version = $this->getMinimumVersion($bits);
-
-		$maxwords = $this->capacity->getDataLength($version, $this->level);
+		$package = $this->getMinimumVersionWithDetails($bits);
+		
+		$maxwords = $package[1];
 		$maxbits = $maxwords * 8;
 
 		if ($maxbits - $bits < 5) {
 			$this->bstream[] = [$maxbits - $bits, 0];
-			return [$this->toByte(), $maxwords, $version];
+			$package[] = $this->toByte();
+			return $package;
 		}
 
 		$bits += 4;
@@ -235,11 +236,11 @@ class QRInput {
 				$this->bstream[] = [8, 17];
 			}
 		}
-
-		return [$this->toByte(), $maxwords, $version];
+		$package[] = $this->toByte();
+		return $package;
 	}
 
-	private function isdigitat($pos)
+	private function is_digit($pos)
 	{
 		if ($pos >= $this->dataStrLen){
 			return false;
@@ -247,7 +248,7 @@ class QRInput {
 		return ($this->dataStr[$pos] >= 48 && $this->dataStr[$pos] <= 57);
 	}
 
-	private function isalnumat($pos)
+	private function is_alnum($pos)
 	{
 		if ($pos >= $this->dataStrLen){
 			return false;
@@ -262,9 +263,9 @@ class QRInput {
 		}
 
 		switch (true){
-			case $this->isdigitat($pos):
+			case $this->is_digit($pos):
 				return QR_MODE_NUM;
-			case $this->isalnumat($pos):
+			case $this->is_alnum($pos):
 				return QR_MODE_AN;
 			case ($this->hint == QR_MODE_KANJI):
 				if ($pos+1 < $this->dataStrLen) {
@@ -280,7 +281,10 @@ class QRInput {
 
 	private function eatNum($p = 0)
 	{
-		while($this->isdigitat($p)) {
+		# the first pos was already identified
+		$p++;
+		
+		while($this->is_digit($p)) {
 			$p++;
 		}
 		return $p;
@@ -288,7 +292,9 @@ class QRInput {
 
 	private function eatAn($p = 0)
 	{
-		while($this->isalnumat($p)) {
+		$p++;
+		
+		while($this->is_alnum($p)) {
 			$p++;
 		}
 		return $p;
@@ -296,15 +302,17 @@ class QRInput {
 
 	private function eatKanji($p = 0)
 	{
+		$p += 2;
+		
 		while($this->identifyMode($p) == QR_MODE_KANJI) {
 			$p += 2;
 		}
 		return $p;
 	}
 
-	private function eat8()
+	private function eat8($p = 0)
 	{
-		$p = 0;
+		$p++;
 
 		while($p < $this->dataStrLen) {
 
@@ -381,9 +389,8 @@ class QRInput {
 			}
 		}
 
-		list($dataCode, $dataLength, $version) = $this->getBytes();
-
-		return (new QRmask($dataCode, $dataLength, $this->capacity->getWidth($version), $this->level, $version))->get();
+		$package = $this->getPackage();
+		return (new QRmask($package))->get();
 	}
 }
 

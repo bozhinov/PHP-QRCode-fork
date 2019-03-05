@@ -26,7 +26,6 @@ class QRFrame {
 	private $dir;
 	private $bit;
 	private $new_frame;
-	private $capacity;
 
 	// Error correction code
 	// Table of the error correction code (Reed-Solomon block)
@@ -107,8 +106,6 @@ class QRFrame {
 
 	function __construct(int $version, int $width, int $level)
 	{
-		$this->capacity = new QRCap();
-
 		$this->version = $version;
 		$this->level = $level;
 		$this->width = $width;
@@ -122,8 +119,10 @@ class QRFrame {
 
 	public function getFrame($dataCode, $data)
 	{
+		$capacity = new QRCap();
+		
 		list($b1,$b2) = $this->eccTable[$this->version][$this->level];
-		$ecc  = $this->capacity->getEC($this->version, $this->level);
+		$ecc  = $capacity->getEC($this->version, $this->level);
 
 		if($b2 == 0) {
 			$spec = [$b1, floor($data / $b1), floor($ecc / $b1), 0, 0];
@@ -134,11 +133,11 @@ class QRFrame {
 		$dataLength = ($spec[0] * $spec[1]) + ($spec[3] * $spec[4]);
 		$eccLength = ($spec[0] + $spec[3]) * $spec[2];
 
-		$raw = new QRrsItem($dataCode, $dataLength, $eccLength, $spec);
+		$ReedSolomon = new QRrsItem($dataCode, $dataLength, $eccLength, $spec);
 
 		// inteleaved data and ecc codes
 		for($i=0; $i < ($dataLength + $eccLength); $i++) {
-			$code = $raw->getCode();
+			$code = $ReedSolomon->getCode();
 			$bit = 128;
 			for($j=0; $j<8; $j++) {
 				$this->setNext(2 | (($bit & $code) != 0));
@@ -146,10 +145,8 @@ class QRFrame {
 			}
 		}
 
-		unset($raw);
-
 		// remainder bits
-		$j = $this->capacity->getReminder($this->version);
+		$j = $capacity->getReminder($this->version);
 		for($i=0; $i<$j; $i++) {
 			$this->setNext(2);
 		}
