@@ -30,10 +30,24 @@ class QRInput {
 		[8, 10, 12]
 	];
 
+	private $anTable = [
+		-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+		-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+		36, -1, -1, -1, 37, 38, -1, -1, -1, -1, 39, 40, -1, 41, 42, 43,
+		 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 44, -1, -1, -1, -1, -1,
+		-1, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
+		25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35
+	];
+
 	function __construct(int $level)
 	{
 		$this->level = $level;
 		$this->tools = new QRTools();
+	}
+
+	private function lookAnTable($c)
+	{
+		return (($c > 90) ? -1 : $this->anTable[$c]);
 	}
 
 	private function encodeModeNum($size, $data)
@@ -68,12 +82,12 @@ class QRInput {
 		$this->bstream[] = [$this->lengthTableBits[QR_MODE_AN][0], $size];
 
 		for($i=0; $i<$words; $i++) {
-			$val = ($this->tools->lookAnTable($data[$i*2]) * 45) + $this->tools->lookAnTable($data[$i*2+1]);
+			$val = ($this->lookAnTable($data[$i*2]) * 45) + $this->lookAnTable($data[$i*2+1]);
 			$this->bstream[] = [11, $val];
 		}
 
 		if($size & 1) {
-			$val = $this->tools->lookAnTable($data[$words * 2]);
+			$val = $this->lookAnTable($data[$words * 2]);
 			$this->bstream[] = [6, $val];
 		}
 	}
@@ -238,7 +252,7 @@ class QRInput {
 		if ($pos >= $this->dataStrLen){
 			return false;
 		}
-		return ($this->tools->lookAnTable($this->dataStr[$pos]) >= 0);
+		return ($this->lookAnTable($this->dataStr[$pos]) >= 0);
 	}
 
 	private function identifyMode($pos)
