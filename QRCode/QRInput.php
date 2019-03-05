@@ -268,6 +268,7 @@ class QRInput {
 			case $this->is_alnum($pos):
 				return QR_MODE_AN;
 			case ($this->hint == QR_MODE_KANJI):
+				# Kanji is not auto detected unless hinted but otherwise it breaks bulgarian chars and possibly others
 				if ($pos+1 < $this->dataStrLen) {
 					$word = ($this->dataStr[$pos]) << 8 | $this->dataStr[$pos+1];
 					if(($word >= 33088 && $word <= 40956) || ($word >= 57408 && $word <= 60351)) {
