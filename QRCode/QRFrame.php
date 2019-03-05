@@ -20,7 +20,6 @@ class QRFrame {
 	private $width;
 	private $frame;
 	private $version;
-	private $level;
 	private $x;
 	private $y;
 	private $dir;
@@ -104,30 +103,26 @@ class QRFrame {
 		0x27541, 0x28c69
 	];
 
-	function __construct(int $version, int $width, int $level)
+	public function getFrame($package)
 	{
-		$this->version = $version;
-		$this->level = $level;
-		$this->width = $width;
+		list($this->version, $dataLength, $this->width, $level, $dataCode) = $package;
+
 		$this->frame = $this->createFrame();
 
 		$this->x = $this->width - 1;
 		$this->y = $this->width - 1;
 		$this->dir = -1;
 		$this->bit = -1;
-	}
 
-	public function getFrame($dataCode, $data)
-	{
 		$capacity = new QRCap();
-		
-		list($b1,$b2) = $this->eccTable[$this->version][$this->level];
-		$ecc  = $capacity->getEC($this->version, $this->level);
+
+		list($b1,$b2) = $this->eccTable[$this->version][$level];
+		$ecc  = $capacity->getEC($this->version, $level);
 
 		if($b2 == 0) {
-			$spec = [$b1, floor($data / $b1), floor($ecc / $b1), 0, 0];
+			$spec = [$b1, floor($dataLength / $b1), floor($ecc / $b1), 0, 0];
 		} else {
-			$spec = [$b1, floor($data / ($b1 + $b2)), floor($ecc / ($b1 + $b2)), $b2, 1];
+			$spec = [$b1, floor($dataLength / ($b1 + $b2)), floor($ecc / ($b1 + $b2)), $b2, 1];
 		}
 
 		$dataLength = ($spec[0] * $spec[1]) + ($spec[3] * $spec[4]);
