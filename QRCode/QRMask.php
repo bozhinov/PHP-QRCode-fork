@@ -23,11 +23,6 @@ class QRmask {
 	private $frame;
 	private $masked;
 
-	private $N1 = 3;
-	private $N2 = 3;
-	private $N3 = 40;
-	private $N4 = 10;
-
 	// See calcFormatInfo in tests/test_qrspec.c (orginal qrencode c lib)
 	private $formatInfo = [
 		[0x77c4, 0x72f3, 0x7daa, 0x789d, 0x662f, 0x6318, 0x6c41, 0x6976],
@@ -136,27 +131,32 @@ class QRmask {
 		return (int)(100 * $blacks / ($this->width * $this->width));
 	}
 
+	// ~500 calls per image
 	private function calcN1N3($length)
 	{
 		$demerit = 0;
 
 		for($i=0; $i<$length; $i++) {
-
 			if($this->runLength[$i] >= 5) {
-				$demerit += ($this->N1 + ($this->runLength[$i] - 5));
+				$demerit += ($this->runLength[$i] - 2); # $this->N1 = 3 + ($this->runLength[$i] - 5)
 			}
-			if($i & 1) {
-				if(($i >= 3) && ($i < ($length-2)) && ($this->runLength[$i] % 3 == 0)) {
-					$fact = (int)($this->runLength[$i] / 3);
-					if(($this->runLength[$i-2] == $fact) &&
-					   ($this->runLength[$i-1] == $fact) &&
-					   ($this->runLength[$i+1] == $fact) &&
-					   ($this->runLength[$i+2] == $fact)) {
-						if(($this->runLength[$i-3] < 0) || ($this->runLength[$i-3] >= (4 * $fact))) {
-							$demerit += $this->N3;
-						} elseif((($i+3) >= $length) || ($this->runLength[$i+3] >= (4 * $fact))) {
-							$demerit += $this->N3;
-						}
+		}
+
+		for($i=3; $i<($length-2); $i+=2) {
+			if($this->runLength[$i] % 3 == 0) {
+				$fact = $this->runLength[$i] / 3;
+				if(($this->runLength[$i-2] == $fact) &&
+				   ($this->runLength[$i-1] == $fact) &&
+				   ($this->runLength[$i+1] == $fact) &&
+				   ($this->runLength[$i+2] == $fact)
+				) {
+					if(
+						($this->runLength[$i-3] < 0) ||
+						($this->runLength[$i-3] >= (4 * $fact)) ||
+						(($i+3) >= $length) ||
+						($this->runLength[$i+3] >= (4 * $fact))
+					) {
+						$demerit += 40; # $this->N3 = 40
 					}
 				}
 			}
@@ -190,7 +190,7 @@ class QRmask {
 					$b22 = $frameY[$x] & $frameY[$x-1] & $frameYM[$x] & $frameYM[$x-1];
 					$w22 = $frameY[$x] | $frameY[$x-1] | $frameYM[$x] | $frameYM[$x-1];
 					if(($b22 | ($w22 ^ 1))&1) {
-						$demerit += $this->N2;
+						$demerit += 3; # $this->N2 = 3
 					}
 				}
 
@@ -215,14 +215,12 @@ class QRmask {
 				$this->runLength[$head] = 1;
 			}
 
-			for($y=0; $y<$this->width; $y++) {
-				if ($y > 0) {
-					if(($this->masked[$y][$x] ^ $this->masked[$y-1][$x]) & 1) {
-						$head++;
-						$this->runLength[$head] = 1;
-					} else {
-						$this->runLength[$head]++;
-					}
+			for($y=1; $y<$this->width; $y++) {
+				if(($this->masked[$y][$x] ^ $this->masked[$y-1][$x]) & 1) {
+					$head++;
+					$this->runLength[$head] = 1;
+				} else {
+					$this->runLength[$head]++;
 				}
 			}
 
@@ -242,7 +240,7 @@ class QRmask {
 
 			$blacks = $this->makeMaskNo($i);
 
-			$demerit = (int)(abs($blacks - 50) / 5) * $this->N4 + $this->evaluateSymbol();
+			$demerit = (int)(abs($blacks - 50) / 5) * 10 + $this->evaluateSymbol(); # $this->N4 = 10
 
 			if($demerit < $minDemerit) {
 				$minDemerit = $demerit;
