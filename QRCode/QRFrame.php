@@ -158,50 +158,44 @@ class QRFrame {
 				return;
 			}
 
-			$x = $this->x;
-			$y = $this->y;
-
 			if($this->bit == 0) {
-				$x--;
+				$this->x--;
 				$this->bit++;
 			} else {
-				$x++;
-				$y += $this->dir;
+				$this->x++;
+				$this->y += $this->dir;
 				$this->bit--;
 			}
 
 			if($this->dir < 0) {
-				if($y < 0) {
-					$y = 0;
-					$x -= 2;
+				if($this->y < 0) {
+					$this->y = 0;
+					$this->x -= 2;
 					$this->dir = 1;
-					if($x == 6) {
-						$x--;
-						$y = 9;
+					if($this->x == 6) {
+						$this->x--;
+						$this->y = 9;
 					}
 				}
 			} else {
-				if($y == $this->width) {
-					$y = $this->width - 1;
-					$x -= 2;
+				if($this->y == $this->width) {
+					$this->y--;
+					$this->x -= 2;
 					$this->dir = -1;
-					if($x == 6) {
-						$x--;
-						$y -= 8;
+					if($this->x == 6) {
+						$this->x--;
+						$this->y -= 8;
 					}
 				}
 			}
-			if($x < 0 || $y < 0){
+
+			if($this->x < 0 || $this->y < 0){
 				throw QRException::Std('Invalid dimentions');
 			}
 
-			$this->x = $x;
-			$this->y = $y;
+		} while($this->frame[$this->y][$this->x] != 0);
 
-		} while(($this->frame[$y][$x]) & 128);
-
-		$this->frame[$y][$x] = $val;
-		return;
+		$this->frame[$this->y][$this->x] = $val;
 	}
 
 	/** 

@@ -116,15 +116,11 @@ class QRrsItem {
 		$this->parity = array_fill(0, $this->nroots, 0);
 		$this->genpoly = $this->parity;
 		array_unshift($this->genpoly,1);
-		$this->alpha_to = array_fill(0, 256, 0);
-		$this->index_of = $this->alpha_to;
+		$this->alpha_to = [];
 
 		// Generate Galois field lookup tables
-		$this->index_of[0] = 255; // log(zero) = -inf
 		$sr = 1;
-
 		for($i = 0; $i < 255; $i++) {
-			$this->index_of[$sr] = $i;
 			$this->alpha_to[$i] = $sr;
 			$sr <<= 1;
 			if($sr & 256) {
@@ -133,6 +129,10 @@ class QRrsItem {
 			$sr &= 255;
 		}
 
+		$this->alpha_to[] = 0;
+		$this->index_of = array_flip($this->alpha_to);
+		$this->index_of[0] = 255; // log(zero) = -inf
+		
 		if($sr != 1){
 			throw QRException::Std('field generator polynomial is not primitive!');
 		}
@@ -179,9 +179,9 @@ class QRrsItem {
 			// Shift 
 			array_shift($parity);
 			if($feedback != 255) {
-				array_push($parity, $this->alpha_to[($feedback + $this->genpoly[0]) % 255]);
+				$parity[] = $this->alpha_to[($feedback + $this->genpoly[0]) % 255];
 			} else {
-				array_push($parity, 0);
+				$parity[] = 0;
 			}
 		}
 
