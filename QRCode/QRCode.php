@@ -37,8 +37,10 @@ define('QR_ECLEVEL_H', 3);
 class QRcode {
 
 	private $size;
+	private $h;
 	private $margin;
 	private $level;
+	private $target_image;
 	private $encoded = [];
 
 	function __construct(int $level = 0, int $size = 3, int $margin = 4)
@@ -52,18 +54,24 @@ class QRcode {
 		}
 	}
 
-	private function createImage($filename, $type, $quality = 90)
+	function __destruct()
+	{
+		if (is_resource($this->target_image)){
+			imageDestroy($this->target_image);
+		}
+	}
+
+	private function createImage()
 	{
 		$h = count($this->encoded);
 		$imgH = $h + 2 * $this->margin;
-		$pixelPerPoint = min($this->size, $imgH);
 
 		$base_image = imageCreate($imgH, $imgH);
 
 		$white = imageColorAllocate($base_image,255,255,255);
 		$black = imageColorAllocate($base_image,0,0,0);
 
-		imagefill($base_image, 0, 0, $white);
+		imageFill($base_image, 0, 0, $white);
 
 		for($y=0; $y<$h; $y++) {
 			for($x=0; $x<$h; $x++) {
@@ -73,27 +81,50 @@ class QRcode {
 			}
 		}
 
-		$target_image = imageCreate($imgH * $pixelPerPoint, $imgH * $pixelPerPoint);
-		imageCopyResized($target_image, $base_image, 0, 0, 0, 0, $imgH * $pixelPerPoint, $imgH * $pixelPerPoint, $imgH, $imgH);
+		$pixelPerPoint = min($this->size, $imgH);
+		$target_h = $imgH * $pixelPerPoint;
+		$this->h = $target_h;
+		$this->target_image = imageCreate($target_h, $target_h);
+
+		imageCopyResized($this->target_image, $base_image, 0, 0, 0, 0, $target_h, $target_h, $imgH, $imgH);
 		imageDestroy($base_image);
+	}
 
-		if ((php_sapi_name() == "cli") || ($filename != false)) {
-			if ($type == "PNG"){
-				imagePng($target_image, $filename);
-			} elseif ($type == "JPG"){
-				imageJpeg($target_image, $filename, $quality);
-			}
-		} else {
-			if ($type == "PNG"){
-				header("Content-type: image/png");
-				imagePng($target_image);
-			} elseif ($type == "JPG"){
-				header("Content-type: image/jpeg");
-				imageJpeg($target_image, null, $quality);
-			}
+	private function toPNG($filename)
+	{
+		if(is_null($filename)) {
+			header("Content-type: image/png");
 		}
+		imagePng($this->target_image, $filename);
+	}
 
-		imageDestroy($target_image);
+	private function toJPG($filename, $quality)
+	{
+		if(is_null($filename)) {
+			header("Content-type: image/jpeg");
+		}
+		imageJpeg($this->target_image, $filename, $quality);
+	}
+
+	private function toSVG($filename)
+	{
+		ob_start();
+		imagePng($this->target_image);
+		$imagedata = ob_get_contents();
+		ob_end_clean();
+		
+		$content = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="'.$this->h.'px" height="'.$this->h.'px" viewBox="0 0 '.$this->h.' '.$this->h.'" enable-background="new 0 0 '.$this->h.' '.$this->h.'" xml:space="preserve">
+<image id="image0" width="'.$this->h.'" height="'.$this->h.'" x="0" y="0" href="data:image/png;base64,'.base64_encode($imagedata).'" />
+</svg>';
+
+		if(is_null($filename)) {
+			header("Content-type: image/svg+xml");
+			echo $content;
+		} else {
+			file_put_contents($filename, $content);
+		}
 	}
 
 	public function config(array $opts)
@@ -147,25 +178,34 @@ class QRcode {
 		$this->encoded = $encoded;
 	}
 
-	public function toFile(string $filename, int $quality = 90)
+	public function toFile(string $filename, int $quality = 90, bool $forWeb = false)
 	{
 		$ext = strtoupper(substr($filename, -3));
-		if (($ext == "JPG") || ($ext == "PNG")) {
-			$this->createImage($filename, $ext, $quality);
-		} else {
-			throw QRException::Std('file extension unsupported!');
+		($forWeb) AND $filename = null;
+		
+		$this->createImage();
+
+		switch($ext)
+		{
+			case "PNG":
+				$this->toPNG($filename);
+				break;
+			case "JPG":
+				$this->toJPG($filename, $quality);
+				break;
+			case "SVG":
+				$this->toSVG($filename);
+				break;
+			default:
+				throw QRException::Std('file extension unsupported!');
 		}
 	}
 
 	public function forWeb(string $ext, int $quality = 90)
 	{
-		$ext = strtoupper($ext);
-		if (($ext == "JPG") || ($ext == "PNG")) {
-			$this->createImage(false, $ext, $quality);
-		} else {
-			throw QRException::Std('file type unsupported!');
-		}
+		$this->toFile($ext, $quality, true);
 	}
+
 }
 
 ?>

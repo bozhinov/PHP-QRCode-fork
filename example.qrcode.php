@@ -35,10 +35,12 @@ Load a matrix:
 $QRCode->fromArray($matix);
 
 $QRCode->toFile("example.QRcode.png");
+$QRCode->toFile("example.QRcode.svg");
 $QRCode->toFile("example.QRcode.jpg");
 
 Add HTTP headers:
 $QRCode->forWeb("PNG");
+$QRCode->forWeb("SVG");
 $QRCode->forWeb("JPG", $quality = 90);
 
 */
