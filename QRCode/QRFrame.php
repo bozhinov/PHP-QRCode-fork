@@ -25,10 +25,8 @@ class QRFrame {
 	private $y;
 	private $dir;
 	private $bit;
-
-	// those two came from the QRSpec class
 	private $new_frame;
-	private $tools;
+	private $capacity;
 
 	// Error correction code
 	// Table of the error correction code (Reed-Solomon block)
@@ -109,7 +107,7 @@ class QRFrame {
 
 	function __construct(int $version, int $width, int $level)
 	{
-		$this->tools = new QRTools();
+		$this->capacity = new QRCap();
 
 		$this->version = $version;
 		$this->level = $level;
@@ -125,7 +123,7 @@ class QRFrame {
 	public function getFrame($dataCode, $data)
 	{
 		list($b1,$b2) = $this->eccTable[$this->version][$this->level];
-		$ecc  = $this->tools->getEC($this->version, $this->level);
+		$ecc  = $this->capacity->getEC($this->version, $this->level);
 
 		if($b2 == 0) {
 			$spec = [$b1, floor($data / $b1), floor($ecc / $b1), 0, 0];
@@ -151,7 +149,7 @@ class QRFrame {
 		unset($raw);
 
 		// remainder bits
-		$j = $this->tools->getReminder($this->version);
+		$j = $this->capacity->getReminder($this->version);
 		for($i=0; $i<$j; $i++) {
 			$this->setNext(2);
 		}

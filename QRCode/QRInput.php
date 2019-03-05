@@ -21,7 +21,7 @@ class QRInput {
 	private $dataStrLen;
 	private $hint;
 	private $level;
-	private $tools;
+	private $capacity;
 	private $bstream = [];
 	private $lengthTableBits = [
 		[10, 12, 14],
@@ -42,7 +42,7 @@ class QRInput {
 	function __construct(int $level)
 	{
 		$this->level = $level;
-		$this->tools = new QRTools();
+		$this->capacity = new QRCap();
 	}
 
 	private function lookAnTable($c)
@@ -165,7 +165,7 @@ class QRInput {
 	{
 		$size = (int)(($bits + 7) / 8);
 		for($i=1; $i<= 40; $i++) { # QR_SPEC_VERSION_MAX = 40
-			if($this->tools->getDataLength($i, $this->level) >= $size){
+			if($this->capacity->getDataLength($i, $this->level) >= $size){
 				return $i;
 			}
 		}
@@ -214,7 +214,7 @@ class QRInput {
 		$bits = $this->get_bstream_size();
 		$version = $this->getMinimumVersion($bits);
 
-		$maxwords = $this->tools->getDataLength($version, $this->level);
+		$maxwords = $this->capacity->getDataLength($version, $this->level);
 		$maxbits = $maxwords * 8;
 
 		if ($maxbits - $bits < 5) {
@@ -383,7 +383,7 @@ class QRInput {
 
 		list($dataCode, $dataLength, $version) = $this->getBytes();
 
-		return (new QRmask($dataCode, $dataLength, $this->tools->getWidth($version), $this->level, $version))->get();
+		return (new QRmask($dataCode, $dataLength, $this->capacity->getWidth($version), $this->level, $version))->get();
 	}
 }
 

@@ -15,7 +15,7 @@
 
 namespace QRCode;
 
-class QRTools {
+class QRCap {
 
 	private $capacity = [
 		[0, 0, 0, [0, 0, 0, 0]],
