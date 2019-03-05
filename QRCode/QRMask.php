@@ -31,12 +31,12 @@ class QRmask {
 		[0x1689, 0x13be, 0x1ce7, 0x19d0, 0x0762, 0x0255, 0x0d0c, 0x083b]
 	];
 
-	function __construct(array $dataCode, int $width, int $level, int $version)
+	function __construct(array $dataCode, int $dataLength, int $width, int $level, int $version)
 	{
 		$this->runLength = array_fill(0, QR_SPEC_WIDTH_MAX + 1, 0);
 		$this->width = $width;
 		$this->level = $level;
-		$this->frame = (new QRFrame($version, $width, $this->level))->getFrame($dataCode);
+		$this->frame = (new QRFrame($version, $width, $this->level))->getFrame($dataCode, $dataLength);
 	}
 
 	private function writeFormatInformation($maskNo)

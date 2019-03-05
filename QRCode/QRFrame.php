@@ -126,9 +126,16 @@ class QRFrame {
 		$this->bit = -1;
 	}
 
-	public function getFrame($dataCode)
+	public function getFrame($dataCode, $data)
 	{
-		$spec = $this->getEccSpec();
+		list($b1,$b2) = $this->eccTable[$this->version][$this->level];
+		$ecc  = $this->tools->getEC($this->version, $this->level);
+
+		if($b2 == 0) {
+			$spec = [$b1, floor($data / $b1), floor($ecc / $b1), 0, 0];
+		} else {
+			$spec = [$b1, floor($data / ($b1 + $b2)), floor($ecc / ($b1 + $b2)), $b2, 1];
+		}
 
 		$dataLength = ($spec[0] * $spec[1]) + ($spec[3] * $spec[4]);
 		$eccLength = ($spec[0] + $spec[3]) * $spec[2];
@@ -154,21 +161,6 @@ class QRFrame {
 		}
 
 		return $this->frame;
-	}
-
-	private function getEccSpec()
-	{
-		list($b1,$b2) = $this->eccTable[$this->version][$this->level];
-		$data = $this->tools->getDataLength($this->version, $this->level);
-		$ecc  = $this->tools->getEC($this->version, $this->level);
-
-		if($b2 == 0) {
-			$spec = [$b1, floor($data / $b1), floor($ecc / $b1), 0, 0];
-		} else {
-			$spec = [$b1, floor($data / ($b1 + $b2)), floor($ecc / ($b1 + $b2)), $b2, 1];
-		}
-
-		return $spec;
 	}
 
 	private function setNext($val)

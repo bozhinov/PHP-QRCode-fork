@@ -219,7 +219,7 @@ class QRInput {
 
 		if ($maxbits - $bits < 5) {
 			$this->bstream[] = [$maxbits - $bits, 0];
-			return [$this->toByte(), $version];
+			return [$this->toByte(), $maxwords, $version];
 		}
 
 		$bits += 4;
@@ -236,7 +236,7 @@ class QRInput {
 			}
 		}
 
-		return [$this->toByte(), $version];
+		return [$this->toByte(), $maxwords, $version];
 	}
 
 	private function isdigitat($pos)
@@ -381,9 +381,9 @@ class QRInput {
 			}
 		}
 
-		list($bstream, $version) = $this->getBytes();
+		list($dataCode, $dataLength, $version) = $this->getBytes();
 
-		return (new QRmask($bstream, $this->tools->getWidth($version), $this->level, $version))->get();
+		return (new QRmask($dataCode, $dataLength, $this->tools->getWidth($version), $this->level, $version))->get();
 	}
 }
 
