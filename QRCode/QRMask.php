@@ -138,7 +138,7 @@ class QRmask {
 
 		for($i=0; $i<$length; $i++) {
 			if($this->runLength[$i] >= 5) {
-				$demerit += ($this->runLength[$i] - 2); # $this->N1 = 3 + ($this->runLength[$i] - 5)
+				$demerit += ($this->runLength[$i] - 2);
 			}
 		}
 
@@ -156,7 +156,7 @@ class QRmask {
 						(($i+3) >= $length) ||
 						($this->runLength[$i+3] >= (4 * $fact))
 					) {
-						$demerit += 40; # $this->N3 = 40
+						$demerit += 40;
 					}
 				}
 			}
@@ -190,7 +190,7 @@ class QRmask {
 					$b22 = $frameY[$x] & $frameY[$x-1] & $frameYM[$x] & $frameYM[$x-1];
 					$w22 = $frameY[$x] | $frameY[$x-1] | $frameYM[$x] | $frameYM[$x-1];
 					if(($b22 | ($w22 ^ 1))&1) {
-						$demerit += 3; # $this->N2 = 3
+						$demerit += 3;
 					}
 				}
 
@@ -240,7 +240,7 @@ class QRmask {
 
 			$blacks = $this->makeMaskNo($i);
 
-			$demerit = (int)(abs($blacks - 50) / 5) * 10 + $this->evaluateSymbol(); # $this->N4 = 10
+			$demerit = (int)(abs($blacks - 50)) * 2 + $this->evaluateSymbol();
 
 			if($demerit < $minDemerit) {
 				$minDemerit = $demerit;
