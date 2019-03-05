@@ -84,8 +84,8 @@ class QRcode {
 		$pixelPerPoint = min($this->size, $imgH);
 		$target_h = $imgH * $pixelPerPoint;
 		$this->h = $target_h;
-		$this->target_image = imageCreate($target_h, $target_h);
 
+		$this->target_image = imageCreate($target_h, $target_h);
 		imageCopyResized($this->target_image, $base_image, 0, 0, 0, 0, $target_h, $target_h, $imgH, $imgH);
 		imageDestroy($base_image);
 	}
@@ -112,7 +112,7 @@ class QRcode {
 		imagePng($this->target_image);
 		$imagedata = ob_get_contents();
 		ob_end_clean();
-		
+
 		$content = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="'.$this->h.'px" height="'.$this->h.'px" viewBox="0 0 '.$this->h.' '.$this->h.'" enable-background="new 0 0 '.$this->h.' '.$this->h.'" xml:space="preserve">
@@ -182,7 +182,7 @@ class QRcode {
 	{
 		$ext = strtoupper(substr($filename, -3));
 		($forWeb) AND $filename = null;
-		
+
 		$this->createImage();
 
 		switch($ext)
