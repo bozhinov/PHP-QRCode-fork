@@ -164,7 +164,7 @@ class QRInput {
 	private function getMinimumVersion($bits)
 	{
 		$size = (int)(($bits + 7) / 8);
-		for($i=1; $i<= QR_SPEC_VERSION_MAX; $i++) {
+		for($i=1; $i<= 40; $i++) { # QR_SPEC_VERSION_MAX = 40
 			if($this->tools->getDataLength($i, $this->level) >= $size){
 				return $i;
 			}

@@ -22,12 +22,6 @@ use QRCode\QRInput;
 use QRCode\QRMask;
 use QRCode\QRrsItem;
 
-// QRMask
-define('QR_N1', 3);
-define('QR_N2', 3);
-define('QR_N3', 40);
-define('QR_N4', 10);
-
 // Encoding modes
 define('QR_MODE_NUM', 0);
 define('QR_MODE_AN', 1);
@@ -40,13 +34,6 @@ define('QR_ECLEVEL_M', 1);
 define('QR_ECLEVEL_Q', 2);
 define('QR_ECLEVEL_H', 3);
 
-define('QR_SPEC_VERSION_MAX', 40);
-define('QR_SPEC_WIDTH_MAX', 177);
-define('QR_CAP_WIDTH', 0);
-define('QR_CAP_WORDS', 1);
-define('QR_CAP_REMINDER', 2);
-define('QR_CAP_EC', 3);
-
 class QRcode {
 
 	private $size;
@@ -54,7 +41,7 @@ class QRcode {
 	private $level;
 	private $encoded = [];
 
-	function __construct(int $level = QR_ECLEVEL_L, int $size = 3, int $margin = 4)
+	function __construct(int $level = 0, int $size = 3, int $margin = 4)
 	{
 		$this->size = $size;
 		$this->level = $level;

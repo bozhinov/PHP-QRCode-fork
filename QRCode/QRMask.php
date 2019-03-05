@@ -23,6 +23,11 @@ class QRmask {
 	private $frame;
 	private $masked;
 
+	private $N1 = 3;
+	private $N2 = 3;
+	private $N3 = 40;
+	private $N4 = 10;
+
 	// See calcFormatInfo in tests/test_qrspec.c (orginal qrencode c lib)
 	private $formatInfo = [
 		[0x77c4, 0x72f3, 0x7daa, 0x789d, 0x662f, 0x6318, 0x6c41, 0x6976],
@@ -33,7 +38,7 @@ class QRmask {
 
 	function __construct(array $dataCode, int $dataLength, int $width, int $level, int $version)
 	{
-		$this->runLength = array_fill(0, QR_SPEC_WIDTH_MAX + 1, 0);
+		$this->runLength = array_fill(0, 178, 0); # QR_SPEC_WIDTH_MAX = 177
 		$this->width = $width;
 		$this->level = $level;
 		$this->frame = (new QRFrame($version, $width, $this->level))->getFrame($dataCode, $dataLength);
@@ -138,7 +143,7 @@ class QRmask {
 		for($i=0; $i<$length; $i++) {
 
 			if($this->runLength[$i] >= 5) {
-				$demerit += (QR_N1 + ($this->runLength[$i] - 5));
+				$demerit += ($this->N1 + ($this->runLength[$i] - 5));
 			}
 			if($i & 1) {
 				if(($i >= 3) && ($i < ($length-2)) && ($this->runLength[$i] % 3 == 0)) {
@@ -148,9 +153,9 @@ class QRmask {
 					   ($this->runLength[$i+1] == $fact) &&
 					   ($this->runLength[$i+2] == $fact)) {
 						if(($this->runLength[$i-3] < 0) || ($this->runLength[$i-3] >= (4 * $fact))) {
-							$demerit += QR_N3;
+							$demerit += $this->N3;
 						} elseif((($i+3) >= $length) || ($this->runLength[$i+3] >= (4 * $fact))) {
-							$demerit += QR_N3;
+							$demerit += $this->N3;
 						}
 					}
 				}
@@ -185,7 +190,7 @@ class QRmask {
 					$b22 = $frameY[$x] & $frameY[$x-1] & $frameYM[$x] & $frameYM[$x-1];
 					$w22 = $frameY[$x] | $frameY[$x-1] | $frameYM[$x] | $frameYM[$x-1];
 					if(($b22 | ($w22 ^ 1))&1) {
-						$demerit += QR_N2;
+						$demerit += $this->N2;
 					}
 				}
 
@@ -237,7 +242,7 @@ class QRmask {
 
 			$blacks = $this->makeMaskNo($i);
 
-			$demerit = (int)(abs($blacks - 50) / 5) * QR_N4 + $this->evaluateSymbol();
+			$demerit = (int)(abs($blacks - 50) / 5) * $this->N4 + $this->evaluateSymbol();
 
 			if($demerit < $minDemerit) {
 				$minDemerit = $demerit;

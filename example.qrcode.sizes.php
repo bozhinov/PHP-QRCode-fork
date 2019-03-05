@@ -21,7 +21,7 @@ $starttime = $mtime[1] + $mtime[0];
 
 /* Reference
 
-ERROR_CORRECTION_LEVEL - Reed–Solomon error correction
+ERROR_CORRECTION_LEVEL - Reed-Solomon error correction
 # https://en.wikipedia.org/wiki/QR_code
 
 MAX_POINT_SIZE - max module size
@@ -77,7 +77,7 @@ QR_ECLEVEL_H, 10,1 = 350 px
 
 */
 
-$string = 'http://www.test.bg/фффф';
+$string = 'http://www.test.bg/';
 
 $QRCode = new QRcode(QR_ECLEVEL_H, 1, 1);
 $Q = QR_ECLEVEL_H;

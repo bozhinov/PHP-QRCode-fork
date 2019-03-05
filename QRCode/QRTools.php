@@ -63,22 +63,22 @@ class QRTools {
 
 	public function getWidth($version)
 	{
-		return $this->capacity[$version][QR_CAP_WIDTH];
+		return $this->capacity[$version][0]; # QR_CAP_WIDTH = 0
 	}
 
 	public function getReminder($version)
 	{
-		return $this->capacity[$version][QR_CAP_REMINDER];
+		return $this->capacity[$version][2]; # QR_CAP_REMINDER = 2
 	}
 
 	public function getEC($version, $level)
 	{
-		return $this->capacity[$version][QR_CAP_EC][$level];
+		return $this->capacity[$version][3][$level]; # QR_CAP_EC = 3
 	}
 
 	public function getDataLength($version, $level)
 	{
-		return $this->capacity[$version][QR_CAP_WORDS] - $this->capacity[$version][QR_CAP_EC][$level];
+		return $this->capacity[$version][1] - $this->capacity[$version][3][$level]; # QR_CAP_WORDS = 1
 	}
 }
 
