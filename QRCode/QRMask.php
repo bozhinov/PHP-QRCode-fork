@@ -234,7 +234,7 @@ class QRmask {
 	{
 		$minDemerit = PHP_INT_MAX;
 
-		foreach([0,1,2,3,4,5,6,7] as $i) {
+		foreach(array_rand([0,1,2,3,4,5,6,7], 2) as $i) {
 
 			$this->masked = $this->frame;
 
