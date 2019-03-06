@@ -10,6 +10,6 @@ By Dominik Dzienia<br />
 
 I was looking for a QR implementation for the pChart fork and came across this one.
 
-My code is 20% (~50kb) the size of the original one and was built for speed.<br />
+My code is 30% (~35kb) the size of the original one and was built for speed.<br />
 This is not a drop in replacement.<br />
 490x490px image with all 8 masks takes ~26 miliseconds on my machine which is 10x faster than the Chillerlan's implementation.
