@@ -62,7 +62,7 @@ class QRrsItem {
 
 		if($rsBlockNum2 != 0) { # rsBlockNum2
 			for($i = 0; $i < $rsBlockNum2; $i++) {
-				$inc = $this->pad + ($i == 0) ? 0 : 1;
+				$inc = $this->pad + (($i == 0) ? 0 : 1);
 				$data = array_slice($data, $inc);
 				$this->rsblocks[$this->b1 + $i] = [$data, $this->encode_rs_char($data, $inc)];
 			}
@@ -145,7 +145,7 @@ class QRrsItem {
 	{
 		$parity = $this->parity;
 
-		 for($i=0; $i< $pad; $i++) {
+		for($i=0; $i< $pad; $i++) {
 			$feedback = $this->index_of[$data[$i] ^ $parity[0]];
 			if($feedback != 255) {
 				for($j=1; $j < $this->nroots; $j++) {
