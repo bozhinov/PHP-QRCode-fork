@@ -57,14 +57,14 @@ class QRrsItem {
 
 		for($i = 0; $i < $this->b1; $i++) { # rsBlockNum1
 			$data = array_slice($dataCode, $this->pad * $i);
-			$this->rsblocks[$i] = [$data, $this->encode_rs_char($data)];
+			$this->rsblocks[$i] = [$data, $this->encode_rs_char($data, $this->pad)];
 		}
 
 		if($rsBlockNum2 != 0) { # rsBlockNum2
 			for($i = 0; $i < $rsBlockNum2; $i++) {
 				$inc = $this->pad + ($i == 0) ? 0 : 1;
 				$data = array_slice($data, $inc);
-				$this->rsblocks[$this->b1 + $i] = [$data, $this->encode_rs_char($data)];
+				$this->rsblocks[$this->b1 + $i] = [$data, $this->encode_rs_char($data, $inc)];
 			}
 		}
 	}
@@ -74,7 +74,7 @@ class QRrsItem {
 		if($this->count < $this->dataLength) {
 			$blockNo = $this->count % $this->blocks;
 			$col = $this->count / $this->blocks;
-			if($col >= $this->pad) {
+			if($col >= $this->pad) { # was $this->rsblocks[0]->dataLength
 				$blockNo += $this->b1;
 			}
 			$ret = $this->rsblocks[$blockNo][0][$col];
@@ -141,12 +141,12 @@ class QRrsItem {
 		}
 	}
 
-	private function encode_rs_char($data)
+	private function encode_rs_char($data, $pad)
 	{
 		$parity = $this->parity;
 
-		foreach($data as $i){
-			$feedback = $this->index_of[$i ^ $parity[0]];
+		 for($i=0; $i< $pad; $i++) {
+			$feedback = $this->index_of[$data[$i] ^ $parity[0]];
 			if($feedback != 255) {
 				for($j=1; $j < $this->nroots; $j++) {
 					$parity[$j] ^= $this->alpha_to[($feedback + $this->genpoly[$this->nroots-$j]) % 255];
