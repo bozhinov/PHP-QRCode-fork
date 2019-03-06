@@ -237,6 +237,7 @@ class QRInput {
 			}
 		}
 		$package[] = $this->toByte();
+
 		return $package;
 	}
 

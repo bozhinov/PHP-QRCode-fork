@@ -39,9 +39,10 @@ class QRrsItem {
 
 		$this->b1 = $spec[0];
 		$this->pad = $spec[1]; # rsDataCodes1
-		$this->blocks = $spec[0] + $spec[3];
-		$this->dataLength = $dataLength;
 		$this->nroots = $spec[2];
+		$rsBlockNum2 = $spec[3];
+		$this->dataLength = $dataLength;
+		$this->blocks = $this->b1 + $rsBlockNum2;
 
 		// Check parameter ranges
 		if($this->nroots >= 256){
@@ -54,16 +55,15 @@ class QRrsItem {
 
 		$this->rsInit();
 
-		$dataCode = array_chunk($dataCode, $this->pad);
-
-		for($i = 0; $i < $spec[0]; $i++) { # rsBlockNum1
-			$data = $dataCode[$i];
+		for($i = 0; $i < $this->b1; $i++) { # rsBlockNum1
+			$data = array_slice($dataCode, $this->pad * $i);
 			$this->rsblocks[$i] = [$data, $this->encode_rs_char($data)];
 		}
 
-		if($spec[3] != 0) { # rsBlockNum2
-			for($i = 0; $i < $spec[3]; $i++) {
-				$this->rsblocks[$spec[0] + $i] = [$data, $this->encode_rs_char($data)];
+		if($rsBlockNum2 != 0) { # rsBlockNum2
+			for($i = 0; $i < $rsBlockNum2; $i++) {
+				$data = array_slice($data, $this->pad);
+				$this->rsblocks[$this->b1 + $i] = [$data, $this->encode_rs_char($data)];
 			}
 		}
 	}
