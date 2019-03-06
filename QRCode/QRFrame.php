@@ -128,7 +128,7 @@ class QRFrame {
 		$dataLength = ($spec[0] * $spec[1]) + ($spec[3] * $spec[4]);
 		$eccLength = ($spec[0] + $spec[3]) * $spec[2];
 
-		$ReedSolomon = new QRrsItem($dataCode, $dataLength, $eccLength, $spec);
+		$ReedSolomon = new QRrsItem($dataCode, $dataLength, $spec);
 
 		// inteleaved data and ecc codes
 		for($i=0; $i < ($dataLength + $eccLength); $i++) {

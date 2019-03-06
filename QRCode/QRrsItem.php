@@ -32,24 +32,15 @@ class QRrsItem {
 	private $b1;
 	private $rsblocks = [];
 	private $dataLength;
-	private $eccLength;
 
-	function __construct(array $dataCode, int $dataLength, int $eccLength, array $spec)
+	function __construct(array $dataCode, int $dataLength, array $spec)
 	{
 		$this->count = 0;
 
 		$this->b1 = $spec[0];
+		$this->pad = $spec[1]; # rsDataCodes1
 		$this->blocks = $spec[0] + $spec[3];
-
 		$this->dataLength = $dataLength;
-		$this->eccLength = $eccLength;
-
-		$dl = $spec[1]; # rsDataCodes1
-		$el = $spec[2]; # rsEccCodes1
-
-		$blockNo = 0;
-		$dataPos = 0;
-
 		$this->nroots = $spec[2];
 
 		// Check parameter ranges
@@ -57,31 +48,22 @@ class QRrsItem {
 			throw QRException::Std("Can't have more roots than symbol values!");
 		}
 
-		$this->pad = 255 - $dl - $el;
-
 		if($this->pad < 1){
 			throw QRException::Std('Too much padding');
 		}
 
 		$this->rsInit();
 
+		$dataCode = array_chunk($dataCode, $this->pad);
+
 		for($i = 0; $i < $spec[0]; $i++) { # rsBlockNum1
-
-			$data = array_slice($dataCode, $dataPos);
-
-			$this->rsblocks[$blockNo] = ["dataLength" => $dl, "data" => $data, "ecc" => $this->encode_rs_char($data)];
-
-			$dataPos += $dl;
-			$blockNo++;
+			$data = $dataCode[$i];
+			$this->rsblocks[$i] = [$data, $this->encode_rs_char($data)];
 		}
 
 		if($spec[3] != 0) { # rsBlockNum2
 			for($i = 0; $i < $spec[3]; $i++) {
-
-				$this->rsblocks[$blockNo] = ["dataLength" => $dl, "data" => $data, "ecc" => $this->encode_rs_char($data)];
-
-				$dataPos += $dl;
-				$blockNo++;
+				$this->rsblocks[$spec[0] + $i] = [$data, $this->encode_rs_char($data)];
 			}
 		}
 	}
@@ -89,18 +71,16 @@ class QRrsItem {
 	public function getCode()
 	{
 		if($this->count < $this->dataLength) {
-			$row = $this->count % $this->blocks;
+			$blockNo = $this->count % $this->blocks;
 			$col = $this->count / $this->blocks;
-			if($col >= $this->rsblocks[0]['dataLength']) {
-				$row += $this->b1;
+			if($col >= $this->pad) {
+				$blockNo += $this->b1;
 			}
-			$ret = $this->rsblocks[$row]['data'][$col];
-		} elseif($this->count < $this->dataLength + $this->eccLength) {
-			$row = ($this->count - $this->dataLength) % $this->blocks;
-			$col = ($this->count - $this->dataLength) / $this->blocks;
-			$ret = $this->rsblocks[$row]['ecc'][$col];
+			$ret = $this->rsblocks[$blockNo][0][$col];
 		} else {
-			throw QRException::Std('Can not get code');
+			$blockNo = ($this->count - $this->dataLength) % $this->blocks;
+			$col = ($this->count - $this->dataLength) / $this->blocks;
+			$ret = $this->rsblocks[$blockNo][1][$col];
 		}
 		$this->count++;
 
@@ -164,23 +144,17 @@ class QRrsItem {
 	{
 		$parity = $this->parity;
 
-		for($i = 0; $i < (255 - $this->nroots - $this->pad); $i++) {
-
-			$feedback = $this->index_of[$data[$i] ^ $parity[0]];
+		foreach($data as $i){
+			$feedback = $this->index_of[$i ^ $parity[0]];
 			if($feedback != 255) {
-				// feedback term is non-zero
 				for($j=1; $j < $this->nroots; $j++) {
 					$parity[$j] ^= $this->alpha_to[($feedback + $this->genpoly[$this->nroots-$j]) % 255];
 				}
-			}
-
-			// Shift 
-			array_shift($parity);
-			if($feedback != 255) {
 				$parity[] = $this->alpha_to[($feedback + $this->genpoly[0]) % 255];
 			} else {
 				$parity[] = 0;
 			}
+			array_shift($parity);
 		}
 
 		return $parity;
