@@ -64,7 +64,7 @@ class QRrsItem {
 			for($i = 0; $i < $rsBlockNum2; $i++) {
 				$inc = $this->pad + (($i == 0) ? 0 : 1);
 				$data = array_slice($data, $inc);
-				$this->rsblocks[$this->b1 + $i] = [$data, $this->encode_rs_char($data, $inc)];
+				$this->rsblocks[$this->b1 + $i] = [$data, $this->encode_rs_char($data, $this->pad + 1)];
 			}
 		}
 	}
