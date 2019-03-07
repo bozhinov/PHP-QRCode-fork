@@ -338,6 +338,8 @@ class QRInput {
 
 	public function encodeString($dataStr, $hint)
 	{
+		$pos = 0;
+		
 		if ($hint == QR_MODE_8) {
 
 			$this->addStream(QR_MODE_8, $dataStr);
@@ -374,11 +376,10 @@ class QRInput {
 					break;
 				}
 
-				$this->addStream($mod, array_slice($this->dataStr, 0, $length));
-
-
+				$this->addStream($mod, array_slice($this->dataStr, $pos, $length), $length);
+				$pos += $length;
 				$this->dataStrLen -= $length;
-				$this->dataStr = array_slice($this->dataStr, $length);
+
 			}
 		}
 
