@@ -324,21 +324,14 @@ class QRFrame {
 
 		// Version information
 		if($this->version >= 7) {
-			$vinf = $this->versionPattern[$this->version -7];
 
-			$v = $vinf;
+			$v = $this->versionPattern[$this->version -7];
 
 			for($x=0; $x<6; $x++) {
 				for($y=0; $y<3; $y++) {
-					$this->new_frame[($this->width - 11)+$y][$x] = (136 | ($v & 1));
-					$v = $v >> 1;
-				}
-			}
-
-			$v = $vinf;
-			for($y=0; $y<6; $y++) {
-				for($x=0; $x<3; $x++) {
-					$this->new_frame[$y][$x+($this->width - 11)] = (136 | ($v & 1));
+					$val = (136 | ($v & 1));
+					$this->new_frame[($this->width - 11)+$y][$x] = $val;
+					$this->new_frame[$x][$y+($this->width - 11)] = $val;
 					$v = $v >> 1;
 				}
 			}
