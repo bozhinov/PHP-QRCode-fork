@@ -234,7 +234,12 @@ class QRmask {
 	{
 		$minDemerit = PHP_INT_MAX;
 
-		foreach(array_rand([0,1,2,3,4,5,6,7], 2) as $i) {
+		$masks = [0,1,2,3,4,5,6,7];
+		if (!defined("QR_ALL_MASKS")) {
+			$masks = array_rand($masks, 2);
+		}
+
+		foreach($masks as $i) {
 
 			$this->masked = $this->frame;
 
