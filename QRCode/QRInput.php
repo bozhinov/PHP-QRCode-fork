@@ -22,13 +22,7 @@ class QRInput {
 	private $hint;
 	private $level;
 	private $bstream = [];
-	private $lengthTableBits = [
-		[10, 12, 14],
-		[9, 11, 13],
-		[8, 16, 16],
-		[8, 10, 12]
-	];
-
+	private $lengthTableBits = [10,9,8,8];
 	private $anTable = [
 		-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 		-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -53,7 +47,7 @@ class QRInput {
 		$words = (int)($size / 3);
 
 		$this->bstream[] = [4, 1];
-		$this->bstream[] = [$this->lengthTableBits[QR_MODE_NUM][0], $size];
+		$this->bstream[] = [10, $size];
 
 		for($i=0; $i<$words; $i++) {
 			$val  = ($data[$i*3] - 48) * 100;
@@ -77,7 +71,7 @@ class QRInput {
 		$words = (int)($size / 2);
 
 		$this->bstream[] = [4, 2];
-		$this->bstream[] = [$this->lengthTableBits[QR_MODE_AN][0], $size];
+		$this->bstream[] = [9, $size];
 
 		for($i=0; $i<$words; $i++) {
 			$val = ($this->lookAnTable($data[$i*2]) * 45) + $this->lookAnTable($data[$i*2+1]);
@@ -93,7 +87,7 @@ class QRInput {
 	private function encodeMode8($size, $data)
 	{
 		$this->bstream[] = [4, 4];
-		$this->bstream[] = [$this->lengthTableBits[QR_MODE_8][0], $size];
+		$this->bstream[] = [8, $size];
 
 		for($i=0; $i<$size; $i++) {
 			$this->bstream[] = [8, $data[$i]];
@@ -103,7 +97,7 @@ class QRInput {
 	private function encodeModeKanji($size, $data)
 	{
 		$this->bstream[] = [4, 8];
-		$this->bstream[] = [$this->lengthTableBits[QR_MODE_KANJI][0], (int)($size / 2)];
+		$this->bstream[] = [8, (int)($size / 2)];
 
 		for($i=0; $i<$size; $i+=2) {
 			$val = ($data[$i] << 8) | $data[$i+1];
@@ -123,21 +117,18 @@ class QRInput {
 	private function addStream($mode, array $data)
 	{
 		$size = count($data);
-		$bits = $this->lengthTableBits[$mode][0];
+		$bits = $this->lengthTableBits[$mode];
 		$maxWords = (1 << $bits) - 1;
 
 		if($mode == QR_MODE_KANJI) {
 			$maxWords *= 2; // the number of bytes is required
 		}
 
-		if ($size > $maxWords * 2){
-			throw QRException::Std('string too long. Max length - '.strval($maxWords * 2));
-		}
-
 		if($size > $maxWords) {
-			
-			$this->add(array_slice($data, 0, $maxWords), $mode);
-			$this->add(array_slice($data, $maxWords), $mode);
+
+			foreach(array_chunk($data, $maxWords) as $chunk) {
+				$this->addStream($mode, $chunk);
+			}
 
 		} else {
 
