@@ -117,18 +117,16 @@ class QRFrame {
 		$capacity = new QRCap();
 
 		list($b1,$b2) = $this->eccTable[$this->version][$level];
-		$ecc  = $capacity->getEC($this->version, $level);
+		$ecc = $capacity->getEC($this->version, $level);
 
-		if($b2 == 0) {
-			$spec = [$b1, floor($dataLength / $b1), floor($ecc / $b1), 0, 0];
-		} else {
-			$spec = [$b1, floor($dataLength / ($b1 + $b2)), floor($ecc / ($b1 + $b2)), $b2, floor($dataLength / ($b1 + $b2)) + 1];
-		}
+		$pad = floor($dataLength / ($b1 + $b2));
+		$nroots = floor($ecc / ($b1 + $b2));
+		$spec4 = ($b2 == 0) ? 0 : (floor($dataLength / ($b1 + $b2)) + 1);
 
-		$dataLength = ($spec[0] * $spec[1]) + ($spec[3] * $spec[4]);
-		$eccLength = ($spec[0] + $spec[3]) * $spec[2];
+		$dataLength = ($b1 * $pad) + ($b2 * $spec4);
+		$eccLength = ($b1 + $b2) * $nroots;
 		
-		$ReedSolomon = new QRrsItem($dataCode, $dataLength, $spec);
+		$ReedSolomon = new QRrsItem($dataCode, $dataLength, $b1, $pad, $nroots, $b2);
 
 		// inteleaved data and ecc codes
 		for($i=0; $i < ($dataLength + $eccLength); $i++) {
