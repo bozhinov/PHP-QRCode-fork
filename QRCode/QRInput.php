@@ -22,7 +22,7 @@ class QRInput {
 	private $hint;
 	private $level;
 	private $bstream = [];
-	private $lengthTableBits = [10,9,8,8];
+	private $lengthTableBits = [1023,511,255,255];
 	private $anTable = [
 		-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 		-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -117,8 +117,7 @@ class QRInput {
 	private function addStream($mode, array $data)
 	{
 		$size = count($data);
-		$bits = $this->lengthTableBits[$mode];
-		$maxWords = (1 << $bits) - 1;
+		$maxWords = $this->lengthTableBits[$mode];
 
 		if($mode == QR_MODE_KANJI) {
 			$maxWords *= 2; // the number of bytes is required
@@ -340,22 +339,19 @@ class QRInput {
 	{
 		$pos = 0;
 		
-		if ($hint == QR_MODE_8) {
+		if (($hint != QR_MODE_KANJI) && ($hint != -1)) {
 
-			$this->addStream(QR_MODE_8, $dataStr);
+			$this->addStream($hint, $dataStr);
 
 		} else {
 
 			$this->dataStr = $dataStr;
 			$this->dataStrLen = count($this->dataStr);
 			$this->hint = $hint;
-			$mod = $hint;
 
 			while ($this->dataStrLen > 0)
 			{
-				if ($hint == -1){
-					$mod = $this->identifyMode(0);
-				}
+				$mod = $this->identifyMode(0);
 
 				switch ($mod) {
 					case QR_MODE_NUM:
@@ -376,7 +372,7 @@ class QRInput {
 					break;
 				}
 
-				$this->addStream($mod, array_slice($this->dataStr, $pos, $length), $length);
+				$this->addStream($mod, array_slice($this->dataStr, $pos, $length));
 				$pos += $length;
 				$this->dataStrLen -= $length;
 
