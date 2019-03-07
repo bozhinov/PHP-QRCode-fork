@@ -368,10 +368,6 @@ class QRInput {
 						$length = $this->eat8();
 				}
 
-				if($length == 0){
-					break;
-				}
-
 				$this->addStream($mod, array_slice($this->dataStr, $pos, $length));
 				$pos += $length;
 				$this->dataStrLen -= $length;
