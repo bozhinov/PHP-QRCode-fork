@@ -190,11 +190,11 @@ class QRInput {
 			$dataStr .= $bin;
 		}
 
-		$data = str_split($dataStr, 8);
+		$data = [];
 
-		array_walk($data, function(&$val) {
-			$val = bindec($val);
-		});
+		foreach(str_split($dataStr, 8) as $val){
+			$data[] = bindec($val);
+		}
 
 		return $data;
 	}
