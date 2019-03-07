@@ -315,8 +315,9 @@ class QRFrame {
 
 		// Timing pattern
 		for($i=1; $i<$this->width-15; $i++) {
-			$this->new_frame[6][7+$i] = (144 | ($i & 1));
-			$this->new_frame[7+$i][6] = (144 | ($i & 1));
+			$val = (144 | ($i & 1));
+			$this->new_frame[6][7+$i] = $val;
+			$this->new_frame[7+$i][6] = $val;
 		}
 
 		// Alignment pattern
@@ -330,8 +331,9 @@ class QRFrame {
 			for($x=0; $x<6; $x++) {
 				for($y=0; $y<3; $y++) {
 					$val = (136 | ($v & 1));
-					$this->new_frame[($this->width - 11)+$y][$x] = $val;
-					$this->new_frame[$x][$y+($this->width - 11)] = $val;
+					$yc = ($this->width - 11)+$y;
+					$this->new_frame[$yc][$x] = $val;
+					$this->new_frame[$x][$yc] = $val;
 					$v = $v >> 1;
 				}
 			}
