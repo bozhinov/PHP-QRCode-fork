@@ -27,7 +27,7 @@ class QRInput {
 		-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 		-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 		36, -1, -1, -1, 37, 38, -1, -1, -1, -1, 39, 40, -1, 41, 42, 43,
-		 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 44, -1, -1, -1, -1, -1,
+		 -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 44, -1, -1, -1, -1, -1,
 		-1, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
 		25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35
 	];
@@ -263,11 +263,14 @@ class QRInput {
 		switch (true){
 			case $this->is_digit($pos):
 				$mode = QR_MODE_NUM;
+				break;
 			case $this->is_alnum($pos):
 				$mode = QR_MODE_AN;
+				break;
 			case ($this->hint == QR_MODE_KANJI):
 				# Kanji is not auto detected unless hinted but otherwise it breaks bulgarian chars and possibly others
 				$mode = ($this->is_kanji($pos)) ? QR_MODE_KANJI : QR_MODE_8;
+				break;
 			default:
 				$mode = QR_MODE_8;
 		}
@@ -347,7 +350,6 @@ class QRInput {
 
 		} else {
 
-			$pos = 0;
 			$this->dataStr = $dataStr;
 			$this->dataStrLen = count($this->dataStr);
 			$this->hint = $hint;
@@ -371,9 +373,9 @@ class QRInput {
 						$length = $this->eat8();
 				}
 
-				$this->addStream($mod, array_slice($this->dataStr, $pos, $length));
-				$pos += $length;
+				$this->addStream($mod, array_slice($this->dataStr, 0, $length));
 				$this->dataStrLen -= $length;
+				$this->dataStr = array_slice($this->dataStr, $length);
 			}
 		}
 
