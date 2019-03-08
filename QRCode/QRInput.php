@@ -37,7 +37,7 @@ class QRInput {
 		-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 		-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 		36, -1, -1, -1, 37, 38, -1, -1, -1, -1, 39, 40, -1, 41, 42, 43,
-		 -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  9, 44, -1, -1, -1, -1, -1,
+		 -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 44, -1, -1, -1, -1, -1,
 		-1, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
 		25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35
 	];
@@ -259,7 +259,6 @@ class QRInput {
 		}
 
 		$data = [];
-
 		foreach(str_split($dataStr, 8) as $val){
 			$data[] = bindec($val);
 		}
@@ -314,7 +313,6 @@ class QRInput {
 		if ($pos >= $this->dataStrLen){
 			return false;
 		}
-
 		return ($this->lookAnTable($this->dataStr[$pos]) >= 0);
 	}
 	
@@ -353,7 +351,6 @@ class QRInput {
 	{
 		# the first pos was already identified
 		$p++;
-		
 		while($this->is_digit($p)) {
 			$p++;
 		}
@@ -363,7 +360,6 @@ class QRInput {
 	private function eatAn($p = 0)
 	{
 		$p++;
-		
 		while($this->is_alnum($p)) {
 			$p++;
 		}
@@ -373,7 +369,6 @@ class QRInput {
 	private function eatKanji($p = 0)
 	{
 		$p += 2;
-		
 		while($this->is_kanji($p)) {
 			$p += 2;
 		}
@@ -383,7 +378,6 @@ class QRInput {
 	private function eat8($p = 0)
 	{
 		$p++;
-
 		while($p < $this->dataStrLen) {
 
 			switch($this->identifyMode($p)){
@@ -424,29 +418,29 @@ class QRInput {
 			$this->dataStr = $dataStr;
 			$this->dataStrLen = count($this->dataStr);
 			$this->hint = $hint;
+			$pos = 0
 
-			while ($this->dataStrLen > 0)
+			while ($this->dataStrLen > $pos)
 			{
 				$mod = $this->identifyMode(0);
 
 				switch ($mod) {
 					case QR_MODE_NUM:
-						$length = $this->eatNum();
+						$length = $this->eatNum($pos);
 						break;
 					case QR_MODE_AN:
-						$length = $this->eatAn();
+						$length = $this->eatAn($pos);
 						break;
 					case QR_MODE_KANJI:
-						$length = $this->eatKanji();
+						$length = $this->eatKanji($pos);
 						break;
 					default:
 						$mod = QR_MODE_8;
-						$length = $this->eat8();
+						$length = $this->eat8($pos);
 				}
 
 				$this->addStream($mod, array_slice($this->dataStr, 0, $length));
 				$this->dataStrLen -= $length;
-				$this->dataStr = array_slice($this->dataStr, $length);
 			}
 		}
 
