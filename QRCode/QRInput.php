@@ -260,10 +260,6 @@ class QRInput {
 
 	private function identifyMode($pos)
 	{
-		if ($pos >= $this->dataStrLen){
-			return -1; // all int input
-		}
-
 		switch (true){
 			case $this->is_digit($pos):
 				$mode = QR_MODE_NUM;
@@ -317,8 +313,6 @@ class QRInput {
 		while($p < $this->dataStrLen) {
 
 			switch($this->identifyMode($p)){
-				case -1:
-					break;
 				case QR_MODE_KANJI:
 					break 2;
 				case QR_MODE_NUM:
@@ -363,8 +357,6 @@ class QRInput {
 				$mod = $this->identifyMode(0);
 
 				switch ($mod) {
-					case -1:
-						break 2;
 					case QR_MODE_NUM:
 						$length = $this->eatNum();
 						break;
