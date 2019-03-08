@@ -21,13 +21,23 @@ class QRInput {
 	private $dataStrLen;
 	private $hint;
 	private $level;
+	private $version;
 	private $bstream = [];
-	private $lengthTableBits = [1023,511,255,255];
+	private $streams = [];
+	private $capacity;
+	private $maxTableBits = [1023,511,255,255];
+	private $lengthTableBits = [
+		[10, 12, 14],
+		[ 9, 11, 13],
+		[ 8, 16, 16],
+		[ 8, 10, 12]
+	];
+
 	private $anTable = [
 		-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 		-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 		36, -1, -1, -1, 37, 38, -1, -1, -1, -1, 39, 40, -1, 41, 42, 43,
-		 -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 44, -1, -1, -1, -1, -1,
+		 -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  9, 44, -1, -1, -1, -1, -1,
 		-1, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
 		25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35
 	];
@@ -35,11 +45,25 @@ class QRInput {
 	function __construct(int $level)
 	{
 		$this->level = $level;
+		$this->capacity = new QRCap();
 	}
 
 	private function lookAnTable($c)
 	{
 		return (($c > 90) ? -1 : $this->anTable[$c]);
+	}
+	
+	private function lengthIndicator($mode, $version)
+	{
+		if ($version <= 9) {
+			$l = 0;
+		} else if ($version <= 26) {
+			$l = 1;
+		} else {
+			$l = 2;
+		}
+
+		return $this->lengthTableBits[$mode][$l];
 	}
 
 	private function encodeModeNum($size, $data)
@@ -47,7 +71,7 @@ class QRInput {
 		$words = (int)($size / 3);
 
 		$this->bstream[] = [4, 1];
-		$this->bstream[] = [10, $size];
+		$this->bstream[] = [$this->lengthIndicator(QR_MODE_NUM, $this->version), $size];
 
 		for($i=0; $i<$words; $i++) {
 			$val  = ($data[$i*3] - 48) * 100;
@@ -71,7 +95,7 @@ class QRInput {
 		$words = (int)($size / 2);
 
 		$this->bstream[] = [4, 2];
-		$this->bstream[] = [9, $size];
+		$this->bstream[] = [$this->lengthIndicator(QR_MODE_AN, $this->version), $size];
 
 		for($i=0; $i<$words; $i++) {
 			$val = ($this->lookAnTable($data[$i*2]) * 45) + $this->lookAnTable($data[$i*2+1]);
@@ -87,7 +111,7 @@ class QRInput {
 	private function encodeMode8($size, $data)
 	{
 		$this->bstream[] = [4, 4];
-		$this->bstream[] = [8, $size];
+		$this->bstream[] = [$this->lengthIndicator(QR_MODE_8, $this->version), $size];
 
 		for($i=0; $i<$size; $i++) {
 			$this->bstream[] = [8, $data[$i]];
@@ -97,7 +121,7 @@ class QRInput {
 	private function encodeModeKanji($size, $data)
 	{
 		$this->bstream[] = [4, 8];
-		$this->bstream[] = [8, (int)($size / 2)];
+		$this->bstream[] = [$this->lengthIndicator(QR_MODE_KANJI, $this->version), (int)($size / 2)];
 
 		for($i=0; $i<$size; $i+=2) {
 			$val = ($data[$i] << 8) | $data[$i+1];
@@ -113,63 +137,107 @@ class QRInput {
 			$this->bstream[] = [13, $val];
 		}
 	}
+ 
+	private function estimateVersion($version)
+	{
+		$bits = 0;
+		foreach($this->streams as $stream) {
+			list($mode, $size, ) = $stream;
+				switch($mode) {
+				case QR_MODE_NUM:
+					$bits += (int)($size / 3) * 10;
+					switch($size % 3) {
+						case 1:
+							$bits += 4;
+							break;
+						case 2:
+							$bits += 7;
+							break;
+					}
+					break;
+				case QR_MODE_AN:
+					$bits += (int)($size / 2) * 11;
+					if($size & 1) {
+						$bits += 6;
+					}
+					break;
+				case QR_MODE_8:
+					$bits += ($size * 8);
+					break;
+				case QR_MODE_KANJI:
+					$bits += ((int)(($size / 2) * 13));
+					break;
+			}
+			
+			$l = $this->lengthIndicator($mode, $version);
+            $m = 1 << $l;
+            $num = (int)(($size + $m - 1) / $m);
+            $bits += $num * (4 + $l);
+		}
+
+		return [$this->getMinimumVersion($bits), $bits];
+	}
+	
+	private function encodeStream()
+	{
+		$version = 0;
+        do {
+			$prev = $version;
+			list($version, $bits) = $this->estimateVersion($version);
+		} while ($version > $prev);
+		
+		$this->version = $version;
+		
+		foreach($this->streams as $stream) {
+
+			list($mode, $size, $data) = $stream;
+
+			switch($mode) {
+				case QR_MODE_NUM:
+					$this->encodeModeNum($size, $data, $version);
+					break;
+				case QR_MODE_AN:
+					$this->encodeModeAn($size, $data, $version);
+					break;
+				case QR_MODE_8:
+					$this->encodeMode8($size, $data, $version);
+					break;
+				case QR_MODE_KANJI:
+					$this->encodeModeKanji($size, $data, $version);
+					break;
+			}
+		}
+		
+		return $bits;
+	}
 
 	private function addStream($mode, array $data)
 	{
 		$size = count($data);
-		$maxWords = $this->lengthTableBits[$mode];
+		$maxWords = $this->maxTableBits[$mode];
 
 		if($mode == QR_MODE_KANJI) {
 			$maxWords *= 2; // the number of bytes is required
 		}
 
 		if($size > $maxWords) {
-
 			foreach(array_chunk($data, $maxWords) as $chunk) {
 				$this->addStream($mode, $chunk);
 			}
-
 		} else {
-
-			switch($mode) {
-				case QR_MODE_NUM:
-					$this->encodeModeNum($size, $data);
-					break;
-				case QR_MODE_AN:
-					$this->encodeModeAn($size, $data);
-					break;
-				case QR_MODE_8:
-					$this->encodeMode8($size, $data);
-					break;
-				case QR_MODE_KANJI:
-					$this->encodeModeKanji($size, $data);
-					break;
-			}
-
+			$this->streams[] = [$mode, $size, $data];
 		}
 	}
-
-	private function getMinimumVersionWithDetails($bits)
+	
+	private function getMinimumVersion($bits)
 	{
-		$capacity = new QRCap();
 		$size = (int)(($bits + 7) / 8);
 		for($i=1; $i<= 40; $i++) { # QR_SPEC_VERSION_MAX = 40
-			$dataLength = $capacity->getDataLength($i, $this->level);
+			$dataLength = $this->capacity->getDataLength($i, $this->level);
 			if($dataLength >= $size){
-				return [$i, $dataLength, $capacity->getWidth($i), $this->level];
+				return $i;
 			}
 		}
-	}
-
-	private function get_bstream_size()
-	{
-		$size = 0;
-
-		foreach($this->bstream as $d){
-			$size += $d[0];
-		}
-
-		return $size;
 	}
 
 	private function toByte()
@@ -201,9 +269,11 @@ class QRInput {
 
 	private function getPackage()
 	{
-		$bits = $this->get_bstream_size();
-		$package = $this->getMinimumVersionWithDetails($bits);
-		
+		$bits = $this->encodeStream();
+
+		$dataLength = $this->capacity->getDataLength($this->version, $this->level);			
+		$package = [$this->version, $dataLength, $this->capacity->getWidth($this->version), $this->level];
+
 		$maxwords = $package[1];
 		$maxbits = $maxwords * 8;
 
@@ -244,6 +314,7 @@ class QRInput {
 		if ($pos >= $this->dataStrLen){
 			return false;
 		}
+
 		return ($this->lookAnTable($this->dataStr[$pos]) >= 0);
 	}
 	
