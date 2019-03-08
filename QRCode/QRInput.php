@@ -246,6 +246,17 @@ class QRInput {
 		}
 		return ($this->lookAnTable($this->dataStr[$pos]) >= 0);
 	}
+	
+	private function is_kanji($pos)
+	{
+		if ($pos+1 < $this->dataStrLen) {
+			$word = ($this->dataStr[$pos]) << 8 | $this->dataStr[$pos+1];
+			if(($word >= 33088 && $word <= 40956) || ($word >= 57408 && $word <= 60351)) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	private function identifyMode($pos)
 	{
@@ -255,20 +266,17 @@ class QRInput {
 
 		switch (true){
 			case $this->is_digit($pos):
-				return QR_MODE_NUM;
+				$mode = QR_MODE_NUM;
 			case $this->is_alnum($pos):
-				return QR_MODE_AN;
+				$mode = QR_MODE_AN;
 			case ($this->hint == QR_MODE_KANJI):
 				# Kanji is not auto detected unless hinted but otherwise it breaks bulgarian chars and possibly others
-				if ($pos+1 < $this->dataStrLen) {
-					$word = ($this->dataStr[$pos]) << 8 | $this->dataStr[$pos+1];
-					if(($word >= 33088 && $word <= 40956) || ($word >= 57408 && $word <= 60351)) {
-						return QR_MODE_KANJI;
-					}
-				}
+				$mode = ($this->is_kanji($pos)) ? QR_MODE_KANJI : QR_MODE_8;
+			default:
+				$mode = QR_MODE_8;
 		}
 
-		return QR_MODE_8;
+		return $mode;
 	}
 
 	private function eatNum($p = 0)
@@ -296,7 +304,7 @@ class QRInput {
 	{
 		$p += 2;
 		
-		while($this->identifyMode($p) == QR_MODE_KANJI) {
+		while($this->is_kanji($p)) {
 			$p += 2;
 		}
 		return $p;
@@ -309,6 +317,8 @@ class QRInput {
 		while($p < $this->dataStrLen) {
 
 			switch($this->identifyMode($p)){
+				case -1:
+					break;
 				case QR_MODE_KANJI:
 					break 2;
 				case QR_MODE_NUM:
@@ -337,14 +347,13 @@ class QRInput {
 
 	public function encodeString($dataStr, $hint)
 	{
-		$pos = 0;
-		
 		if (($hint != QR_MODE_KANJI) && ($hint != -1)) {
 
 			$this->addStream($hint, $dataStr);
 
 		} else {
 
+			$pos = 0;
 			$this->dataStr = $dataStr;
 			$this->dataStrLen = count($this->dataStr);
 			$this->hint = $hint;
@@ -354,6 +363,8 @@ class QRInput {
 				$mod = $this->identifyMode(0);
 
 				switch ($mod) {
+					case -1:
+						break 2;
 					case QR_MODE_NUM:
 						$length = $this->eatNum();
 						break;
@@ -371,7 +382,6 @@ class QRInput {
 				$this->addStream($mod, array_slice($this->dataStr, $pos, $length));
 				$pos += $length;
 				$this->dataStrLen -= $length;
-
 			}
 		}
 
