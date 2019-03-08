@@ -418,29 +418,29 @@ class QRInput {
 			$this->dataStr = $dataStr;
 			$this->dataStrLen = count($this->dataStr);
 			$this->hint = $hint;
-			$pos = 0
 
-			while ($this->dataStrLen > $pos)
+			while ($this->dataStrLen > 0)
 			{
 				$mod = $this->identifyMode(0);
 
 				switch ($mod) {
 					case QR_MODE_NUM:
-						$length = $this->eatNum($pos);
+						$length = $this->eatNum();
 						break;
 					case QR_MODE_AN:
-						$length = $this->eatAn($pos);
+						$length = $this->eatAn();
 						break;
 					case QR_MODE_KANJI:
-						$length = $this->eatKanji($pos);
+						$length = $this->eatKanji();
 						break;
 					default:
 						$mod = QR_MODE_8;
-						$length = $this->eat8($pos);
+						$length = $this->eat8();
 				}
 
 				$this->addStream($mod, array_slice($this->dataStr, 0, $length));
 				$this->dataStrLen -= $length;
+				$this->dataStr = array_slice($this->dataStr, $length);
 			}
 		}
 
