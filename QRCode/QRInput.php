@@ -24,7 +24,6 @@ class QRInput {
 	private $level;
 	private $bstream = [];
 	private $streams = [];
-	private $capacity;
 	private $maxLenlengths = [];
 	private $lengthTableBits = [
 		[10, 12, 14],
@@ -45,7 +44,6 @@ class QRInput {
 	function __construct(int $level)
 	{
 		$this->level = $level;
-		$this->capacity = new QRCap();
 	}
 
 	private function lookAnTable($c)
@@ -232,13 +230,23 @@ class QRInput {
 
 	private function getMinimumVersion($bits)
 	{
+		$capacity = new QRCap();
 		$size = (int)(($bits + 7) / 8);
 		for($i=1; $i<= 40; $i++) { # QR_SPEC_VERSION_MAX = 40
-			$dataLength = $this->capacity->getDataLength($i, $this->level);
+			$dataLength = $capacity->getDataLength($i, $this->level);
 			if($dataLength >= $size){
-				return [$i, $dataLength, $this->capacity->getWidth($i), $this->level, $bits];
+				return [$i, $dataLength, $capacity->getWidth($i), $this->level, $bits];
 			}
 		}
+	}
+
+	private function get_actual_bstream_size() # UNUSED
+	{
+		$size = 0;
+		foreach($this->bstream as $d){
+			$size += $d[0];
+		}
+		return $size;
 	}
 
 	private function toByte()
