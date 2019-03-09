@@ -22,11 +22,10 @@ class QRInput {
 	private $hint;
 	private $pos;
 	private $level;
-	private $version;
 	private $bstream = [];
 	private $streams = [];
 	private $capacity;
-	private $maxTableBits = [1023,511,255,255];
+	private $maxLenlengths = [];
 	private $lengthTableBits = [
 		[10, 12, 14],
 		[ 9, 11, 13],
@@ -53,7 +52,7 @@ class QRInput {
 	{
 		return (($c > 90) ? -1 : $this->anTable[$c]);
 	}
-	
+
 	private function lengthIndicator($mode, $version)
 	{
 		if ($version <= 9) {
@@ -72,7 +71,7 @@ class QRInput {
 		$words = (int)($size / 3);
 
 		$this->bstream[] = [4, 1];
-		$this->bstream[] = [$this->lengthIndicator(QR_MODE_NUM, $this->version), $size];
+		$this->bstream[] = [$this->maxLenlengths[QR_MODE_NUM], $size];
 
 		for($i=0; $i<$words; $i++) {
 			$val  = ($data[$i*3] - 48) * 100;
@@ -96,7 +95,7 @@ class QRInput {
 		$words = (int)($size / 2);
 
 		$this->bstream[] = [4, 2];
-		$this->bstream[] = [$this->lengthIndicator(QR_MODE_AN, $this->version), $size];
+		$this->bstream[] = [$this->maxLenlengths[QR_MODE_AN], $size];
 
 		for($i=0; $i<$words; $i++) {
 			$val = ($this->lookAnTable($data[$i*2]) * 45) + $this->lookAnTable($data[$i*2+1]);
@@ -112,7 +111,7 @@ class QRInput {
 	private function encodeMode8($size, $data)
 	{
 		$this->bstream[] = [4, 4];
-		$this->bstream[] = [$this->lengthIndicator(QR_MODE_8, $this->version), $size];
+		$this->bstream[] = [$this->maxLenlengths[QR_MODE_8], $size];
 
 		for($i=0; $i<$size; $i++) {
 			$this->bstream[] = [8, $data[$i]];
@@ -122,7 +121,7 @@ class QRInput {
 	private function encodeModeKanji($size, $data)
 	{
 		$this->bstream[] = [4, 8];
-		$this->bstream[] = [$this->lengthIndicator(QR_MODE_KANJI, $this->version), (int)($size / 2)];
+		$this->bstream[] = [$this->maxLenlengths[QR_MODE_KANJI], (int)($size / 2)];
 
 		for($i=0; $i<$size; $i+=2) {
 			$val = ($data[$i] << 8) | $data[$i+1];
@@ -175,19 +174,39 @@ class QRInput {
             $bits += $num * (4 + $l);
 		}
 
-		return [$this->getMinimumVersion($bits), $bits];
+		return $this->getMinimumVersion($bits);
 	}
-	
+
 	private function encodeStream()
 	{
 		$version = 0;
         do {
 			$prev = $version;
-			list($version, $bits) = $this->estimateVersion($version);
+			$package = $this->estimateVersion($version);
+			$version = $package[0];
 		} while ($version > $prev);
-		
-		$this->version = $version;
-		
+
+		$this->maxLenlengths = [
+			QR_MODE_NUM => $this->lengthIndicator(QR_MODE_NUM, $version),
+			QR_MODE_AN => $this->lengthIndicator(QR_MODE_AN, $version),
+			QR_MODE_8 => $this->lengthIndicator(QR_MODE_8, $version),
+			QR_MODE_KANJI => $this->lengthIndicator(QR_MODE_KANJI, $version)
+		];
+
+		foreach($this->streams as $pos => $stream) {
+
+			list($mode, $size, $data) = $stream;
+
+			$maxWords = (1 << $this->maxLenlengths[$mode]) - 1;
+			if ($mode == QR_MODE_KANJI){
+				$maxWords *= 2;
+			}
+
+			if($size > $maxWords) {
+				array_splice($this->streams, $pos, 1, array_chunk($data, $maxWords));
+			}
+		}
+
 		foreach($this->streams as $stream) {
 
 			list($mode, $size, $data) = $stream;
@@ -207,35 +226,17 @@ class QRInput {
 					break;
 			}
 		}
-		
-		return $bits;
+
+		return $package;
 	}
 
-	private function addStream($mode, array $data)
-	{
-		$size = count($data);
-		$maxWords = $this->maxTableBits[$mode];
-
-		if($mode == QR_MODE_KANJI) {
-			$maxWords *= 2; // the number of bytes is required
-		}
-
-		if($size > $maxWords) {
-			foreach(array_chunk($data, $maxWords) as $chunk) {
-				$this->addStream($mode, $chunk);
-			}
-		} else {
-			$this->streams[] = [$mode, $size, $data];
-		}
-	}
-	
 	private function getMinimumVersion($bits)
 	{
 		$size = (int)(($bits + 7) / 8);
 		for($i=1; $i<= 40; $i++) { # QR_SPEC_VERSION_MAX = 40
 			$dataLength = $this->capacity->getDataLength($i, $this->level);
 			if($dataLength >= $size){
-				return $i;
+				return [$i, $dataLength, $this->capacity->getWidth($i), $this->level, $bits];
 			}
 		}
 	}
@@ -269,11 +270,8 @@ class QRInput {
 
 	private function getPackage()
 	{
-		$bits = $this->encodeStream();
-
-		$dataLength = $this->capacity->getDataLength($this->version, $this->level);			
-		$package = [$this->version, $dataLength, $this->capacity->getWidth($this->version), $this->level];
-
+		$package = $this->encodeStream();
+		$bits = array_pop($package);
 		$maxwords = $package[1];
 		$maxbits = $maxwords * 8;
 
@@ -316,7 +314,7 @@ class QRInput {
 		}
 		return ($this->lookAnTable($this->dataStr[$this->pos]) >= 0);
 	}
-	
+
 	private function is_kanji()
 	{
 		if ($this->pos+1 < $this->dataStrLen) {
@@ -409,14 +407,15 @@ class QRInput {
 
 	public function encodeString($dataStr, $hint)
 	{
+		$this->dataStrLen = count($dataStr);
+		$this->dataStr = $dataStr;
+
 		if (($hint != QR_MODE_KANJI) && ($hint != -1)) {
 
-			$this->addStream($hint, $dataStr);
+			$this->streams[] = [$hint, $this->dataStrLen, $dataStr];
 
 		} else {
 
-			$this->dataStr = $dataStr;
-			$this->dataStrLen = count($this->dataStr);
 			$this->hint = $hint;
 			$this->pos = 0;
 			$prev = 0;
@@ -424,9 +423,9 @@ class QRInput {
 			while ($this->dataStrLen > $this->pos)
 			{
 				$prev = $this->pos;
-				$mod = $this->identifyMode();
+				$mode = $this->identifyMode();
 
-				switch ($mod) {
+				switch ($mode) {
 					case QR_MODE_NUM:
 						$this->eatNum();
 						break;
@@ -437,11 +436,12 @@ class QRInput {
 						$this->eatKanji();
 						break;
 					default:
-						$mod = QR_MODE_8;
+						$mode = QR_MODE_8;
 						$this->eat8();
 				}
 
-				$this->addStream($mod, array_slice($this->dataStr, $prev, ($this->pos - $prev)));
+				$size = $this->pos - $prev;
+				$this->streams[] = [$mode, $size, array_slice($this->dataStr, $prev, $size)];
 			}
 		}
 
