@@ -5,22 +5,14 @@ require_once("bootstrap.php");
 use QRCode\QRCode;
 use QRCode\QRException;
 
-#QR_ECLEVEL_L = 0
-#QR_ECLEVEL_M = 1
-#QR_ECLEVEL_Q = 2
-#QR_ECLEVEL_H = 3
-
-#QR_MODE_NUM = 0
-#QR_MODE_AN = 1
-#QR_MODE_8 = 2
-#QR_MODE_KANJI = 3
+define("QR_ALL_MASKS", true);
 
 ## Start timer
 $mtime = explode(" ",microtime());
 $starttime = $mtime[1] + $mtime[0];
 
-$QRCode = new QRcode(QR_ECLEVEL_Q, 10, 4);
-$QRCode->encode('http://www.test.bg/  TEST  TEST')->toFile("example.QRcode.svg");
+$QRCode = new QRcode(2, 10, 4);
+$QRCode->encode('https://github.com/bozhinov/PHP-QRCode-fork')->toFile("temp/example.QRcode.all.masks.png");
 
 ## Stop timer
 $mtime = explode(" ",microtime());

@@ -12,7 +12,7 @@ $mtime = explode(" ",microtime());
 $starttime = $mtime[1] + $mtime[0];
 
 $QRCode = new QRcode(2, 10, 4);
-$QRCode->encode('https://github.com/bozhinov/PHP-QRCode-fork')->toFile("example.QRcode.all.masks.png");
+$QRCode->encode('http://www.test.bg/12341234 TEST TEST  TEST  TEST  TEST  TEST  TEST  TEST  TEST   TEST   TEST   TESTTSTSTEST  TEST  TEST   TEST   TEST   TESTTSTSTEST  TEST  TEST   TEST   TEST   TESTTSTSTEST  TEST  TEST   TEST   TEST   TESTTSTSTEST  TEST  TEST   TEST   TE')->toFile("temp/example.QRcode.very.long.png");
 
 ## Stop timer
 $mtime = explode(" ",microtime());

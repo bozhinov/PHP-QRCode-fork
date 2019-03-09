@@ -19,6 +19,8 @@ use QRCode\QRException;
 $mtime = explode(" ",microtime());
 $starttime = $mtime[1] + $mtime[0];
 
+define("QR_ALL_MASKS", true);
+
 /* Usage
 
 Single line:
@@ -46,22 +48,22 @@ $QRCode->forWeb("JPG", $quality = 90);
 */
 
 $QRCode = new QRcode(QR_ECLEVEL_Q, 10, 4);
-$QRCode->encode('http://www.test.bg/фффф TEST TEST  TEST  TEST  TEST  TEST  TEST  TEST  TEST ')->toFile("example.QRcode.png");
+$QRCode->encode('http://www.test.bg/фффф TEST TEST  TEST  TEST  TEST  TEST  TEST  TEST  TEST ')->toFile("temp/example.QRcode.png");
 
 $QRCode->config(["error_correction" => QR_ECLEVEL_H, "matrix_point_size" => 8, "margin" => 4]);
-$QRCode->encode('http://www.test.bg/фффф')->toFile("example2.QRcode.png");
+$QRCode->encode('http://www.test.bg/фффф')->toFile("temp/example2.QRcode.png");
 
 $QRCode->config(["error_correction" => QR_ECLEVEL_M, "matrix_point_size" => 6, "margin" => 4]);
-$QRCode->encode('momchil@bojinov.info')->toFile("example3.QRcode.png");
+$QRCode->encode('momchil@bojinov.info')->toFile("temp/example3.QRcode.png");
 
 $QRCode->config(["error_correction" => QR_ECLEVEL_H, "matrix_point_size" => 7, "margin" => 4]);
-$QRCode->encode('momchil@bojinov.info')->toFile("example4.QRcode.jpg");
+$QRCode->encode('momchil@bojinov.info')->toFile("temp/example4.QRcode.jpg");
 
 $QRCode->config(["error_correction" => QR_ECLEVEL_Q, "matrix_point_size" => 10, "margin" => 4]);
-$QRCode->encode('http://www.test.bg/фффф TEST TEST  TEST  TEST  TEST  TEST  TEST  TEST ', QR_MODE_8)->toFile("example5.QRcode.png"); // 70 chars
+$QRCode->encode('http://www.test.bg/фффф TEST TEST  TEST  TEST  TEST  TEST  TEST  TEST ', QR_MODE_8)->toFile("temp/example5.QRcode.png"); // 70 chars
 
 $QRCode->config(["error_correction" => QR_ECLEVEL_L, "matrix_point_size" => 7, "margin" => 4]);
-$QRCode->encode('00359888888888', $hint = QR_MODE_NUM)->toFile("example6.QRcode.jpg", $quality = 90);
+$QRCode->encode('00359888888888', $hint = QR_MODE_NUM)->toFile("temp/example6.QRcode.jpg", $quality = 90);
 
 ## Stop timer
 $mtime = explode(" ",microtime());
