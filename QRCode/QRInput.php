@@ -140,7 +140,7 @@ class QRInput {
 		$bits = 0;
 		foreach($this->streams as $stream) {
 			list($mode, $size, ) = $stream;
-				switch($mode) {
+			switch($mode) {
 				case QR_MODE_NUM:
 					$bits += (int)($size / 3) * 10;
 					switch($size % 3) {
@@ -165,7 +165,7 @@ class QRInput {
 					$bits += ((int)(($size / 2) * 13));
 					break;
 			}
-			
+
 			$l = $this->lengthIndicator($mode, $version);
             $m = 1 << $l;
             $num = (int)(($size + $m - 1) / $m);
@@ -177,7 +177,7 @@ class QRInput {
 
 	private function encodeStream()
 	{
-		$version = 0;
+		$version = 1;
         do {
 			$prev = $version;
 			$package = $this->estimateVersion($version);
@@ -235,7 +235,8 @@ class QRInput {
 		for($i=1; $i<= 40; $i++) { # QR_SPEC_VERSION_MAX = 40
 			$dataLength = $capacity->getDataLength($i, $this->level);
 			if($dataLength >= $size){
-				return [$i, $dataLength, $capacity->getWidth($i), $this->level, $bits];
+				$width = $i * 4 + 17;
+				return [$i, $dataLength, $width, $this->level, $bits];
 			}
 		}
 	}
@@ -358,7 +359,7 @@ class QRInput {
 	{
 		# the first pos was already identified
 		$this->pos++;
-		
+
 		while($this->is_digit()) {
 			$this->pos++;
 		}
@@ -367,7 +368,7 @@ class QRInput {
 	private function eatAn()
 	{
 		$this->pos++;
-		
+
 		while($this->is_alnum()) {
 			$this->pos++;
 		}
@@ -376,7 +377,7 @@ class QRInput {
 	private function eatKanji()
 	{
 		$this->pos += 2;
-		
+
 		while($this->is_kanji()) {
 			$this->pos += 2;
 		}

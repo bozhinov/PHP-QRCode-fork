@@ -125,7 +125,7 @@ class QRFrame {
 
 		$dataLength = ($b1 * $pad) + ($b2 * $spec4);
 		$eccLength = ($b1 + $b2) * $nroots;
-		
+
 		$ReedSolomon = new QRrsItem($dataCode, $dataLength, $b1, $pad, $nroots, $b2);
 
 		// inteleaved data and ecc codes
