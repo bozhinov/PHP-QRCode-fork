@@ -82,14 +82,14 @@ class QRFrame {
 	*/
 	private $alignmentPattern = [
 		[0, 0],
-		[0, 0], [18, 0], [22, 0], [26, 0], [30, 0], // 1- 5
-		[34, 0], [22, 38], [24, 42], [26, 46], [28, 50], // 6-10
-		[30, 54], [32, 58], [34, 62], [26, 46], [26, 48], //11-15
-		[26, 50], [30, 54], [30, 56], [30, 58], [34, 62], //16-20
-		[28, 50], [26, 50], [30, 54], [28, 54], [32, 58], //21-25
-		[30, 58], [34, 62], [26, 50], [30, 54], [26, 52], //26-30
-		[30, 56], [34, 60], [30, 58], [34, 62], [30, 54], //31-35
-		[24, 50], [28, 54], [32, 58], [26, 54], [30, 58] //35-40
+		[0, 0], [18, 0], [22, 0], [26, 0], [30, 0],
+		[34, 0], [22, 38], [24, 42], [26, 46], [28, 50],
+		[30, 54], [32, 58], [34, 62], [26, 46], [26, 48],
+		[26, 50], [30, 54], [30, 56], [30, 58], [34, 62],
+		[28, 50], [26, 50], [30, 54], [28, 54], [32, 58],
+		[30, 58], [34, 62], [26, 50], [30, 54], [26, 52],
+		[30, 56], [34, 60], [30, 58], [34, 62], [30, 54],
+		[24, 50], [28, 54], [32, 58], [26, 54], [30, 58]
 	];
 
 	// Version information pattern (BCH coded).
@@ -102,10 +102,20 @@ class QRFrame {
 		0x1f250, 0x209d5, 0x216f0, 0x228ba, 0x2379f, 0x24b0b, 0x2542e, 0x26a64,
 		0x27541, 0x28c69
 	];
+	
+	private $remainder_bits = [
+		0,
+		0,7,7,7,7,7,
+		0,0,0,0,0,0,0,
+		3,3,3,3,3,3,3,
+		4,4,4,4,4,4,4,
+		3,3,3,3,3,3,3,
+		0,0,0,0,0,0
+	];
 
 	public function getFrame($package)
 	{
-		list($this->version, $dataLength, $this->width, $level, $dataCode) = $package;
+		list($this->version, $dataLength, $ecc, $this->width, $level, $dataCode) = $package;
 
 		$this->frame = $this->createFrame();
 
@@ -114,10 +124,7 @@ class QRFrame {
 		$this->dir = -1;
 		$this->bit = -1;
 
-		$capacity = new QRCap();
-
 		list($b1,$b2) = $this->eccTable[$this->version][$level];
-		$ecc = $capacity->getEC($this->version, $level);
 
 		$pad = floor($dataLength / ($b1 + $b2));
 		$nroots = floor($ecc / ($b1 + $b2));
@@ -139,7 +146,7 @@ class QRFrame {
 		}
 
 		// remainder bits
-		$j = $capacity->getReminder($this->version);
+		$j = $this->remainder_bits[$this->version];
 		for($i=0; $i<$j; $i++) {
 			$this->setNext(2);
 		}
