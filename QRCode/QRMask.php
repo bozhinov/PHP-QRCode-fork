@@ -9,7 +9,7 @@
  * Copyright (C) 2010 Dominik Dzienia <deltalab at poczta dot fm>
  *
  * Code modifications by Momchil Bozhinov <momchil at bojinov dot info>
- * Last update - 02.2019
+ * Last update - 03.2019
  *
  */
 

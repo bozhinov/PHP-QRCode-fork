@@ -9,7 +9,7 @@
  * Copyright (C) 2010 Dominik Dzienia <deltalab at poczta dot fm>
  *
  * Code modifications by Momchil Bozhinov <momchil at bojinov dot info>
- * Last update - 02.2019
+ * Last update - 03.2019
  *
  */
 
@@ -52,47 +52,9 @@ class QRrsItem {
 			throw QRException::Std('Too much padding');
 		}
 
-		$this->rsInit();
-
-		for($i = 0; $i < $this->b1; $i++) { # rsBlockNum1
-			$data = array_slice($dataCode, $this->pad * $i);
-			$this->rsblocks[$i] = [$data, $this->encode_rs_char($data, $this->pad)];
-		}
-
-		if($b2 != 0) {
-			for($i = 0; $i < $b2; $i++) {
-				$inc = $this->pad + (($i == 0) ? 0 : 1);
-				$data = array_slice($data, $inc);
-				$this->rsblocks[$this->b1 + $i] = [$data, $this->encode_rs_char($data, $this->pad + 1)];
-			}
-		}
-	}
-
-	public function getCode()
-	{
-		if($this->count < $this->dataLength) {
-			$blockNo = $this->count % $this->blocks;
-			$col = $this->count / $this->blocks;
-			if($col >= $this->pad) { # was $this->rsblocks[0]->dataLength
-				$blockNo += $this->b1;
-			}
-			$ret = $this->rsblocks[$blockNo][0][$col];
-		} else {
-			$blockNo = ($this->count - $this->dataLength) % $this->blocks;
-			$col = ($this->count - $this->dataLength) / $this->blocks;
-			$ret = $this->rsblocks[$blockNo][1][$col];
-		}
-		$this->count++;
-
-		return $ret;
-	}
-
-	private function rsInit()
-	{
 		// Common code for intializing a Reed-Solomon control block (char or int symbols)
 		// Copyright 2004 Phil Karn, KA9Q
 		// May be used under the terms of the GNU Lesser General Public License (LGPL)
-
 		$this->parity = array_fill(0, $this->nroots, 0);
 		$this->genpoly = $this->parity;
 		array_unshift($this->genpoly,1);
@@ -138,6 +100,19 @@ class QRrsItem {
 		for ($i = 0; $i <= $this->nroots; $i++){
 			$this->genpoly[$i] = $this->index_of[$this->genpoly[$i]];
 		}
+
+		for($i = 0; $i < $this->b1; $i++) { # rsBlockNum1
+			$data = array_slice($dataCode, $this->pad * $i);
+			$this->rsblocks[$i] = [$data, $this->encode_rs_char($data, $this->pad)];
+		}
+
+		if($b2 != 0) {
+			for($i = 0; $i < $b2; $i++) {
+				$inc = $this->pad + (($i == 0) ? 0 : 1);
+				$data = array_slice($data, $inc);
+				$this->rsblocks[$this->b1 + $i] = [$data, $this->encode_rs_char($data, $this->pad + 1)];
+			}
+		}
 	}
 
 	private function encode_rs_char($data, $pad)
@@ -158,6 +133,25 @@ class QRrsItem {
 		}
 
 		return $parity;
+	}
+
+	public function getCode()
+	{
+		if($this->count < $this->dataLength) {
+			$blockNo = $this->count % $this->blocks;
+			$col = $this->count / $this->blocks;
+			if($col >= $this->pad) { # was $this->rsblocks[0]->dataLength
+				$blockNo += $this->b1;
+			}
+			$ret = $this->rsblocks[$blockNo][0][$col];
+		} else {
+			$blockNo = ($this->count - $this->dataLength) % $this->blocks;
+			$col = ($this->count - $this->dataLength) / $this->blocks;
+			$ret = $this->rsblocks[$blockNo][1][$col];
+		}
+		$this->count++;
+
+		return $ret;
 	}
 }
 
