@@ -10,6 +10,6 @@ By Dominik Dzienia<br />
 
 I was looking for a QR implementation for the pChart fork and came across this one.
 
-My code is 30% (~37kb) the size of the original one and twice as fast.<br />
+My code four times smaller and two times faster<br />
 (much much faster than the Chillerlan's implementation)<br />
 This is not a drop in replacement.<br />
