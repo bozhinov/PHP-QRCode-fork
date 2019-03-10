@@ -217,6 +217,7 @@ class QRInput {
 			}
 
 			$l = $this->lengthIndicator($mode, $version);
+			$this->maxLenlengths[$mode] = $l;
             $m = 1 << $l;
             $num = (int)(($size + $m - 1) / $m);
             $bits += $num * (4 + $l);
@@ -233,13 +234,6 @@ class QRInput {
 			$package = $this->estimateVersion($version);
 			$version = $package[0];
 		} while ($version > $prev);
-
-		$this->maxLenlengths = [
-			QR_MODE_NUM => $this->lengthIndicator(QR_MODE_NUM, $version),
-			QR_MODE_AN => $this->lengthIndicator(QR_MODE_AN, $version),
-			QR_MODE_8 => $this->lengthIndicator(QR_MODE_8, $version),
-			QR_MODE_KANJI => $this->lengthIndicator(QR_MODE_KANJI, $version)
-		];
 
 		/* This should not be requred anymore as we already picked the proper version for that length
 		foreach($this->streams as $pos => $stream) {
