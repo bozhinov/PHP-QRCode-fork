@@ -157,12 +157,7 @@ class QRcode {
 			throw QRException::Std('unknown hint');
 		}
 
-		$dataStr = [];
-		foreach(str_split($text)as $val){
-			$dataStr[] = ord($val);
-		}
-
-		$this->encoded = (new QRInput($this->level))->encodeString($dataStr, $hint);
+		$this->encoded = (new QRInput($this->level))->encodeString($text, $hint);
 
 		return $this;
 	}

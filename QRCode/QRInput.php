@@ -463,14 +463,18 @@ class QRInput {
 		}
 	}
 
-	public function encodeString($dataStr, $hint)
+	public function encodeString($text, $hint)
 	{
-		$this->dataStrLen = count($dataStr);
-		$this->dataStr = $dataStr;
+		$this->dataStr = [];
+		foreach(str_split($text)as $val){
+			$this->dataStr[] = ord($val);
+		}
+
+		$this->dataStrLen = count($this->dataStr);
 
 		if (($hint != QR_MODE_KANJI) && ($hint != -1)) {
 
-			$this->streams[] = [$hint, $this->dataStrLen, $dataStr];
+			$this->streams[] = [$hint, $this->dataStrLen, $this->dataStr];
 
 		} else {
 
