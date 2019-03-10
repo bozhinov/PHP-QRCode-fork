@@ -241,6 +241,7 @@ class QRInput {
 			QR_MODE_KANJI => $this->lengthIndicator(QR_MODE_KANJI, $version)
 		];
 
+		/* This should not be requred anymore as we already picked the proper version for that length
 		foreach($this->streams as $pos => $stream) {
 
 			list($mode, $size, $data) = $stream;
@@ -249,11 +250,11 @@ class QRInput {
 			if ($mode == QR_MODE_KANJI){
 				$maxWords *= 2;
 			}
-
 			if($size > $maxWords) {
 				array_splice($this->streams, $pos, 1, array_chunk($data, $maxWords));
 			}
 		}
+		*/
 
 		foreach($this->streams as $stream) {
 
