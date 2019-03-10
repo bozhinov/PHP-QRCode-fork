@@ -35,7 +35,9 @@ class QRmask {
 	{
 		$this->width = $package[3];
 		$this->level = $package[4];
-		$this->runLength = array_fill(0, 178, 0); # QR_SPEC_WIDTH_MAX = 177
+		# QR_SPEC_WIDTH_MAX = 177
+		# Allocate only as much as we need
+		$this->runLength = array_fill(0, $this->width + 1, 0);
 		$this->frame = (new QRFrame())->getFrame($package);
 	}
 
