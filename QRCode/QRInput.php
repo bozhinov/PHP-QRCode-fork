@@ -212,7 +212,7 @@ class QRInput {
 					$bits += ($size * 8);
 					break;
 				case QR_MODE_KANJI:
-					$bits += ((int)(($size / 2) * 13));
+					$bits += (int)($size / 2) * 13;
 					break;
 			}
 
@@ -225,7 +225,7 @@ class QRInput {
 		return $this->getMinimumVersion($bits);
 	}
 
-	private function encodeStream()
+	private function encodeStreams()
 	{
 		$version = 1;
         do {
@@ -276,6 +276,33 @@ class QRInput {
 			}
 		}
 
+		$bits = array_pop($package);
+		$maxwords = $package[1];
+		/* This should not be requred anymore
+		$maxbits = $maxwords * 8;
+		
+		if ($maxbits - $bits < 5) {
+			$this->bstream[] = [$maxbits - $bits, 0];
+			$package[] = $this->toByte();
+			return $package;
+		}
+		*/
+
+		$bits += 4;
+		$words = floor(($bits + 7) / 8);
+
+		$this->bstream[] = [$words * 8 - $bits + 4, 0];
+
+		$padlen = $maxwords - $words;
+
+		if($padlen > 0) {
+			for($i=0; $i<$padlen; $i+=2) {
+				$this->bstream[] = [8, 236];
+				$this->bstream[] = [8, 17];
+			}
+		}
+		$package[] = $this->toByte();
+
 		return $package;
 	}
 
@@ -291,6 +318,7 @@ class QRInput {
 		}
 	}
 
+	/* This should not be requred anymore. The estimation seems to be spot on.
 	private function get_actual_bstream_size() # UNUSED
 	{
 		$size = 0;
@@ -299,6 +327,7 @@ class QRInput {
 		}
 		return $size;
 	}
+	*/
 
 	private function toByte()
 	{
@@ -325,37 +354,6 @@ class QRInput {
 		}
 
 		return $data;
-	}
-
-	private function getPackage()
-	{
-		$package = $this->encodeStream();
-		$bits = array_pop($package);
-		$maxwords = $package[1];
-		$maxbits = $maxwords * 8;
-
-		if ($maxbits - $bits < 5) {
-			$this->bstream[] = [$maxbits - $bits, 0];
-			$package[] = $this->toByte();
-			return $package;
-		}
-
-		$bits += 4;
-		$words = floor(($bits + 7) / 8);
-
-		$this->bstream[] = [$words * 8 - $bits + 4, 0];
-
-		$padlen = $maxwords - $words;
-
-		if($padlen > 0) {
-			for($i=0; $i<$padlen; $i+=2) {
-				$this->bstream[] = [8, 236];
-				$this->bstream[] = [8, 17];
-			}
-		}
-		$package[] = $this->toByte();
-
-		return $package;
 	}
 
 	private function is_digit()
@@ -481,7 +479,6 @@ class QRInput {
 
 			$this->hint = $hint;
 			$this->pos = 0;
-			$prev = 0;
 
 			while ($this->dataStrLen > $this->pos)
 			{
@@ -508,7 +505,7 @@ class QRInput {
 			}
 		}
 
-		$package = $this->getPackage();
+		$package = $this->encodeStreams();
 		return (new QRmask($package))->get();
 	}
 }
