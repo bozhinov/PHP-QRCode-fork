@@ -13,13 +13,11 @@
  *
  */
 
-// Encoding modes
 define('QR_MODE_NUM', 0);
 define('QR_MODE_AN', 1);
 define('QR_MODE_8', 2);
 define('QR_MODE_KANJI', 3);
 
-// Levels of error correction.
 define('QR_ECLEVEL_L', 0);
 define('QR_ECLEVEL_M', 1);
 define('QR_ECLEVEL_Q', 2);
@@ -99,15 +97,10 @@ class QRcode {
 
 	private function toSVG($filename)
 	{
-		ob_start();
-		imagePng($this->target_image);
-		$imagedata = ob_get_contents();
-		ob_end_clean();
-
 		$content = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="'.$this->h.'px" height="'.$this->h.'px" viewBox="0 0 '.$this->h.' '.$this->h.'" enable-background="new 0 0 '.$this->h.' '.$this->h.'" xml:space="preserve">
-<image id="image0" width="'.$this->h.'" height="'.$this->h.'" x="0" y="0" href="data:image/png;base64,'.base64_encode($imagedata).'" />
+<image id="image0" width="'.$this->h.'" height="'.$this->h.'" x="0" y="0" href="data:image/png;base64,'.$this->toBase64().'" />
 </svg>';
 
 		if(is_null($filename)) {
@@ -152,6 +145,16 @@ class QRcode {
 		$this->encoded = (new QRInput($this->level))->encodeString($text, $hint);
 
 		return $this;
+	}
+
+	public function toBase64()
+	{
+		ob_start();
+		imagePng($this->target_image);
+		$imagedata = ob_get_contents();
+		ob_end_clean();
+
+		return base64_encode($imagedata);
 	}
 
 	public function toASCII()
@@ -246,7 +249,7 @@ class QRInput {
 		-1, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
 		25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35
 	];
-	
+
 	private $capacity = [
 		[0, [0, 0, 0, 0]],
 		[26, [7, 10, 13, 17]], // 1
@@ -295,7 +298,7 @@ class QRInput {
 	{
 		$this->level = $level;
 	}
-	
+
 	private function getDataLength($version)
 	{
 		$ecc = $this->capacity[$version][1][$this->level];
@@ -463,7 +466,6 @@ class QRInput {
 
 		$bits = array_pop($package);
 		$maxwords = $package[1];
-
 		$bits += 4;
 		$words = floor(($bits + 7) / 8);
 
@@ -681,7 +683,6 @@ class QRmask {
 	private $frame;
 	private $masked;
 
-	// See calcFormatInfo in tests/test_qrspec.c (orginal qrencode c lib)
 	private $formatInfo = [
 		[0x77c4, 0x72f3, 0x7daa, 0x789d, 0x662f, 0x6318, 0x6c41, 0x6976],
 		[0x5412, 0x5125, 0x5e7c, 0x5b4b, 0x45f9, 0x40ce, 0x4f97, 0x4aa0],
@@ -693,8 +694,6 @@ class QRmask {
 	{
 		$this->width = $package[3];
 		$this->level = $package[4];
-		# QR_SPEC_WIDTH_MAX = 177
-		# Allocate only as much as we need
 		$this->runLength = array_fill(0, $this->width + 1, 0);
 		$this->frame = (new QRFrame())->getFrame($package);
 	}
@@ -992,7 +991,7 @@ class QRFrame {
 		0x1f250, 0x209d5, 0x216f0, 0x228ba, 0x2379f, 0x24b0b, 0x2542e, 0x26a64,
 		0x27541, 0x28c69
 	];
-	
+
 	private $remainder_bits = [
 		0,
 		0,7,7,7,7,7,
