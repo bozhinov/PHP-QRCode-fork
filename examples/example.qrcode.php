@@ -33,6 +33,12 @@ $QRCode->encode('http://www.test.bg/', $hint);
 Dump the matrix:
 echo json_encode($QRCode->toArray());
 
+Dump base64 encoded PNG:
+$QRCode->toBase64();
+
+Create ASCII:
+$QRCode->toASCII();
+
 Load a matrix:
 $QRCode->fromArray($matix);
 

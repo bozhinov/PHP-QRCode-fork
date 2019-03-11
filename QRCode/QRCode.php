@@ -107,15 +107,10 @@ class QRcode {
 
 	private function toSVG($filename)
 	{
-		ob_start();
-		imagePng($this->target_image);
-		$imagedata = ob_get_contents();
-		ob_end_clean();
-
 		$content = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="'.$this->h.'px" height="'.$this->h.'px" viewBox="0 0 '.$this->h.' '.$this->h.'" enable-background="new 0 0 '.$this->h.' '.$this->h.'" xml:space="preserve">
-<image id="image0" width="'.$this->h.'" height="'.$this->h.'" x="0" y="0" href="data:image/png;base64,'.base64_encode($imagedata).'" />
+<image id="image0" width="'.$this->h.'" height="'.$this->h.'" x="0" y="0" href="data:image/png;base64,'.$this->toBase64().'" />
 </svg>';
 
 		if(is_null($filename)) {
@@ -160,6 +155,16 @@ class QRcode {
 		$this->encoded = (new QRInput($this->level))->encodeString($text, $hint);
 
 		return $this;
+	}
+
+	public function toBase64()
+	{
+		ob_start();
+		imagePng($this->target_image);
+		$imagedata = ob_get_contents();
+		ob_end_clean();
+
+		return base64_encode($imagedata);
 	}
 
 	public function toASCII()
