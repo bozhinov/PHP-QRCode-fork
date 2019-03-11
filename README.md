@@ -14,7 +14,7 @@ My code is four times smaller and two times faster<br />
 
 Usage:<br />
 
-	Possible hints: QR_MODE_NUM, QR_MODE_AN, QR_MODE_8, QR_MODE_KANJI<br />
+	Possible hints: QR_MODE_NUM, QR_MODE_AN, QR_MODE_8, QR_MODE_KANJI
 
 - Single line:<br />
 (new QRcode(QR_ECLEVEL_Q, $max_module_size, $white_frame_size))->encode('https://github.com/bozhinov/PHP-QRCode-fork')->toFile("example.QRcode.png");<br />
