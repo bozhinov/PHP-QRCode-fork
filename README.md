@@ -15,32 +15,32 @@ My code four times smaller and two times faster<br />
 This is not a drop in replacement.<br />
 
 Usage:<br />
-<br />
-- Single line:<br />
+
+- Single line:
 (new QRcode(QR_ECLEVEL_Q, 10, 4))->encode('http://www.test.bg/')->toFile("example.QRcode.png");<br />
-<br />
-- Or:<br />
+
+- Or:
 $QRCode = new QRcode(QR_ECLEVEL_Q, 10, 4);<br />
 $QRCode->encode('http://www.test.bg/', $hint);<br />
-<br />
-- Dump the matrix:<br />
+
+- Dump the matrix:
 echo json_encode($QRCode->toArray());<br />
-<br />
-- Dump base64 encoded PNG:<br />
+
+- Dump base64 encoded PNG:
 $QRCode->toBase64();<br />
-<br />
-- Create ASCII:<br />
+
+- Create ASCII:
 $QRCode->toASCII();<br />
-<br />
-- Load a matrix:<br />
+
+- Load a matrix:
 $QRCode->fromArray($matix);<br />
-<br />
-- Output to file:<br />
+
+- Output to file:
 $QRCode->toFile("example.QRcode.png");<br />
 $QRCode->toFile("example.QRcode.svg");<br />
 $QRCode->toFile("example.QRcode.jpg");<br />
-<br />
-- Add HTTP headers:<br />
+
+- Add HTTP headers:
 $QRCode->forWeb("PNG");<br />
 $QRCode->forWeb("SVG");<br />
 $QRCode->forWeb("JPG", $quality = 90);<br />
