@@ -1,4 +1,8 @@
-<?php 
+<?php
+
+if (PHP_MAJOR_VERSION < 7){
+	die("PHP QRCode only works for PHP 7+");
+}
 
 if (php_sapi_name() != "cli") {
 	chdir("../");
