@@ -154,6 +154,25 @@ class QRcode {
 		return $this;
 	}
 
+	public function toASCII()
+	{
+		$h = count($this->encoded);
+		$ascii = "";
+
+		for($y=0; $y<$h; $y++) {
+			for($x=0; $x<$h; $x++) {
+				if ($this->encoded[$y][$x]&1) {
+					$ascii .= chr(219).chr(219);
+				} else {
+					$ascii .= "  ";
+				}
+			}
+			$ascii .= "\r\n";
+		}
+
+		return $ascii;
+	}
+
 	public function toArray()
 	{
 		return $this->encoded;
