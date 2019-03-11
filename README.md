@@ -7,7 +7,7 @@ http://sourceforge.net/projects/phpqrcode/<br />
 By Dominik Dzienia<br />
 
 I was looking for a QR implementation for the pChart fork and came across this one.<br />
-It was either refactor Dominik's or use Chillerlan's (https://github.com/chillerlan/php-qrcode)
+It was either refactor Dominik's or use Chillerlan's (https://github.com/chillerlan/php-qrcode)<br />
 This fork is not a drop in replacement.<br />
 My code is four times smaller and two times faster<br />
 (much much faster than the Chillerlan's implementation)<br />
