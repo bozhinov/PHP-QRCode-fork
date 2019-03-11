@@ -1,5 +1,3 @@
-If you are looking for a proper implemention take a look at this one:<br />
-https://github.com/chillerlan/php-qrcode
 
 This is PHP implementation of QR Code 2-D barcode generator.<br />
 It is pure-php LGPL-licensed implementation based on C libqrencode by Kentaro Fukuchi.<br />
@@ -8,15 +6,15 @@ Based on:<br />
 http://sourceforge.net/projects/phpqrcode/<br />
 By Dominik Dzienia<br />
 
-I was looking for a QR implementation for the pChart fork and came across this one.
-
-My code four times smaller and two times faster<br />
+I was looking for a QR implementation for the pChart fork and came across this one.<br />
+It was either refactor Dominik's or use Chillerlan's (https://github.com/chillerlan/php-qrcode)
+This fork is not a drop in replacement.<br />
+My code is four times smaller and two times faster<br />
 (much much faster than the Chillerlan's implementation)<br />
-This is not a drop in replacement.<br />
 
 Usage:<br />
 
-Possible hints: QR_MODE_NUM, QR_MODE_AN, QR_MODE_8, QR_MODE_KANJI<br /><br />
+	Possible hints: QR_MODE_NUM, QR_MODE_AN, QR_MODE_8, QR_MODE_KANJI<br />
 
 - Single line:<br />
 (new QRcode(QR_ECLEVEL_Q, $max_module_size, $white_frame_size))->encode('https://github.com/bozhinov/PHP-QRCode-fork')->toFile("example.QRcode.png");<br />
