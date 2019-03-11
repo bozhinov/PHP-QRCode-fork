@@ -16,31 +16,31 @@ This is not a drop in replacement.<br />
 
 Usage:<br />
 
-- Single line:
+- Single line:<br />
 (new QRcode(QR_ECLEVEL_Q, 10, 4))->encode('http://www.test.bg/')->toFile("example.QRcode.png");<br />
 
-- Or:
+- Or:<br />
 $QRCode = new QRcode(QR_ECLEVEL_Q, 10, 4);<br />
 $QRCode->encode('http://www.test.bg/', $hint);<br />
 
-- Dump the matrix:
+- Dump the matrix:<br />
 echo json_encode($QRCode->toArray());<br />
 
-- Dump base64 encoded PNG:
+- Dump base64 encoded PNG:<br />
 $QRCode->toBase64();<br />
 
-- Create ASCII:
+- Create ASCII:<br />
 $QRCode->toASCII();<br />
 
-- Load a matrix:
+- Load a matrix:<br />
 $QRCode->fromArray($matix);<br />
 
-- Output to file:
+- Output to file:<br />
 $QRCode->toFile("example.QRcode.png");<br />
 $QRCode->toFile("example.QRcode.svg");<br />
 $QRCode->toFile("example.QRcode.jpg");<br />
 
-- Add HTTP headers:
+- Add HTTP headers:<br />
 $QRCode->forWeb("PNG");<br />
 $QRCode->forWeb("SVG");<br />
 $QRCode->forWeb("JPG", $quality = 90);<br />
