@@ -128,7 +128,7 @@ class QRFrame {
 
 		$pad = floor($dataLength / ($b1 + $b2));
 		$nroots = floor($ecc / ($b1 + $b2));
-		$spec4 = ($b2 == 0) ? 0 : (floor($dataLength / ($b1 + $b2)) + 1);
+		$spec4 = ($b2 == 0) ? 0 : ($pad + 1);
 
 		$dataLength = ($b1 * $pad) + ($b2 * $spec4);
 		$eccLength = ($b1 + $b2) * $nroots;
