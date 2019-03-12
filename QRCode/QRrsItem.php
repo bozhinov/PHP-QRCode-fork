@@ -28,19 +28,14 @@ class QRrsItem {
 
 	// RawCode
 	private $blocks;
-	private $count;
 	private $b1;
 	private $rsblocks = [];
-	private $dataLength;
 
-	function __construct(array $dataCode, int $dataLength, int $b1, int $pad, int $nroots, int $b2)
+	function __construct(array $dataCode, int $b1, int $b2, int $pad, int $nroots)
 	{
-		$this->count = 0;
-
 		$this->b1 = $b1;
 		$this->pad = $pad;
 		$this->nroots = $nroots;
-		$this->dataLength = $dataLength;
 		$this->blocks = $this->b1 + $b2;
 
 		// Check parameter ranges
@@ -135,23 +130,19 @@ class QRrsItem {
 		return $parity;
 	}
 
-	public function getCode()
+	public function getDataCode($i)
 	{
-		if($this->count < $this->dataLength) {
-			$blockNo = $this->count % $this->blocks;
-			$col = $this->count / $this->blocks;
-			if($col >= $this->pad) { # was $this->rsblocks[0]->dataLength
-				$blockNo += $this->b1;
-			}
-			$ret = $this->rsblocks[$blockNo][0][$col];
-		} else {
-			$blockNo = ($this->count - $this->dataLength) % $this->blocks;
-			$col = ($this->count - $this->dataLength) / $this->blocks;
-			$ret = $this->rsblocks[$blockNo][1][$col];
+		$blockNo = $i % $this->blocks;
+		$col = $i / $this->blocks;
+		if($col >= $this->pad) {
+			$blockNo += $this->b1;
 		}
-		$this->count++;
+		return $this->rsblocks[$blockNo][0][$col];
+	}
 
-		return $ret;
+	public function getEccCode($i)
+	{
+		return $this->rsblocks[$i % $this->blocks][1][$i / $this->blocks];
 	}
 }
 
