@@ -40,11 +40,7 @@ class QRrsItem {
 
 		// Check parameter ranges
 		if($this->nroots >= 256){
-			throw QRException::Std("Can't have more roots than symbol values!");
-		}
-
-		if($this->pad < 1){
-			throw QRException::Std('Too much padding');
+			throw QRException::Std("version estimation failed");
 		}
 
 		// Common code for intializing a Reed-Solomon control block (char or int symbols)
