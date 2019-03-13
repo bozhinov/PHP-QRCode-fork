@@ -125,15 +125,12 @@ class QRFrame {
 		$this->bit = -1;
 
 		list($b1,$b2) = $this->eccTable[$this->version][$level];
+		
+		$blocks = $b1 + $b2;
+		$nroots = intval($ecc / $blocks);
+		$eccLength = $blocks * $nroots;
 
-		$pad = floor($dataLength / ($b1 + $b2));
-		$nroots = floor($ecc / ($b1 + $b2));
-		$spec4 = ($b2 == 0) ? 0 : ($pad + 1);
-
-		$dataLength = ($b1 * $pad) + ($b2 * $spec4);
-		$eccLength = ($b1 + $b2) * $nroots;
-
-		$ReedSolomon = new QRrsItem($dataCode, $b1, $b2, $pad, $nroots);
+		$ReedSolomon = new QRrsItem($dataCode, $dataLength, $b1, $b2, $blocks, $nroots);
 
 		// inteleaved data and ecc codes
 		for($i=0; $i < $dataLength; $i++) {

@@ -31,12 +31,12 @@ class QRrsItem {
 	private $b1;
 	private $rsblocks = [];
 
-	function __construct(array $dataCode, int $b1, int $b2, int $pad, int $nroots)
+	function __construct(array $dataCode, int $dataLength, int $b1, int $b2, int $blocks,int $nroots)
 	{
 		$this->b1 = $b1;
-		$this->pad = $pad;
+		$this->pad = intval($dataLength / $blocks);
 		$this->nroots = $nroots;
-		$this->blocks = $this->b1 + $b2;
+		$this->blocks = $blocks;
 
 		// Check parameter ranges
 		if($this->nroots >= 256){
