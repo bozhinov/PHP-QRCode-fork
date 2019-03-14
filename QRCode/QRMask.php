@@ -136,11 +136,11 @@ class QRmask {
 	// ~500 calls per image
 	private function calcN1N3($length)
 	{
-		$demerit = 0;
+		$penalty = 0;
 
 		for($i=0; $i<$length; $i++) {
 			if($this->runLength[$i] >= 5) {
-				$demerit += ($this->runLength[$i] - 2);
+				$penalty += ($this->runLength[$i] - 2);
 			}
 		}
 
@@ -158,18 +158,19 @@ class QRmask {
 						(($i+3) >= $length) ||
 						($this->runLength[$i+3] >= (4 * $fact))
 					) {
-						$demerit += 40;
+						$penalty += 40;
 					}
 				}
 			}
 		}
 
-		return $demerit;
+		return $penalty;
 	}
 
-	private function evaluateSymbol()
+	# https://www.thonky.com/qr-code-tutorial/data-masking
+	private function evaluateMask()
 	{
-		$demerit = 0;
+		$penalty = 0;
 
 		for($y=0; $y<$this->width; $y++) {
 			$head = 0;
@@ -192,7 +193,7 @@ class QRmask {
 					$b22 = $frameY[$x] & $frameY[$x-1] & $frameYM[$x] & $frameYM[$x-1];
 					$w22 = $frameY[$x] | $frameY[$x-1] | $frameYM[$x] | $frameYM[$x-1];
 					if(($b22 | ($w22 ^ 1))&1) {
-						$demerit += 3;
+						$penalty += 3;
 					}
 				}
 
@@ -204,7 +205,7 @@ class QRmask {
 				}
 			}
 
-			$demerit += $this->calcN1N3($head+1);
+			$penalty += $this->calcN1N3($head+1);
 		}
 
 		for($x=0; $x<$this->width; $x++) {
@@ -226,15 +227,15 @@ class QRmask {
 				}
 			}
 
-			$demerit += $this->calcN1N3($head+1);
+			$penalty += $this->calcN1N3($head+1);
 		}
 
-		return $demerit;
+		return $penalty;
 	}
 
 	public function get()
 	{
-		$minDemerit = PHP_INT_MAX;
+		$minPenalty = PHP_INT_MAX;
 
 		$masks = [0,1,2,3,4,5,6,7];
 		if (!defined("QR_ALL_MASKS")) {
@@ -247,10 +248,10 @@ class QRmask {
 
 			$blacks = $this->makeMaskNo($i);
 
-			$demerit = (int)(abs($blacks - 50)) * 2 + $this->evaluateSymbol();
+			$penalty = abs($blacks - 50) * 2 + $this->evaluateMask();
 
-			if($demerit < $minDemerit) {
-				$minDemerit = $demerit;
+			if($penalty < $minPenalty) {
+				$minPenalty = $penalty;
 				$bestMask = $this->masked;
 			}
 		}
