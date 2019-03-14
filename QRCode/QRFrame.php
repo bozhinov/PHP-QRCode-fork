@@ -102,7 +102,7 @@ class QRFrame {
 		0x1f250, 0x209d5, 0x216f0, 0x228ba, 0x2379f, 0x24b0b, 0x2542e, 0x26a64,
 		0x27541, 0x28c69
 	];
-	
+
 	private $remainder_bits = [
 		0,
 		0,7,7,7,7,7,
@@ -125,7 +125,7 @@ class QRFrame {
 		$this->bit = -1;
 
 		list($b1,$b2) = $this->eccTable[$this->version][$level];
-		
+
 		$blocks = $b1 + $b2;
 		$nroots = intval($ecc / $blocks);
 		$eccLength = $blocks * $nroots;
@@ -141,7 +141,7 @@ class QRFrame {
 				$bit /= 2;
 			}
 		}
-		
+
 		for($i=0; $i < $eccLength; $i++) {
 			$code = $ReedSolomon->getEccCode($i);
 			$bit = 128;
