@@ -239,14 +239,11 @@ class QRInput {
 		}
 
 		$bits = array_pop($package);
-		$maxwords = $package[1];
+		$word_bits = ($package[1] * 8) - $bits - 4;
+		$words = $word_bits % 8;
+		$padlen = intval($word_bits / 8);
 
-		$bits += 4;
-		$words = floor(($bits + 7) / 8);
-
-		$this->bstream[] = [$words * 8 - $bits + 4, 0];
-
-		$padlen = $maxwords - $words;
+		$this->bstream[] = [$words + 4, 0];
 
 		if($padlen > 0) {
 			for($i=0; $i<$padlen; $i+=2) {
@@ -254,6 +251,7 @@ class QRInput {
 				$this->bstream[] = [8, 17];
 			}
 		}
+
 		$package[] = $this->toByte();
 
 		return $package;
