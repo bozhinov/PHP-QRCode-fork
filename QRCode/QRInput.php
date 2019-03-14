@@ -90,12 +90,6 @@ class QRInput {
 		$this->level = $level;
 	}
 
-	private function getDataLength($version)
-	{
-		$ecc = $this->capacity[$version][1][$this->level];
-		return [$this->capacity[$version][0] - $ecc, $ecc];
-	}
-
 	private function lookAnTable($c)
 	{
 		return (($c > 90) ? -1 : $this->anTable[$c]);
@@ -148,8 +142,8 @@ class QRInput {
 		$this->bstream[] = [4, 4];
 		$this->bstream[] = [$this->maxLenlengths[QR_MODE_8], $size];
 
-		for($i=0; $i<$size; $i++) {
-			$this->bstream[] = [8, $data[$i]];
+		foreach($data as $bit) {
+			$this->bstream[] = [8, $bit];
 		}
 	}
 
@@ -261,7 +255,10 @@ class QRInput {
 	{
 		$size = (int)(($bits + 7) / 8);
 		for($i=1; $i<= 40; $i++) { # QR_SPEC_VERSION_MAX = 40
-			list($dataLength, $ecc) = $this->getDataLength($i);
+
+			$ecc = $this->capacity[$i][1][$this->level];
+			$dataLength = $this->capacity[$i][0] - $ecc;
+
 			if($dataLength >= $size){
 				$width = $i * 4 + 17;
 				return [$i, $dataLength, $ecc, $width, $this->level, $bits];
