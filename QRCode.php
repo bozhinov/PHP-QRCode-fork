@@ -252,57 +252,51 @@ class QRInput {
 
 	private $capacity = [
 		[0, [0, 0, 0, 0]],
-		[26, [7, 10, 13, 17]], // 1
+		[26, [7, 10, 13, 17]],
 		[44, [10, 16, 22, 28]],
 		[70, [15, 26, 36, 44]],
 		[100, [20, 36, 52, 64]],
-		[134, [26, 48, 72, 88]], // 5
+		[134, [26, 48, 72, 88]],
 		[172, [36, 64, 96, 112]],
 		[196, [40, 72, 108, 130]],
 		[242, [48, 88, 132, 156]],
 		[292, [60, 110, 160, 192]],
-		[346, [72, 130, 192, 224]], //10
+		[346, [72, 130, 192, 224]],
 		[404, [80, 150, 224, 264]],
 		[466, [96, 176, 260, 308]],
 		[532, [104, 198, 288, 352]],
 		[581, [120, 216, 320, 384]],
-		[655, [132, 240, 360, 432]], //15
+		[655, [132, 240, 360, 432]],
 		[733, [144, 280, 408, 480]],
 		[815, [168, 308, 448, 532]],
 		[901, [180, 338, 504, 588]],
 		[991, [196, 364, 546, 650]],
-		[1085, [224, 416, 600, 700]], //20
+		[1085, [224, 416, 600, 700]],
 		[1156, [224, 442, 644, 750]],
 		[1258, [252, 476, 690, 816]],
 		[1364, [270, 504, 750, 900]],
 		[1474, [300, 560, 810, 960]],
-		[1588, [312, 588, 870, 1050]], //25
+		[1588, [312, 588, 870, 1050]],
 		[1706, [336, 644, 952, 1110]],
 		[1828, [360, 700, 1020, 1200]],
 		[1921, [390, 728, 1050, 1260]],
 		[2051, [420, 784, 1140, 1350]],
-		[2185, [450, 812, 1200, 1440]], //30
+		[2185, [450, 812, 1200, 1440]],
 		[2323, [480, 868, 1290, 1530]],
 		[2465, [510, 924, 1350, 1620]],
 		[2611, [540, 980, 1440, 1710]],
 		[2761, [570, 1036, 1530, 1800]],
-		[2876, [570, 1064, 1590, 1890]], //35
+		[2876, [570, 1064, 1590, 1890]],
 		[3034, [600, 1120, 1680, 1980]],
 		[3196, [630, 1204, 1770, 2100]],
 		[3362, [660, 1260, 1860, 2220]],
 		[3532, [720, 1316, 1950, 2310]],
-		[3706, [750, 1372, 2040, 2430]] //40
+		[3706, [750, 1372, 2040, 2430]]
 	];
 
 	function __construct(int $level)
 	{
 		$this->level = $level;
-	}
-
-	private function getDataLength($version)
-	{
-		$ecc = $this->capacity[$version][1][$this->level];
-		return [$this->capacity[$version][0] - $ecc, $ecc];
 	}
 
 	private function lookAnTable($c)
@@ -357,8 +351,8 @@ class QRInput {
 		$this->bstream[] = [4, 4];
 		$this->bstream[] = [$this->maxLenlengths[QR_MODE_8], $size];
 
-		for($i=0; $i<$size; $i++) {
-			$this->bstream[] = [8, $data[$i]];
+		foreach($data as $bit) {
+			$this->bstream[] = [8, $bit];
 		}
 	}
 
@@ -448,14 +442,11 @@ class QRInput {
 		}
 
 		$bits = array_pop($package);
-		$maxwords = $package[1];
+		$word_bits = ($package[1] * 8) - $bits - 4;
+		$words = $word_bits % 8;
+		$padlen = intval($word_bits / 8);
 
-		$bits += 4;
-		$words = floor(($bits + 7) / 8);
-
-		$this->bstream[] = [$words * 8 - $bits + 4, 0];
-
-		$padlen = $maxwords - $words;
+		$this->bstream[] = [$words + 4, 0];
 
 		if($padlen > 0) {
 			for($i=0; $i<$padlen; $i+=2) {
@@ -463,6 +454,7 @@ class QRInput {
 				$this->bstream[] = [8, 17];
 			}
 		}
+
 		$package[] = $this->toByte();
 
 		return $package;
@@ -472,7 +464,8 @@ class QRInput {
 	{
 		$size = (int)(($bits + 7) / 8);
 		for($i=1; $i<= 40; $i++) {
-			list($dataLength, $ecc) = $this->getDataLength($i);
+			$ecc = $this->capacity[$i][1][$this->level];
+			$dataLength = $this->capacity[$i][0] - $ecc;
 			if($dataLength >= $size){
 				$width = $i * 4 + 17;
 				return [$i, $dataLength, $ecc, $width, $this->level, $bits];
@@ -544,7 +537,6 @@ class QRInput {
 	private function eatNum()
 	{
 		$this->pos++;
-
 		while($this->is_digit()) {
 			$this->pos++;
 		}
@@ -553,7 +545,6 @@ class QRInput {
 	private function eatAn()
 	{
 		$this->pos++;
-
 		while($this->is_alnum()) {
 			$this->pos++;
 		}
@@ -562,7 +553,6 @@ class QRInput {
 	private function eatKanji()
 	{
 		$this->pos += 2;
-
 		while($this->is_kanji()) {
 			$this->pos += 2;
 		}
@@ -760,11 +750,11 @@ class QRmask {
 
 	private function calcN1N3($length)
 	{
-		$demerit = 0;
+		$penalty = 0;
 
 		for($i=0; $i<$length; $i++) {
 			if($this->runLength[$i] >= 5) {
-				$demerit += ($this->runLength[$i] - 2);
+				$penalty += ($this->runLength[$i] - 2);
 			}
 		}
 
@@ -782,18 +772,18 @@ class QRmask {
 						(($i+3) >= $length) ||
 						($this->runLength[$i+3] >= (4 * $fact))
 					) {
-						$demerit += 40;
+						$penalty += 40;
 					}
 				}
 			}
 		}
 
-		return $demerit;
+		return $penalty;
 	}
 
-	private function evaluateSymbol()
+	private function evaluateMask()
 	{
-		$demerit = 0;
+		$penalty = 0;
 
 		for($y=0; $y<$this->width; $y++) {
 			$head = 0;
@@ -816,7 +806,7 @@ class QRmask {
 					$b22 = $frameY[$x] & $frameY[$x-1] & $frameYM[$x] & $frameYM[$x-1];
 					$w22 = $frameY[$x] | $frameY[$x-1] | $frameYM[$x] | $frameYM[$x-1];
 					if(($b22 | ($w22 ^ 1))&1) {
-						$demerit += 3;
+						$penalty += 3;
 					}
 				}
 
@@ -828,7 +818,7 @@ class QRmask {
 				}
 			}
 
-			$demerit += $this->calcN1N3($head+1);
+			$penalty += $this->calcN1N3($head+1);
 		}
 
 		for($x=0; $x<$this->width; $x++) {
@@ -850,15 +840,15 @@ class QRmask {
 				}
 			}
 
-			$demerit += $this->calcN1N3($head+1);
+			$penalty += $this->calcN1N3($head+1);
 		}
 
-		return $demerit;
+		return $penalty;
 	}
 
 	public function get()
 	{
-		$minDemerit = PHP_INT_MAX;
+		$minPenalty = PHP_INT_MAX;
 
 		$masks = [0,1,2,3,4,5,6,7];
 		if (!defined("QR_ALL_MASKS")) {
@@ -871,10 +861,10 @@ class QRmask {
 
 			$blacks = $this->makeMaskNo($i);
 
-			$demerit = (int)(abs($blacks - 50)) * 2 + $this->evaluateSymbol();
+			$penalty = abs($blacks - 50) * 2 + $this->evaluateMask();
 
-			if($demerit < $minDemerit) {
-				$minDemerit = $demerit;
+			if($penalty < $minPenalty) {
+				$minPenalty = $penalty;
 				$bestMask = $this->masked;
 			}
 		}
