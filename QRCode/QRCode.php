@@ -60,7 +60,7 @@ class QRcode {
 		}
 	}
 
-	private function createImage()
+	private function createImage($img_resource = NULL, $startX = NULL, $startY = NULL)
 	{
 		$h = count($this->encoded);
 		$imgH = $h + 2 * $this->margin;
@@ -83,9 +83,13 @@ class QRcode {
 		$pixelPerPoint = min($this->size, $imgH);
 		$target_h = $imgH * $pixelPerPoint;
 		$this->h = $target_h;
+		if (is_null($img_resource)){
+			$this->target_image = imageCreate($target_h, $target_h);
+			imageCopyResized($this->target_image, $base_image, 0, 0, 0, 0, $target_h, $target_h, $imgH, $imgH);
+		} else {
+			imageCopyResized($img_resource, $base_image, $startX, $startY, 0, 0, $target_h, $target_h, $imgH, $imgH);
+		}
 
-		$this->target_image = imageCreate($target_h, $target_h);
-		imageCopyResized($this->target_image, $base_image, 0, 0, 0, 0, $target_h, $target_h, $imgH, $imgH);
 		imageDestroy($base_image);
 	}
 
