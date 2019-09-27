@@ -192,7 +192,7 @@ class QRcode {
 
 	public function forPChart(\pChart\pDraw $MyPicture, $X = 0, $Y = 0)
 	{
-		$this->createImage($MyPicture->Picture, $X, $Y);
+		$this->createImage($MyPicture->gettheImage(), $X, $Y);
 	}
 
 	public function toFile(string $filename, int $quality = 90, bool $forWeb = false)
