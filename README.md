@@ -17,10 +17,15 @@ Usage:<br />
 	Possible hints: QR_MODE_NUM, QR_MODE_AN, QR_MODE_8, QR_MODE_KANJI
 
 - Single line:<br />
-(new QRcode(QR_ECLEVEL_Q, $max_module_size, $white_frame_size))->encode('https://github.com/bozhinov/PHP-QRCode-fork')->toFile("example.QRcode.png");<br />
+
+(new QRcode([
+	'level' => $error_correction_level,
+	'size' => $max_module_size,
+	'margin' => $white_frame_size
+]))->encode('https://github.com/bozhinov/PHP-QRCode-fork')->toFile("example.QRcode.png");<br />
 
 - Or:<br />
-$QRCode = new QRcode(QR_ECLEVEL_Q, 10, 4);<br />
+$QRCode = new QRcode(['level' => QR_ECLEVEL_Q, 'size' => 10, 'margin' => 4]);<br />
 $QRCode->encode('https://github.com/bozhinov/PHP-QRCode-fork', $hint);<br />
 
 - Dump the matrix:<br />
