@@ -19,9 +19,9 @@ Usage:<br />
 - Single line:<br />
 
 (new QRcode([
-	'level' => $error_correction_level,
-	'size' => $max_module_size,
-	'margin' => $white_frame_size
+	'level' => $error_correction_level,<br />
+	'size' => $max_module_size,<br />
+	'margin' => $white_frame_size<br />
 ]))->encode('https://github.com/bozhinov/PHP-QRCode-fork')->toFile("example.QRcode.png");<br />
 
 - Or:<br />
