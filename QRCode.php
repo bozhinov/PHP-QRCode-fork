@@ -32,7 +32,7 @@ class QRcode {
 	private $target_image;
 	private $encoded = [];
 
-	function __construct(array $config)
+	function __construct(array $config = [])
 	{
 		$this->level  = (isset($config['level']))	? $config['level']	: 0;
 		$this->size	  = (isset($config['size']))	? $config['size']	: 3;
@@ -115,25 +115,10 @@ class QRcode {
 		}
 	}
 
-	public function config(array $opts)
+	public function config(array $config)
 	{
-		if (isset($opts["error_correction"])){
-			$this->level = $opts["error_correction"];
-		}
-
-		if (isset($opts["matrix_point_size"])){
-			$this->size = $opts["matrix_point_size"];
-		}
-
-		if (isset($opts["margin"])){
-			$this->margin = $opts["margin"];
-		}
-
+		$this->__construct($config);
 		$this->encoded = [];
-
-		if (!in_array($this->level,[0,1,2,3])){
-			throw QRException::Std('unknown error correction level');
-		}
 	}
 
 	public function encode(string $text, int $hint = -1)
