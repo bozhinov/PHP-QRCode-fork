@@ -32,13 +32,13 @@ class QRcode {
 	private $target_image;
 	private $encoded = [];
 
-	function __construct(int $level = 0, int $size = 3, int $margin = 4)
+	function __construct(array $config)
 	{
-		$this->size = $size;
-		$this->level = $level;
-		$this->margin = $margin;
+		$this->level  = (isset($config['level']))	? $config['level']	: 0;
+		$this->size	  = (isset($config['size']))	? $config['size']	: 3;
+		$this->margin = (isset($config['margin']))	? $config['margin'] : 4;
 
-		if (!in_array($level,[0,1,2,3])){
+		if (!in_array($this->level,[0,1,2,3])){
 			throw QRException::Std('unknown error correction level');
 		}
 	}
@@ -46,7 +46,7 @@ class QRcode {
 	function __destruct()
 	{
 		if (is_resource($this->target_image)){
-			imageDestroy($this->target_image);
+			imagedestroy($this->target_image);
 		}
 	}
 
@@ -55,17 +55,17 @@ class QRcode {
 		$h = count($this->encoded);
 		$imgH = $h + 2 * $this->margin;
 
-		$base_image = imageCreate($imgH, $imgH);
+		$base_image = imagecreate($imgH, $imgH);
 
-		$white = imageColorAllocate($base_image,255,255,255);
-		$black = imageColorAllocate($base_image,0,0,0);
+		$white = imagecolorallocate($base_image,255,255,255);
+		$black = imagecolorallocate($base_image,0,0,0);
 
-		imageFill($base_image, 0, 0, $white);
+		imagefill($base_image, 0, 0, $white);
 
 		for($y=0; $y<$h; $y++) {
 			for($x=0; $x<$h; $x++) {
 				if ($this->encoded[$y][$x]&1) {
-					imageSetPixel($base_image,$x+$this->margin,$y+$this->margin,$black);
+					imagesetpixel($base_image,$x+$this->margin,$y+$this->margin,$black);
 				}
 			}
 		}
@@ -74,13 +74,13 @@ class QRcode {
 		$target_h = $imgH * $pixelPerPoint;
 		$this->h = $target_h;
 		if (is_null($img_resource)){
-			$this->target_image = imageCreate($target_h, $target_h);
-			imageCopyResized($this->target_image, $base_image, 0, 0, 0, 0, $target_h, $target_h, $imgH, $imgH);
+			$this->target_image = imagecreate($target_h, $target_h);
+			imagecopyresized($this->target_image, $base_image, 0, 0, 0, 0, $target_h, $target_h, $imgH, $imgH);
 		} else {
-			imageCopyResized($img_resource, $base_image, $startX, $startY, 0, 0, $target_h, $target_h, $imgH, $imgH);
+			imagecopyresized($img_resource, $base_image, $startX, $startY, 0, 0, $target_h, $target_h, $imgH, $imgH);
 		}
 
-		imageDestroy($base_image);
+		imagedestroy($base_image);
 	}
 
 	private function toPNG($filename)
@@ -88,7 +88,7 @@ class QRcode {
 		if(is_null($filename)) {
 			header("Content-type: image/png");
 		}
-		imagePng($this->target_image, $filename);
+		imagepng($this->target_image, $filename);
 	}
 
 	private function toJPG($filename, $quality)
@@ -96,7 +96,7 @@ class QRcode {
 		if(is_null($filename)) {
 			header("Content-type: image/jpeg");
 		}
-		imageJpeg($this->target_image, $filename, $quality);
+		imagejpeg($this->target_image, $filename, $quality);
 	}
 
 	private function toSVG($filename)

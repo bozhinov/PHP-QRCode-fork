@@ -2,7 +2,7 @@
 
 require_once("QRCode.php");
 
-$QRCode = new QRcode(QR_ECLEVEL_Q, 10, 4);
+$QRCode = new QRcode(['level' => QR_ECLEVEL_Q, 'size' => 10, 'margin' => 4]);
 $text = $QRCode->encode('http://www.test.bg/BLA BLA BLA BLA BLA BLA')->toASCII();
 
 file_put_contents("ascii.qrcode.txt", $text);
