@@ -44,9 +44,9 @@ class QRcode {
 
 	function __construct(array $config = [])
 	{
-		$this->level  = (isset($config['level']))	? $config['level']	: 0;
-		$this->size	  = (isset($config['size']))	? $config['size']	: 3;
-		$this->margin = (isset($config['margin']))	? $config['margin'] : 4;
+		$this->level  = (isset($config['level']))  ? $config['level']  : 0;
+		$this->size   = (isset($config['size']))   ? $config['size']   : 3;
+		$this->margin = (isset($config['margin'])) ? $config['margin'] : 4;
 
 		if (!in_array($this->level,[0,1,2,3])){
 			throw QRException::Std('unknown error correction level');
