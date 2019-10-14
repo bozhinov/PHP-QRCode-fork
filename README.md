@@ -18,7 +18,7 @@ Usage:<br />
 
 - Single line:<br />
 
-(new QRcode([
+(new QRcode([<br />
 	'level' => $error_correction_level,<br />
 	'size' => $max_module_size,<br />
 	'margin' => $white_frame_size<br />
