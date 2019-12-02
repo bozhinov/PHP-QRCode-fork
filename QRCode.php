@@ -109,7 +109,7 @@ class QRcode {
 
 		if(is_null($filename)) {
 			header("Content-type: image/svg+xml");
-			echo $content;
+			return $content;
 		} else {
 			file_put_contents($filename, $content);
 		}
