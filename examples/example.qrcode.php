@@ -3,7 +3,6 @@
 require_once("bootstrap.php");
 
 use QRCode\QRCode;
-use QRCode\QRException;
 
 #QR_ECLEVEL_L = 0
 #QR_ECLEVEL_M = 1

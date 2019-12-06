@@ -3,7 +3,6 @@
 require_once("bootstrap.php");
 
 use QRCode\QRCode;
-use QRCode\QRException;
 
 define("QR_ALL_MASKS", true);
 
