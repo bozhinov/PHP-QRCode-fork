@@ -171,6 +171,7 @@ class QRmask {
 	private function evaluateMask()
 	{
 		$penalty = 0;
+		$frameYM = [];
 
 		for($y=0; $y<$this->width; $y++) {
 			$head = 0;
@@ -236,7 +237,7 @@ class QRmask {
 	public function get()
 	{
 		$minPenalty = PHP_INT_MAX;
-
+		$bestMask = [];
 		$masks = [0,1,2,3,4,5,6,7];
 		if (!defined("QR_ALL_MASKS")) {
 			$masks = array_rand($masks, 2);
