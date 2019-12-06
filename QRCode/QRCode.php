@@ -15,12 +15,6 @@
 
 namespace QRCode;
 
-use QRCode\QRException;
-use QRCode\QRFrame;
-use QRCode\QRInput;
-use QRCode\QRMask;
-use QRCode\QRrsItem;
-
 // Encoding modes
 define('QR_MODE_NUM', 0);
 define('QR_MODE_AN', 1);
