@@ -17,5 +17,3 @@ $QRCode->encode('http://www.test.bg/12341234 TEST TEST  TEST  TEST  TEST  TEST  
 ## Stop timer
 $mtime = explode(" ",microtime());
 echo "Test took ".(($mtime[1] + $mtime[0]) - $starttime)." seconds";
-
-?>

@@ -74,5 +74,3 @@ $QRCode->encode('00359888888888', $hint = QR_MODE_NUM)->toFile("temp/example6.QR
 ## Stop timer
 $mtime = explode(" ",microtime());
 echo "Test took ".(($mtime[1] + $mtime[0]) - $starttime)." seconds";
-
-?>

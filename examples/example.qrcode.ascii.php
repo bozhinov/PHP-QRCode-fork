@@ -20,5 +20,3 @@ For PowerShell you need to do this:
 $output.replace("U", [char]0x2588)
 
 */
-
-?>

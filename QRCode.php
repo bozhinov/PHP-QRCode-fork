@@ -1299,5 +1299,3 @@ class QRrsItem {
 		return $this->rsblocks[$i % $this->blocks][1][$i / $this->blocks];
 	}
 }
-
-?>

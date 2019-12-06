@@ -22,5 +22,3 @@ class QRException extends \Exception
 		return new static(sprintf('QRCode: %s', $text));
 	}
 }
-
-?>

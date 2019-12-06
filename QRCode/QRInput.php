@@ -430,5 +430,3 @@ class QRInput {
 		return (new QRmask($package))->get();
 	}
 }
-
-?>

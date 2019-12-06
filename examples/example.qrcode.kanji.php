@@ -33,5 +33,3 @@ $QRCode->encode('“ú–{‚Ì•Ûˆç‰€', QR_MODE_KANJI)->toFile("temp/example.QRcode.kanj
 ## Stop timer
 $mtime = explode(" ",microtime());
 echo "Test took ".(($mtime[1] + $mtime[0]) - $starttime)." seconds";
-
-?>
