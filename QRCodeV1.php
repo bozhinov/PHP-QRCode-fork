@@ -23,7 +23,7 @@ define('QR_ECLEVEL_M', 1);
 define('QR_ECLEVEL_Q', 2);
 define('QR_ECLEVEL_H', 3);
 
-class QRcode {
+class QRCodeV1 {
 
 	private $size;
 	private $h;
@@ -372,7 +372,7 @@ class QRInput {
 			$this->bstream[] = [13, $val];
 		}
 	}
- 
+
 	private function estimateVersion($version)
 	{
 		$bits = 0;
