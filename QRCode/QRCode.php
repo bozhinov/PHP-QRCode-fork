@@ -18,7 +18,7 @@ define('QR_ECLEVEL_M', 1);
 define('QR_ECLEVEL_Q', 2);
 define('QR_ECLEVEL_H', 3);
 
-use QRCode\Encoder\Input;
+use QRCode\Encoder\Encoder;
 
 class QRCode {
 
@@ -106,7 +106,7 @@ class QRCode {
 					throw qrException::InvalidInput("Invalid value for \"hint\"");
 		}
 
-		$encoded = (new Input($this->options['level']))->encodeString($text, $hint);
+		$encoded = (new Encoder($this->options['level']))->encodeString($text, $hint);
 		$this->renderer = new Renderer($encoded, $this->options);
 
 		return $this;

@@ -15,7 +15,7 @@
 
 namespace QRCode\Encoder;
 
-class rsItem {
+class ReedSolomon {
 
 	#private $mm;		// Bits per symbol = 8
 	#private $nn;		// Symbols per block (= (1<<mm)-1)  = 255

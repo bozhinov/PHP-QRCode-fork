@@ -15,7 +15,7 @@
 
 namespace QRCode\Encoder;
 
-class Input {
+class Encoder {
 
 	private $dataStr;
 	private $dataStrLen;

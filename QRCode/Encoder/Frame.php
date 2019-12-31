@@ -130,7 +130,7 @@ class Frame {
 		$nroots = intval($ecc / $blocks);
 		$eccLength = $blocks * $nroots;
 
-		$ReedSolomon = new rsItem($dataCode, $dataLength, $b1, $b2, $blocks, $nroots);
+		$ReedSolomon = new ReedSolomon($dataCode, $dataLength, $b1, $b2, $blocks, $nroots);
 
 		// inteleaved data and ecc codes
 		for($i=0; $i < $dataLength; $i++) {
