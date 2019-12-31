@@ -14,11 +14,11 @@ My code is four times smaller and two times faster<br />
 
 Usage:<br />
 
-	Possible hints: "Numeric", "Alphanumeric", "Byte", "Kanji"
+	Possible hints: QR_MODE_NUM, QR_MODE_AN, QR_MODE_8, QR_MODE_KANJI
 
 - Single line:<br />
 
-(new QRCode([<br />
+(new QRcode([<br />
 <pre><code>'level' => $error_correction_level,<br />
 'size' => $max_module_size,<br />
 'margin' => $white_frame_size<br />
@@ -26,7 +26,7 @@ Usage:<br />
 ]))->encode('https://github.com/bozhinov/PHP-QRCode-fork')->toFile("example.QRcode.png");<br />
 
 - Or:<br />
-$QRCode = new QRCode(['level' => "Q", 'size' => 10, 'margin' => 4]);<br />
+$QRCode = new QRcode(['level' => QR_ECLEVEL_Q, 'size' => 10, 'margin' => 4]);<br />
 $QRCode->encode('https://github.com/bozhinov/PHP-QRCode-fork', $hint);<br />
 
 - Dump the matrix:<br />
