@@ -201,7 +201,7 @@ class Frame {
 			}
 
 			if($this->x < 0 || $this->y < 0){
-				throw \QRCode\qrException::Std('Invalid dimentions');
+				throw \QRCode\qrException::EncoderError('Invalid dimentions');
 			}
 
 		} while($this->frame[$this->y][$this->x] != 0);

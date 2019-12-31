@@ -40,7 +40,7 @@ class rsItem {
 
 		// Check parameter ranges
 		if($this->nroots >= 256){
-			throw \QRCode\qrException::Std("version estimation failed");
+			throw \QRCode\qrException::EncoderError("version estimation failed");
 		}
 
 		// Common code for intializing a Reed-Solomon control block (char or int symbols)
@@ -67,7 +67,7 @@ class rsItem {
 		}
 
 		if($sr != 1){
-			throw \QRCode\qrException::Std('field generator polynomial is not primitive!');
+			throw \QRCode\qrException::EncoderError('field generator polynomial is not primitive!');
 		}
 
 		/* Form RS code generator polynomial from its roots */

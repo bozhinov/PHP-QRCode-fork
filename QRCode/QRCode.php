@@ -46,7 +46,7 @@ class QRCode {
 			$this->options[$value] = new qrColor($default);
 		} else {
 			if (!($opts[$value] instanceof qrColor)) {
-				throw azException::InvalidInput("Invalid value for \"$value\". Expected an azColor object.");
+				throw qrException::InvalidInput("Invalid value for \"$value\". Expected an azColor object.");
 			}
 			$this->options[$value] = $opts[$value];
 		}
@@ -55,7 +55,7 @@ class QRCode {
 	private function option_in_range($value, int $start, int $end)
 	{
 		if (!is_numeric($value) || $value < $start || $value > $end) {
-			throw azException::InvalidInput("Invalid value. Expected an integer between $start and $end.");
+			throw qrException::InvalidInput("Invalid value. Expected an integer between $start and $end.");
 		}
 
 		return $value;
@@ -64,12 +64,10 @@ class QRCode {
 	public function encode(string $text, int $hint = -1)
 	{
 		if($text == '\0' || $text == '') {
-			throw qrException::Std('empty string!');
+			throw qrException::InvalidInput('empty string!');
 		}
 
-		if (!in_array($hint,[-1,0,1,2,3])){
-			throw qrException::Std('unknown hint');
-		}
+		$this->option_in_range($hint, -1, 3);
 
 		$encoded = (new Input($this->options['level']))->encodeString($text, $hint);
 		$this->renderer = new Renderer($encoded, $this->options);
@@ -121,7 +119,7 @@ class QRCode {
 				$this->renderer->toSVG($filename);
 				break;
 			default:
-				throw qrException::Std('file extension unsupported!');
+				throw qrException::InvalidInput('file extension unsupported!');
 		}
 	}
 

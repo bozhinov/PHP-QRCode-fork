@@ -150,7 +150,7 @@ class Input {
 	private function encodeModeKanji($size, $data)
 	{
 		if ($size & 1){
-			throw \QRCode\qrException::Std('Invalid string length for Kanji');
+			throw \QRCode\qrException::EncoderError('Invalid string length for Kanji');
 		}
 
 		$this->bstream[] = [4, 8];
