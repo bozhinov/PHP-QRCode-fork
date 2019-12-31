@@ -238,7 +238,7 @@ class Mask {
 	{
 		$minPenalty = PHP_INT_MAX;
 		$bestMask = [];
-		$masks = [0,1,2,3,4,5,6,7];
+		$masks = range(0, 7);
 		if (!defined("QR_ALL_MASKS")) {
 			$masks = array_rand($masks, 2);
 		}

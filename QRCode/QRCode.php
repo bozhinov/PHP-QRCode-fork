@@ -30,7 +30,26 @@ class QRCode {
 		$this->setColor('color', 0, $opts);
 		$this->setColor('bgColor', 255, $opts);
 
-		$this->options['level'] = (isset($opts['level'])) ? $this->option_in_range($opts['level'], 0, 3) : 0;
+		if (isset($opts['level'])){
+			switch(strtoupper($opts['level'])){
+				case "L":
+					$this->options['level'] = 0;
+					break;
+				case "M":
+					$this->options['level'] = 1;
+					break;
+				case "Q":
+					$this->options['level'] = 2;
+					break;
+				case "H":
+					$this->options['level'] = 3;
+					break;
+				default:
+					throw qrException::InvalidInput("Invalid value for \"level\"");
+			}
+		} else {
+			$this->options['level'] = 0;
+		}
 		$this->options['size'] = (isset($opts['size'])) ? $this->option_in_range($opts['size'], 0, 20) : 3;
 		$this->options['margin'] = (isset($opts['margin'])) ? $this->option_in_range($opts['margin'], 0, 20) : 4;
 	}
@@ -61,13 +80,31 @@ class QRCode {
 		return $value;
 	}
 
-	public function encode(string $text, int $hint = -1)
+	public function encode(string $text, string $hint = "undefined")
 	{
 		if($text == '\0' || $text == '') {
 			throw qrException::InvalidInput('empty string!');
 		}
 
-		$this->option_in_range($hint, -1, 3);
+		switch(strtolower($hint)){
+			case "undefined":
+				$hint = -1;
+				break;
+			case "numeric":
+				$hint = 0;
+				break;
+			case "alphanumeric":
+				$hint = 1;
+				break;
+			case "byte":
+				$hint = 2;
+				break;
+			case "kanji":
+				$hint = 3;
+				break;
+				default:
+					throw qrException::InvalidInput("Invalid value for \"hint\"");
+		}
 
 		$encoded = (new Input($this->options['level']))->encodeString($text, $hint);
 		$this->renderer = new Renderer($encoded, $this->options);

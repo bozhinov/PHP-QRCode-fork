@@ -10,8 +10,8 @@ define("QR_ALL_MASKS", true);
 $mtime = explode(" ",microtime());
 $starttime = $mtime[1] + $mtime[0];
 
-$QRCode = new QRCode(['level' => QR_ECLEVEL_Q, 'size' => 10, 'margin' => 4]);
-$QRCode->encode('http://www.test.bg/12341234 TEST TEST  TEST  TEST  TEST  TEST  TEST  TEST  TEST   TEST   TEST   TESTTSTSTEST  TEST  TEST   TEST   TEST   TESTTSTSTEST  TEST  TEST   TEST   TEST   TESTTSTSTEST  TEST  TEST   TEST   TEST   TESTTSTSTEST  TEST  TEST   TEST   TE')->toFile("temp/example.QRcode.very.long.png");
+$QRCode = new QRCode(['level' => "Q", 'size' => 10, 'margin' => 4]);
+$QRCode->encode(str_repeat("A", 256))->toFile("temp/example.QRcode.very.long.png");
 
 ## Stop timer
 $mtime = explode(" ",microtime());
