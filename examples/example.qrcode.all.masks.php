@@ -10,7 +10,7 @@ define("QR_ALL_MASKS", true);
 $mtime = explode(" ",microtime());
 $starttime = $mtime[1] + $mtime[0];
 
-$QRCode = new QRcode(['level' => QR_ECLEVEL_Q, 'size' => 10, 'margin' => 4]);
+$QRCode = new QRCode(['level' => QR_ECLEVEL_Q, 'size' => 10, 'margin' => 4]);
 $QRCode->encode('https://github.com/bozhinov/PHP-QRCode-fork')->toFile("temp/example.QRcode.all.masks.png");
 
 ## Stop timer

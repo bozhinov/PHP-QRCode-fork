@@ -26,7 +26,7 @@ if (function_exists("mb_internal_encoding")){
 	die("mb_string ext is required");
 }
 
-$QRCode = new QRcode(['level' => QR_ECLEVEL_Q, 'size' => 10, 'margin' => 4]);
+$QRCode = new QRCode(['level' => QR_ECLEVEL_Q, 'size' => 10, 'margin' => 4]);
 $QRCode->encode('“ú–{‚Ì•Ûˆç‰€', QR_MODE_KANJI)->toFile("temp/example.QRcode.kanji.png");
 
 ## Stop timer

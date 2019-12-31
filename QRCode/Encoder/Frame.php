@@ -9,13 +9,13 @@
  * Copyright (C) 2010 Dominik Dzienia <deltalab at poczta dot fm>
  *
  * Code modifications by Momchil Bozhinov <momchil at bojinov dot info>
- * Last update - 03.2019
+ * Last update - 31.12.2019
  *
  */
 
-namespace QRCode;
+namespace QRCode\Encoder;
 
-class QRFrame {
+class Frame {
 
 	private $width;
 	private $frame;
@@ -130,7 +130,7 @@ class QRFrame {
 		$nroots = intval($ecc / $blocks);
 		$eccLength = $blocks * $nroots;
 
-		$ReedSolomon = new QRrsItem($dataCode, $dataLength, $b1, $b2, $blocks, $nroots);
+		$ReedSolomon = new rsItem($dataCode, $dataLength, $b1, $b2, $blocks, $nroots);
 
 		// inteleaved data and ecc codes
 		for($i=0; $i < $dataLength; $i++) {
@@ -201,7 +201,7 @@ class QRFrame {
 			}
 
 			if($this->x < 0 || $this->y < 0){
-				throw QRException::Std('Invalid dimentions');
+				throw \QRCode\qrException::Std('Invalid dimentions');
 			}
 
 		} while($this->frame[$this->y][$this->x] != 0);

@@ -1,16 +1,7 @@
 <?php
 /*
  * PHP QR Code
- *
- * Based on libqrencode C library distributed under LGPL 2.1
- * Copyright (C) 2006, 2007, 2008, 2009 Kentaro Fukuchi <fukuchi@megaui.net>
- *
- * PHP QR Code is distributed under LGPL 3
- * Copyright (C) 2010 Dominik Dzienia <deltalab at poczta dot fm>
- *
- * Code modifications by Momchil Bozhinov <momchil at bojinov dot info>
- * Last update - 03.2019
- *
+ * Last update - 31.12.2019
  */
 
 namespace QRCode;
@@ -27,161 +18,88 @@ define('QR_ECLEVEL_M', 1);
 define('QR_ECLEVEL_Q', 2);
 define('QR_ECLEVEL_H', 3);
 
-class QRcode {
+use QRCode\Encoder\Input;
 
-	private $size;
-	private $h;
-	private $margin;
-	private $level;
-	private $target_image;
-	private $encoded = [];
+class QRCode {
 
-	function __construct(array $config = [])
+	private $options;
+	private $renderer;
+
+	function __construct(array $opts = [])
 	{
-		$this->level  = (isset($config['level']))  ? $config['level']  : 0;
-		$this->size   = (isset($config['size']))   ? $config['size']   : 3;
-		$this->margin = (isset($config['margin'])) ? $config['margin'] : 4;
+		$this->setColor('color', 0, $opts);
+		$this->setColor('bgColor', 255, $opts);
 
-		if (!in_array($this->level,[0,1,2,3])){
-			throw QRException::Std('unknown error correction level');
-		}
+		$this->options['level'] = (isset($opts['level'])) ? $this->option_in_range($opts['level'], 0, 3) : 0;
+		$this->options['size'] = (isset($opts['size'])) ? $this->option_in_range($opts['size'], 0, 20) : 3;
+		$this->options['margin'] = (isset($opts['margin'])) ? $this->option_in_range($opts['margin'], 0, 20) : 4;
 	}
 
-	function __destruct()
+	public function config(array $opts)
 	{
-		if (is_resource($this->target_image)){
-			imagedestroy($this->target_image);
-		}
+		$this->__construct($opts);
 	}
 
-	private function createImage($img_resource = NULL, $startX = NULL, $startY = NULL)
+	private function setColor($value, $default, $opts)
 	{
-		$h = count($this->encoded);
-		$imgH = $h + 2 * $this->margin;
-
-		$base_image = imagecreate($imgH, $imgH);
-
-		$white = imagecolorallocate($base_image,255,255,255);
-		$black = imagecolorallocate($base_image,0,0,0);
-
-		imagefill($base_image, 0, 0, $white);
-
-		for($y=0; $y<$h; $y++) {
-			for($x=0; $x<$h; $x++) {
-				if ($this->encoded[$y][$x]&1) {
-					imagesetpixel($base_image,$x+$this->margin,$y+$this->margin,$black);
-				}
+		if (!isset($opts[$value])) {
+			$this->options[$value] = new qrColor($default);
+		} else {
+			if (!($opts[$value] instanceof qrColor)) {
+				throw azException::InvalidInput("Invalid value for \"$value\". Expected an azColor object.");
 			}
-		}
-
-		$pixelPerPoint = min($this->size, $imgH);
-		$target_h = $imgH * $pixelPerPoint;
-		$this->h = $target_h;
-		if (is_null($img_resource)){
-			$this->target_image = imagecreate($target_h, $target_h);
-			imagecopyresized($this->target_image, $base_image, 0, 0, 0, 0, $target_h, $target_h, $imgH, $imgH);
-		} else {
-			imagecopyresized($img_resource, $base_image, $startX, $startY, 0, 0, $target_h, $target_h, $imgH, $imgH);
-		}
-
-		imagedestroy($base_image);
-	}
-
-	private function toPNG($filename)
-	{
-		if(is_null($filename)) {
-			header("Content-type: image/png");
-		}
-		imagepng($this->target_image, $filename);
-	}
-
-	private function toJPG($filename, $quality)
-	{
-		if(is_null($filename)) {
-			header("Content-type: image/jpeg");
-		}
-		imagejpeg($this->target_image, $filename, $quality);
-	}
-
-	private function toSVG($filename)
-	{
-		$content = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="'.$this->h.'px" height="'.$this->h.'px" viewBox="0 0 '.$this->h.' '.$this->h.'" enable-background="new 0 0 '.$this->h.' '.$this->h.'" xml:space="preserve">
-<image id="image0" width="'.$this->h.'" height="'.$this->h.'" x="0" y="0" href="data:image/png;base64,'.$this->toBase64().'" />
-</svg>';
-
-		if(is_null($filename)) {
-			header("Content-type: image/svg+xml");
-			return $content;
-		} else {
-			file_put_contents($filename, $content);
+			$this->options[$value] = $opts[$value];
 		}
 	}
 
-	public function config(array $config)
+	private function option_in_range($value, int $start, int $end)
 	{
-		$this->__construct($config);
-		$this->encoded = [];
+		if (!is_numeric($value) || $value < $start || $value > $end) {
+			throw azException::InvalidInput("Invalid value. Expected an integer between $start and $end.");
+		}
+
+		return $value;
 	}
 
 	public function encode(string $text, int $hint = -1)
 	{
 		if($text == '\0' || $text == '') {
-			throw QRException::Std('empty string!');
+			throw qrException::Std('empty string!');
 		}
 
 		if (!in_array($hint,[-1,0,1,2,3])){
-			throw QRException::Std('unknown hint');
+			throw qrException::Std('unknown hint');
 		}
 
-		$this->encoded = (new QRInput($this->level))->encodeString($text, $hint);
+		$encoded = (new Input($this->options['level']))->encodeString($text, $hint);
+		$this->renderer = new Renderer($encoded, $this->options);
 
 		return $this;
 	}
 
-	public function toBase64()
+	public function fromArray(array $encoded)
 	{
-		ob_start();
-		imagePng($this->target_image);
-		$imagedata = ob_get_contents();
-		ob_end_clean();
-
-		return base64_encode($imagedata);
-	}
-
-	public function toASCII()
-	{
-		$h = count($this->encoded);
-		$ascii = "";
-
-		for($y=0; $y<$h; $y++) {
-			for($x=0; $x<$h; $x++) {
-				if ($this->encoded[$y][$x]&1) {
-					$ascii .= chr(219).chr(219);
-				} else {
-					$ascii .= "  ";
-				}
-			}
-			$ascii .= "\r\n";
-		}
-
-		return $ascii;
+		$this->renderer = new Renderer($encoded, $this->options);
 	}
 
 	public function toArray()
 	{
-		return $this->encoded;
+		return $this->renderer->toArray();
 	}
 
-	public function fromArray(array $encoded)
+	public function toBase64()
 	{
-		$this->encoded = $encoded;
+		return $this->renderer->toBase64();
+	}
+
+	public function toASCII()
+	{
+		return $this->renderer->toASCII();
 	}
 
 	public function forPChart(\pChart\pDraw $MyPicture, $X = 0, $Y = 0)
 	{
-		$this->createImage($MyPicture->gettheImage(), $X, $Y);
+		$this->renderer->createImage($MyPicture->gettheImage(), $X, $Y);
 	}
 
 	public function toFile(string $filename, int $quality = 90, bool $forWeb = false)
@@ -189,21 +107,21 @@ class QRcode {
 		$ext = strtoupper(substr($filename, -3));
 		($forWeb) AND $filename = null;
 
-		$this->createImage();
+		$this->renderer->createImage();
 
 		switch($ext)
 		{
 			case "PNG":
-				$this->toPNG($filename);
+				$this->renderer->toPNG($filename);
 				break;
 			case "JPG":
-				$this->toJPG($filename, $quality);
+				$this->renderer->toJPG($filename, $quality);
 				break;
 			case "SVG":
-				$this->toSVG($filename);
+				$this->renderer->toSVG($filename);
 				break;
 			default:
-				throw QRException::Std('file extension unsupported!');
+				throw qrException::Std('file extension unsupported!');
 		}
 	}
 
@@ -211,5 +129,4 @@ class QRcode {
 	{
 		$this->toFile($ext, $quality, true);
 	}
-
 }

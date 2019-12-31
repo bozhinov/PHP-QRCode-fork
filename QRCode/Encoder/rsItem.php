@@ -9,13 +9,13 @@
  * Copyright (C) 2010 Dominik Dzienia <deltalab at poczta dot fm>
  *
  * Code modifications by Momchil Bozhinov <momchil at bojinov dot info>
- * Last update - 03.2019
+ * Last update - 31.12.2019
  *
  */
 
-namespace QRCode;
+namespace QRCode\Encoder;
 
-class QRrsItem {
+class rsItem {
 
 	#private $mm;		// Bits per symbol = 8
 	#private $nn;		// Symbols per block (= (1<<mm)-1)  = 255
@@ -40,7 +40,7 @@ class QRrsItem {
 
 		// Check parameter ranges
 		if($this->nroots >= 256){
-			throw QRException::Std("version estimation failed");
+			throw \QRCode\qrException::Std("version estimation failed");
 		}
 
 		// Common code for intializing a Reed-Solomon control block (char or int symbols)
@@ -67,7 +67,7 @@ class QRrsItem {
 		}
 
 		if($sr != 1){
-			throw QRException::Std('field generator polynomial is not primitive!');
+			throw \QRCode\qrException::Std('field generator polynomial is not primitive!');
 		}
 
 		/* Form RS code generator polynomial from its roots */

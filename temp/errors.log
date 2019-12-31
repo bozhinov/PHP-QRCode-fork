@@ -1,0 +1,10 @@
+Processing examples : 
+examples\example.packed.php 
+Test took 0.0063180923461914 secondsexamples\example.qrcode.all.masks.php 
+Test took 0.017928838729858 secondsexamples\example.qrcode.ascii.php 
+Now run 'type ascii.qrcode.txt' in the CMDexamples\example.qrcode.kanji.php 
+mb_string ext is requiredexamples\example.qrcode.long.php 
+Test took 0.026511192321777 secondsexamples\example.qrcode.php 
+Test took 0.061903953552246 secondsexamples\example.qrcode.svg.php 
+Test took 0.010242938995361 secondsexamples\example.qrcode.very.long.php 
+Test took 0.047849893569946 seconds

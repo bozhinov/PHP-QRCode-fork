@@ -1,8 +1,10 @@
 <?php
 
-require_once("QRCode.php");
+require_once("bootstrap.php");
 
-$QRCode = new QRcode(['level' => QR_ECLEVEL_Q, 'size' => 10, 'margin' => 4]);
+use QRCode\QRCode;
+
+$QRCode = new QRCode(['level' => QR_ECLEVEL_Q, 'size' => 10, 'margin' => 4]);
 $text = $QRCode->encode('http://www.test.bg/BLA BLA BLA BLA BLA BLA')->toASCII();
 
 file_put_contents("ascii.qrcode.txt", $text);

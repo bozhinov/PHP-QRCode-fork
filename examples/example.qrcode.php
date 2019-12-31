@@ -52,7 +52,7 @@ $QRCode->forWeb("JPG", $quality = 90);
 
 */
 
-$QRCode = new QRcode(['level' => QR_ECLEVEL_Q, 'size' => 10, 'margin' => 4]);
+$QRCode = new QRCode(['level' => QR_ECLEVEL_Q, 'size' => 10, 'margin' => 4]);
 $QRCode->encode('http://www.test.bg/фффф TEST TEST  TEST  TEST  TEST  TEST  TEST  TEST  TEST ')->toFile("temp/example.QRcode.png");
 
 $QRCode->config(["error_correction" => QR_ECLEVEL_H, "matrix_point_size" => 8, "margin" => 4]);

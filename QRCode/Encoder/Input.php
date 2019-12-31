@@ -9,13 +9,13 @@
  * Copyright (C) 2010 Dominik Dzienia <deltalab at poczta dot fm>
  *
  * Code modifications by Momchil Bozhinov <momchil at bojinov dot info>
- * Last update - 03.2019
+ * Last update - 31.12.2019
  *
  */
 
-namespace QRCode;
+namespace QRCode\Encoder;
 
-class QRInput {
+class Input {
 
 	private $dataStr;
 	private $dataStrLen;
@@ -150,7 +150,7 @@ class QRInput {
 	private function encodeModeKanji($size, $data)
 	{
 		if ($size & 1){
-			throw QRException::Std('Invalid string length for Kanji');
+			throw \QRCode\qrException::Std('Invalid string length for Kanji');
 		}
 
 		$this->bstream[] = [4, 8];
@@ -427,6 +427,6 @@ class QRInput {
 		}
 
 		$package = $this->encodeStreams();
-		return (new QRmask($package))->get();
+		return (new Mask($package))->get();
 	}
 }

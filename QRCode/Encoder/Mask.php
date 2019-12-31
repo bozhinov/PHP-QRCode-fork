@@ -9,13 +9,13 @@
  * Copyright (C) 2010 Dominik Dzienia <deltalab at poczta dot fm>
  *
  * Code modifications by Momchil Bozhinov <momchil at bojinov dot info>
- * Last update - 03.2019
+ * Last update - 31.12.2019
  *
  */
 
-namespace QRCode;
+namespace QRCode\Encoder;
 
-class QRmask {
+class Mask {
 
 	private $runLength;
 	private $width;
@@ -38,7 +38,7 @@ class QRmask {
 		# QR_SPEC_WIDTH_MAX = 177
 		# Allocate only as much as we need
 		$this->runLength = array_fill(0, $this->width + 1, 0);
-		$this->frame = (new QRFrame())->getFrame($package);
+		$this->frame = (new Frame())->getFrame($package);
 	}
 
 	private function writeFormatInformation($maskNo)
