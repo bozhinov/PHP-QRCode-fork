@@ -8,8 +8,6 @@ use QRCode\QRCode;
 $mtime = explode(" ",microtime());
 $starttime = $mtime[1] + $mtime[0];
 
-define("QR_ALL_MASKS", true);
-
 if (function_exists("mb_internal_encoding")){
 	mb_internal_encoding('SJIS');
 } else {

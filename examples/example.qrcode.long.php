@@ -4,8 +4,6 @@ require_once("bootstrap.php");
 
 use QRCode\QRCode;
 
-define("QR_ALL_MASKS", true);
-
 ## Start timer
 $mtime = explode(" ",microtime());
 $starttime = $mtime[1] + $mtime[0];

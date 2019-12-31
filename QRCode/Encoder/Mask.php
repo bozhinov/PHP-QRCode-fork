@@ -238,12 +238,8 @@ class Mask {
 	{
 		$minPenalty = PHP_INT_MAX;
 		$bestMask = [];
-		$masks = range(0, 7);
-		if (!defined("QR_ALL_MASKS")) {
-			$masks = array_rand($masks, 2);
-		}
 
-		foreach($masks as $i) {
+		for($i = 0; $i < 8; $i++){
 
 			$this->masked = $this->frame;
 

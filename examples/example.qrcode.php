@@ -8,10 +8,6 @@ use QRCode\QRCode;
 $mtime = explode(" ",microtime());
 $starttime = $mtime[1] + $mtime[0];
 
-# Force building of all masks instead of trying random ones
-# Slower execution but guarantees you get the least amount of square possible
-define("QR_ALL_MASKS", true);
-
 /* Usage
 
 Single line:
