@@ -30,17 +30,17 @@ class Renderer
 		$base_image = imagecreate($imgH, $imgH);
 
 		// Extract options
-		list($R,$G,$B) = $this->options['bgColor']->get();
-		$bgColorAlloc = imagecolorallocate($base_image,$R,$G,$B);
-		list($R,$G,$B) = $this->options['color']->get();
-		$colorAlloc = imagecolorallocate($base_image,$R,$G,$B);
+		list($R, $G, $B) = $this->options['bgColor']->get();
+		$bgColorAlloc = imagecolorallocate($base_image, $R, $G, $B);
+		list($R, $G, $B) = $this->options['color']->get();
+		$colorAlloc = imagecolorallocate($base_image, $R, $G, $B);
 
 		imagefill($base_image, 0, 0, $bgColorAlloc);
 
-		for($y=0; $y<$h; $y++) {
-			for($x=0; $x<$h; $x++) {
-				if ($this->encoded[$y][$x]&1) {
-					imagesetpixel($base_image,$x+$this->options['margin'],$y+$this->options['margin'],$colorAlloc);
+		for($y = 0; $y < $h; $y++) {
+			for($x = 0; $x < $h; $x++) {
+				if ($this->encoded[$y][$x] & 1) {
+					imagesetpixel($base_image, $x + $this->options['margin'], $y + $this->options['margin'], $colorAlloc);
 				}
 			}
 		}
@@ -105,8 +105,8 @@ class Renderer
 		$h = count($this->encoded);
 		$ascii = "";
 
-		for($y=0; $y<$h; $y++) {
-			for($x=0; $x<$h; $x++) {
+		for($y = 0; $y < $h; $y++) {
+			for($x = 0; $x < $h; $x++) {
 				if ($this->encoded[$y][$x]&1) {
 					$ascii .= chr(219).chr(219);
 				} else {
@@ -122,5 +122,5 @@ class Renderer
 	public function toArray()
 	{
 		return $this->encoded;
-	}	
+	}
 }

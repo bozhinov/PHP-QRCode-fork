@@ -31,7 +31,7 @@ class qrColor
 		$this->R = $R;
 		$this->G = $G;
 		$this->B = $B;
-		$this->Alpha = (1.27 * (100 - $Alpha));
+		$this->Alpha = $Alpha;
 	}
 
 	public function get()
