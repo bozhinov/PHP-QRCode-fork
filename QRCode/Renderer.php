@@ -15,47 +15,44 @@ class Renderer
 		$this->options = $opts;
 	}
 
-	function __destruct()
-	{
-		if (is_resource($this->target_image)){
-			imagedestroy($this->target_image);
-		}
-	}
-
-	public function createImage($img_resource = NULL, $startX = NULL, $startY = NULL)
+	public function createImage($img_resource = NULL, $startX = 0, $startY = 0)
 	{
 		$h = count($this->encoded);
 		$imgH = $h + 2 * $this->options['margin'];
+		$scale = min($this->options['size'], $imgH);
+		$target_h = $imgH * $scale;
+		$this->h = $target_h;
 
-		$base_image = imagecreate($imgH, $imgH);
+		if (is_null($img_resource)){
+			$this->target_image = imagecreate($target_h, $target_h);
+		} else {
+			$this->target_image = $img_resource;
+		}
 
 		// Extract options
 		list($R, $G, $B) = $this->options['bgColor']->get();
-		$bgColorAlloc = imagecolorallocate($base_image, $R, $G, $B);
+		$bgColorAlloc = imagecolorallocate($this->target_image, $R, $G, $B);
 		list($R, $G, $B) = $this->options['color']->get();
-		$colorAlloc = imagecolorallocate($base_image, $R, $G, $B);
+		$colorAlloc = imagecolorallocate($this->target_image, $R, $G, $B);
 
-		imagefill($base_image, 0, 0, $bgColorAlloc);
+		// Draw the background
+		imagefilledrectangle($this->target_image, $startX, $startY, $startX + $target_h, $startY + $target_h, $bgColorAlloc);
 
+		// Render the barcode
 		for($y = 0; $y < $h; $y++) {
 			for($x = 0; $x < $h; $x++) {
 				if ($this->encoded[$y][$x] & 1) {
-					imagesetpixel($base_image, $x + $this->options['margin'], $y + $this->options['margin'], $colorAlloc);
+					imagefilledrectangle(
+						$this->target_image,
+						($x * $scale) + $this->options['margin'] * $scale + $startX,
+						($y * $scale) + $this->options['margin'] * $scale + $startY,
+						(($x + 1) * $scale - 1) + $this->options['margin'] * $scale + $startX,
+						(($y + 1) * $scale - 1) + $this->options['margin'] * $scale + $startY,
+						$colorAlloc
+					);
 				}
 			}
 		}
-
-		$pixelPerPoint = min($this->options['size'], $imgH);
-		$target_h = $imgH * $pixelPerPoint;
-		$this->h = $target_h;
-		if (is_null($img_resource)){
-			$this->target_image = imagecreate($target_h, $target_h);
-			imagecopyresized($this->target_image, $base_image, 0, 0, 0, 0, $target_h, $target_h, $imgH, $imgH);
-		} else {
-			imagecopyresized($img_resource, $base_image, $startX, $startY, 0, 0, $target_h, $target_h, $imgH, $imgH);
-		}
-
-		imagedestroy($base_image);
 	}
 
 	public function toPNG($filename)

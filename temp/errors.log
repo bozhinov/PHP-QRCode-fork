@@ -1,10 +1,10 @@
 Processing examples : 
 examples\example.packed.v1.php 
-Test took 0.0059750080108643 secondsexamples\example.qrcode.all.masks.php 
-Test took 0.018534898757935 secondsexamples\example.qrcode.ascii.php 
+Test took 0.0047750473022461 secondsexamples\example.qrcode.all.masks.php 
+Test took 0.015019178390503 secondsexamples\example.qrcode.ascii.php 
 Now run 'type ascii.qrcode.txt' in the CMDexamples\example.qrcode.kanji.php 
 mb_string ext is requiredexamples\example.qrcode.long.php 
-Test took 0.026365041732788 secondsexamples\example.qrcode.php 
-Test took 0.062987804412842 secondsexamples\example.qrcode.svg.php 
-Test took 0.014681100845337 secondsexamples\example.qrcode.very.long.php 
-Test took 0.042467832565308 seconds
+Test took 0.027829885482788 secondsexamples\example.qrcode.php 
+Test took 0.040820121765137 secondsexamples\example.qrcode.svg.php 
+Test took 0.017570018768311 secondsexamples\example.qrcode.very.long.php 
+Test took 0.056901931762695 seconds
