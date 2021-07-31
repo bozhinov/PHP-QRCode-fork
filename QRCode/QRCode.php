@@ -1,7 +1,7 @@
 <?php
 /*
  * PHP QR Code
- * Last update - 31.12.2019
+ * Last update - 31.07.2021
  */
 
 namespace QRCode;
