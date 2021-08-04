@@ -100,11 +100,6 @@ class QRCode {
 		return $this->renderer->toASCII();
 	}
 
-	public function forPChart(\pChart\pDraw $MyPicture, $X = 0, $Y = 0)
-	{
-		$this->renderer->createImage($MyPicture->gettheImage(), $X, $Y);
-	}
-
 	public function toFile(string $filename, int $quality = 90, bool $forWeb = false)
 	{
 		$ext = strtoupper(substr($filename, -3));
